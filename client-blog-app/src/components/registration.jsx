@@ -1,125 +1,135 @@
-import email from "../components/assets/email.jpeg";
+import { useState } from "react";
+import axios from "axios";
 
 export default function Register() {
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [phone, setPhone] = useState("");
+
+  const sendData = async () => {
+    console.log("Sending data:", {
+      firstName,
+      lastName,
+      email,
+      password,
+      phone,
+    });
+    const body = { firstName, lastName, email, password, phone };
+    try {
+      const res = await axios.post("http://localhost:4000/user/register", body);
+      console.log("Response:", res.data);
+      if (res.data.status === "success") {
+        console.log("Registration successful");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
   return (
     <>
-      <div
-        className="dark-overlay"
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100%",
-          backgroundColor: "rgba(0, 0, 0, 0.2)", // Dark overlay color with 50% opacity
-        }}
-      ></div>
-      <div
-        className="container-fluid d-flex justify-content-center align-items-center"
-        style={{ height: "100vh", background: "skyblue" }}
-      >
-        <div
-          className="login-template"
-          style={{
-            background: "linear-gradient(to right, #aee1f9, #f6ebe6)",
-            borderRadius: "10px",
-            boxShadow: "0 4px 6px rgba(0,0,0,0.4)",
-            width: "30%",
-            padding: "50px",
-            paddingBottom: "30px",
-            paddingTop: "30px",
-          }}
-        >
-          <form>
-            <h2
-              style={{
-                marginBottom: "20px",
-                color: "#333",
-                textAlign: "center",
-              }}
-            >
-              Sign Up
-            </h2>
-            <div className="row g-3">
-              <div className="col-md-6">
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="First name"
-                  aria-label="First name"
-                />
+      <div>
+        <div className="row">
+          <div className="col-4"></div>
+          <div
+            className="col-4"
+            style={{
+              marginTop: 50,
+              borderRadius: 20,
+              border: "2px solid grey",
+              boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.3)",
+              padding: 30,
+            }}
+          >
+            <div className="form">
+              <div className="col-md-12 text-center">
+                <h1>Sign up</h1>
               </div>
-              <div className="col-md-6">
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Last name"
-                  aria-label="Last name"
-                />
-              </div>
-            </div>
-            <br />
-            <div className="row g-3">
-              <div className="col-md-12">
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Email"
-                  aria-label="Email"
-                />
-              </div>
-            </div>
-            <br />
-            <div className="row g-3">
-              <div className="col-md-12">
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Password"
-                  aria-label="Password"
-                />
-              </div>
-            </div>
-            <br />
-            <div className="row g-3">
-              <div className="col-md-12">
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Confirm Password"
-                  aria-label="Confirm Password"
-                />
-              </div>
-            </div>
-            <br />
-            <div className="row g-3">
-              <div className="col-md-12">
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Phone Number"
-                  aria-label="Phone Number"
-                />
-              </div>
-            </div>
-            <br />
-            <div className="row g-3">
-              <div className="col-md-12">
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Aadhaar Card Number"
-                  aria-label="Aadhaar Card Number"
-                />
+              <br />
+              <div className="row">
+                <div className="col">
+                  <div>
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="First Name"
+                      onChange={(e) => {
+                        setFirstName(e.target.value);
+                      }}
+                    />
+                  </div>
+                </div>
+                <div className="col">
+                  <div>
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Last Name"
+                      onChange={(e) => {
+                        setLastName(e.target.value);
+                      }}
+                    />
+                  </div>
+                  <br />
+                </div>
+                <div>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Email"
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                    }}
+                  />
+                  <br />
+                </div>
+                <div>
+                  <input
+                    type="password"
+                    className="form-control"
+                    placeholder="Password"
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                    }}
+                  />
+                  <br />
+                </div>
+                <div>
+                  <input
+                    type="password"
+                    className="form-control"
+                    placeholder="Confirm Password"
+                    onChange={(e) => {
+                      setConfirmPassword(e.target.value);
+                    }}
+                  />
+                  <br />
+                </div>
+                <div>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Phone Number"
+                    onChange={(e) => {
+                      setPhone(e.target.value);
+                    }}
+                  />
+                  <br />
+                </div>
+                <div>
+                  <button
+                    className="btn btn-primary btn-lg d-block mx-auto"
+                    onClick={sendData}
+                  >
+                    Sign up
+                  </button>
+                </div>
               </div>
             </div>
-            <br />
-            <div className="col-auto">
-              <button type="submit" className="btn btn-primary">
-                Submit
-              </button>
-            </div>
-          </form>
+            <div className="col-4"></div>
+          </div>
         </div>
       </div>
     </>
