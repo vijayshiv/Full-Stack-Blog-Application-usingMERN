@@ -85,7 +85,7 @@ export default function Navbar() {
                     } text-xl`}
                     onClick={handleClick}
                   >
-                    Dropdown
+                    Category
                   </NavLink>
                   {isDropdownOpen && (
                     <ul className="absolute bg-white border border-gray-200 rounded-lg mt-2 py-1 w-36">

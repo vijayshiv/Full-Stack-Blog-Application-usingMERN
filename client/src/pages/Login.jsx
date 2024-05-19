@@ -5,7 +5,7 @@ export default function Login() {
   return (
     <>
       <div className="bg-grey-lighter min-h-screen flex flex-col">
-        <div className="container  max-w-sm mx-auto flex-1 flex flex-col items-center justify-center px-2">
+        <div className="container max-w-sm mx-auto mt-20 flex items-center justify-center px-2">
           <div className=" bg-gray-50 px-6 py-8 rounded shadow-black shadow-2xl text-black w-full">
             <h1 className="mb-8 text-3xl text-center font-bold">
               Welcome Back
