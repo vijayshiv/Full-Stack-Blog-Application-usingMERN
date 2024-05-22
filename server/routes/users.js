@@ -19,4 +19,33 @@ router.post("/register", (req, res) => {
   );
 });
 
+router.post("/login", (req, res) => {
+  const query =
+    "SELECT id, email, password, isDeleted FROM register WHERE email = ? AND password = ? AND isDeleted = 0;";
+  const { fullname, email, password } = req.body;
+  const encryptedPassword = String(encrypt.SHA256(password));
+  db.pool.query(query, [email, encryptedPassword], (error, users) => {
+    if (error) {
+      res.send(util.errorMessage(error));
+    } else {
+      if (users.length == 0) {
+        res.send(util.errorMessage("No user found"));
+      } else {
+        const user = users[0];
+        if (user.isDeleted) {
+          res.send(util.errorMessage("Account is deleted"));
+        } else {
+          const payload = { id: user.id };
+          const token = jwt.sign(payload, config.secretKey);
+          const userData = {
+            token,
+            name: `${fullname}`,
+          };
+          res.send(util.successMessage(userData));
+        }
+      }
+    }
+  });
+});
+
 module.exports = router;
