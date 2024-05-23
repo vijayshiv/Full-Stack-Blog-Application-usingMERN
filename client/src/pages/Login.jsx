@@ -1,6 +1,6 @@
 import axios from "axios";
 import React, { useState } from "react";
-import { Link, useAsyncError, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -12,6 +12,10 @@ export default function Login() {
     const body = { email, password };
     const res = await axios.post("http://localhost:4000/user/login", body);
     if (res.data.status == "success") {
+      console.log(res.data["data"]);
+      const { token, fullname } = res.data["data"];
+      sessionStorage.setItem("token", token);
+      sessionStorage.setItem("fullname", fullname);
       console.log("Success");
       navigate("/");
     }

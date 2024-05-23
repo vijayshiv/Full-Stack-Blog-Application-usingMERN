@@ -21,7 +21,7 @@ router.post("/register", (req, res) => {
 
 router.post("/login", (req, res) => {
   const query =
-    "SELECT id, email, password, isDeleted FROM register WHERE email = ? AND password = ? AND isDeleted = 0;";
+    "SELECT id, fullname, email, password, isDeleted FROM register WHERE email = ? AND password = ? AND isDeleted = 0;";
   const { fullname, email, password } = req.body;
   const encryptedPassword = String(encrypt.SHA256(password));
   db.pool.query(query, [email, encryptedPassword], (error, users) => {
@@ -39,7 +39,7 @@ router.post("/login", (req, res) => {
           const token = jwt.sign(payload, config.secretKey);
           const userData = {
             token,
-            name: `${fullname}`,
+            fullname: `${user["fullname"]}`,
           };
           res.send(util.successMessage(userData));
         }
@@ -47,5 +47,6 @@ router.post("/login", (req, res) => {
     }
   });
 });
+
 
 module.exports = router;

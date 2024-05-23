@@ -62,7 +62,7 @@ export default function Home() {
                   {getText(post.desc)}
                 </p>
                 <button className="absolute p-3 text-xl bottom-24 left-10 border-2 border-solid border-black  hover:bg-gray-200 ">
-                  Read More
+                  <Link to={`/post/${post.id}`}>Read More</Link>
                 </button>
               </div>
             </div>

@@ -5,22 +5,6 @@ import { Link, NavLink, useLocation } from "react-router-dom";
 export default function Navbar() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  const toggleDropdown = () => {
-    setIsDropdownOpen(!isDropdownOpen);
-  };
-
-  const handleMouseEnter = () => {
-    setIsDropdownOpen(true);
-  };
-
-  const handleMouseLeave = () => {
-    setIsDropdownOpen(false);
-  };
-
-  const handleClick = () => {
-    setIsDropdownOpen(!isDropdownOpen);
-  };
-
   const isActive = (path) => {
     const location = useLocation();
     return location.pathname === path;
@@ -73,21 +57,15 @@ export default function Navbar() {
                     Write
                   </NavLink>
                 </li>
-                <li
-                  className="relative"
-                  onMouseEnter={handleMouseEnter}
-                  onMouseLeave={handleMouseLeave}
-                >
-                  <NavLink
-                    to="#"
-                    className={`block py-2 pr-4 pl-3 duration-100 text-gray-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 hover:text-blue-700 lg:p-0 ${
-                      isDropdownOpen ? "hover:cursor-pointer" : ""
-                    } text-xl`}
-                    onClick={handleClick}
-                  >
-                    Category
-                  </NavLink>
-                  {isDropdownOpen && (
+                <li>
+                  <details className="dropdown">
+                    <summary
+                      className={`block py-2 pr-4 pl-3 duration-100 text-gray-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 hover:text-blue-700 lg:p-0 ${
+                        isDropdownOpen ? "hover:cursor-pointer" : ""
+                      } text-xl`}
+                    >
+                      Category
+                    </summary>
                     <ul className="absolute bg-white border border-gray-200 rounded-lg mt-2 py-1 w-36">
                       <li>
                         <NavLink
@@ -138,7 +116,7 @@ export default function Navbar() {
                         </NavLink>
                       </li>
                     </ul>
-                  )}
+                  </details>
                 </li>
               </ul>
             </div>
