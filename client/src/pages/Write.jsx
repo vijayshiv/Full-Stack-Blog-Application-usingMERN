@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 
+// referred link for the text area.
+// https://github.com/zenoamaro/react-quill?tab=readme-ov-file#quick-start
+
 export default function Write() {
   const [value, setValue] = useState("");
   return (
@@ -26,7 +29,12 @@ export default function Write() {
             </div>
           </div>
         </div>
-        <div className="basis-1/4">Side bar</div>
+        <div className="basis-1/4">
+          <div className="flex flex-col">
+            <div className="basis-1/2">Publish</div>
+            <div className="basis-1/2">Status</div>
+          </div>
+        </div>
       </div>
     </>
   );
