@@ -1,13 +1,34 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import logo from "../images/logo.png";
-import { Link, NavLink, useLocation } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 
 export default function Navbar() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  const navigate = useNavigate();
+  const location = useLocation(); // Use useLocation here
+
+  useEffect(() => {
+    const token = sessionStorage.getItem("token");
+    const userId = sessionStorage.getItem("id");
+    if (token && userId) {
+      setIsLoggedIn(true);
+    } else {
+      setIsLoggedIn(false);
+    }
+  }, [location]); // Add location as a dependency to useEffect
 
   const isActive = (path) => {
-    const location = useLocation();
     return location.pathname === path;
+  };
+
+  const handleLogout = () => {
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("id");
+    setIsLoggedIn(false);
+    navigate("/login");
   };
 
   return (
@@ -18,22 +39,56 @@ export default function Navbar() {
             <Link to="/" className="flex items-center">
               <img src={logo} className="mr-3 h-16 w-44" alt="Logo" />
             </Link>
+
             <div className="flex items-center lg:order-2">
-              <Link
-                to="/login"
-                className="text-gray-800 hover:bg-gray-50 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-xl px-4 lg:px-5 py-2 lg:py-2.5 mr-2 focus:outline-none"
-              >
-                Log in
-              </Link>
-              <Link
-                to="/register"
-                className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-orange-300 font-medium rounded-lg text-xl px-4 lg:px-5 py-2 lg:py-2.5 mr-2 focus:outline-none"
-              >
-                Sign up
-              </Link>
+              {isLoggedIn ? (
+                <button
+                  onClick={handleLogout}
+                  className="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-orange-300 font-medium rounded-lg text-xl px-4 lg:px-5 py-2 lg:py-2.5 mr-2 focus:outline-none"
+                >
+                  Logout
+                </button>
+              ) : (
+                <>
+                  <Link
+                    to="/login"
+                    className="text-gray-800 hover:bg-gray-50 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-xl px-4 lg:px-5 py-2 lg:py-2.5 mr-2 focus:outline-none"
+                  >
+                    Log in
+                  </Link>
+                  <Link
+                    to="/register"
+                    className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-orange-300 font-medium rounded-lg text-xl px-4 lg:px-5 py-2 lg:py-2.5 mr-2 focus:outline-none"
+                  >
+                    Sign up
+                  </Link>
+                </>
+              )}
             </div>
+
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="inline-flex items-center p-2 ml-3 text-sm text-gray-500 rounded-lg lg:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200"
+            >
+              <span className="sr-only">Open main menu</span>
+              <svg
+                className="w-6 h-6"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M3 5h14a1 1 0 110 2H3a1 1 0 110-2zm0 4h14a1 1 0 110 2H3a1 1 0 110-2zm0 4h14a1 1 0 110 2H3a1 1 0 110-2z"
+                  clipRule="evenodd"
+                ></path>
+              </svg>
+            </button>
+
             <div
-              className="hidden justify-between items-center w-full lg:flex lg:w-auto lg:order-1"
+              className={`${
+                isMobileMenuOpen ? "block" : "hidden"
+              } justify-between items-center w-full lg:flex lg:w-auto lg:order-1`}
               id="mobile-menu-2"
             >
               <ul className="flex flex-col mt-4 font-medium lg:flex-row lg:space-x-8 lg:mt-0">
@@ -51,7 +106,7 @@ export default function Navbar() {
                   <NavLink
                     to="/write"
                     className={`block py-2 pr-4 pl-3 duration-200 ${
-                      isActive("/Write") ? "text-blue-700" : "text-gray-700"
+                      isActive("/write") ? "text-blue-700" : "text-gray-700"
                     } border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 hover:text-blue-700 lg:p-0 text-xl`}
                   >
                     Write
@@ -60,62 +115,65 @@ export default function Navbar() {
                 <li>
                   <details className="dropdown">
                     <summary
+                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                       className={`block py-2 pr-4 pl-3 duration-100 text-gray-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 hover:text-blue-700 lg:p-0 ${
                         isDropdownOpen ? "hover:cursor-pointer" : ""
                       } text-xl`}
                     >
                       Category
                     </summary>
-                    <ul className="absolute bg-white border border-gray-200 rounded-lg mt-2 py-1 w-36">
-                      <li>
-                        <NavLink
-                          to="/?cat=art"
-                          className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                        >
-                          Art
-                        </NavLink>
-                      </li>
-                      <li>
-                        <NavLink
-                          to="/?cat=technology"
-                          className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                        >
-                          Technology
-                        </NavLink>
-                      </li>
-                      <li>
-                        <NavLink
-                          to="/?cat=science"
-                          className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                        >
-                          Science
-                        </NavLink>
-                      </li>
-                      <li>
-                        <NavLink
-                          to="/?cat=design"
-                          className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                        >
-                          Design
-                        </NavLink>
-                      </li>
-                      <li>
-                        <NavLink
-                          to="/?cat=food"
-                          className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                        >
-                          Food
-                        </NavLink>
-                      </li>
-                      <li>
-                        <NavLink
-                          to="/?cat=cinema"
-                          className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                        >
-                          Cinema
-                        </NavLink>
-                      </li>
-                    </ul>
+                    {isDropdownOpen && (
+                      <ul className="absolute bg-white border border-gray-200 rounded-lg mt-2 py-1 w-36">
+                        <li>
+                          <NavLink
+                            to="/?cat=art"
+                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                          >
+                            Art
+                          </NavLink>
+                        </li>
+                        <li>
+                          <NavLink
+                            to="/?cat=technology"
+                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                          >
+                            Technology
+                          </NavLink>
+                        </li>
+                        <li>
+                          <NavLink
+                            to="/?cat=science"
+                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                          >
+                            Science
+                          </NavLink>
+                        </li>
+                        <li>
+                          <NavLink
+                            to="/?cat=design"
+                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                          >
+                            Design
+                          </NavLink>
+                        </li>
+                        <li>
+                          <NavLink
+                            to="/?cat=food"
+                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                          >
+                            Food
+                          </NavLink>
+                        </li>
+                        <li>
+                          <NavLink
+                            to="/?cat=cinema"
+                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                          >
+                            Cinema
+                          </NavLink>
+                        </li>
+                      </ul>
+                    )}
                   </details>
                 </li>
               </ul>

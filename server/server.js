@@ -1,10 +1,12 @@
 const express = require("express");
 const app = express();
 const cors = require("cors");
+const morgan = require("morgan");
 
 const PORT = 4000;
 
 app.use(cors());
+app.use(morgan("tiny"));
 app.use(express.json());
 
 const userRouter = require("./routes/users");
