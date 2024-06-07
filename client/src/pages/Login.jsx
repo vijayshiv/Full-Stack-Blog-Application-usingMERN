@@ -13,9 +13,11 @@ export default function Login() {
     const res = await axios.post("http://localhost:4000/user/login", body);
     if (res.data.status == "success") {
       console.log(res.data["data"]);
-      const { token, fullname } = res.data["data"];
+      const { token, id } = res.data["data"];
+      localStorage.setItem("token", token);
+      localStorage.setItem("id", id);
       sessionStorage.setItem("token", token);
-      sessionStorage.setItem("fullname", fullname);
+      sessionStorage.setItem("id", id);
       console.log("Success");
       navigate("/");
     }
