@@ -6,8 +6,9 @@ const jwt = require("jsonwebtoken");
 const config = require("../config");
 
 const router = express.Router();
+
 router.post("/register", (req, res) => {
-  const query = "INSERT INTO register(fullname, email, password) VALUES(?,?,?)";
+  const query = "INSERT INTO users(fullname, email, password) VALUES(?,?,?)";
   const { fullname, email, password } = req.body;
   const encryptedPassword = String(encrypt.SHA256(password));
   db.pool.execute(
@@ -21,8 +22,8 @@ router.post("/register", (req, res) => {
 
 router.post("/login", (req, res) => {
   const query =
-    "SELECT id, fullname, email, password, isDeleted FROM register WHERE email = ? AND password = ? AND isDeleted = 0;";
-  const { fullname, email, password } = req.body;
+    "SELECT id, fullname, email, password, isDeleted FROM users WHERE email = ? AND password = ? AND isDeleted = 0;";
+  const { email, password } = req.body;
   const encryptedPassword = String(encrypt.SHA256(password));
   db.pool.query(query, [email, encryptedPassword], (error, users) => {
     if (error) {
@@ -35,11 +36,13 @@ router.post("/login", (req, res) => {
         if (user.isDeleted) {
           res.send(util.errorMessage("Account is deleted"));
         } else {
-          const payload = { id: user.id };
+          const payload = {
+            id: user.id,
+          };
           const token = jwt.sign(payload, config.secretKey);
           const userData = {
             token,
-            fullname: `${user["fullname"]}`,
+            id: user.id,
           };
           res.send(util.successMessage(userData));
         }
@@ -47,6 +50,5 @@ router.post("/login", (req, res) => {
     }
   });
 });
-
 
 module.exports = router;

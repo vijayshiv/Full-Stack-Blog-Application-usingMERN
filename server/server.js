@@ -10,6 +10,9 @@ app.use(express.json());
 const userRouter = require("./routes/users");
 app.use("/user", userRouter);
 
+const postRouter = require("./routes/posts");
+app.use("/posts", postRouter);
+
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server started on PORT : ${PORT}`);
 });
