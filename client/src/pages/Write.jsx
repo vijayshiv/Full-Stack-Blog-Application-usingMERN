@@ -1,21 +1,22 @@
 import React, { useState } from "react";
 import axios from "axios";
 import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css"; // Import styles for ReactQuill
+import "react-quill/dist/quill.snow.css";
 
 export default function Write() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [img, setImg] = useState(""); // Add state for image if needed
-
+  const [img, setImg] = useState("");
+  const [category, setCategory] = useState("");
   const write = async () => {
     const body = {
       title,
       content,
-      img, // Include image if needed
+      img,
+      category,
     };
 
-    const token = localStorage.getItem("token"); // Retrieve the token from localStorage
+    const token = localStorage.getItem("token");
 
     try {
       const res = await axios.post("http://localhost:4000/my-post", body, {
@@ -23,12 +24,11 @@ export default function Write() {
           token: token,
         },
       });
-      console.log(res.data); // Handle response
+      console.log(res.data);
     } catch (error) {
-      console.error(error); // Handle error
+      console.error(error);
     }
   };
-
   return (
     <>
       <div className="flex flex-row">
@@ -42,15 +42,12 @@ export default function Write() {
                 type="text"
                 className="ml-3 border-2"
                 value={title}
-                onChange={(e) => {
-                  console.log(e.target.value);
-                  setTitle(e.target.value);
-                }}
+                onChange={(e) => setTitle(e.target.value)}
               />
             </div>
             <div className="basis-3/4 mt-4">
               <ReactQuill
-                className="h-80 w-full"
+                className="h-48 w-auto overflow-y"
                 theme="snow"
                 value={content}
                 onChange={setContent}
@@ -78,13 +75,27 @@ export default function Write() {
             </div>
           </div>
           <div className="px-10">
-            <h1>Category</h1>
+            <h1>
+              <b>Category</b>
+            </h1>
             <div className="cat">
-              <input type="radio" name="cat" value="art" id="art" />
+              <input
+                type="radio"
+                name="cat"
+                value="art"
+                id="art"
+                onChange={() => setCategory("art")}
+              />
               <label htmlFor="art">Art</label>
             </div>
             <div className="cat">
-              <input type="radio" name="cat" value="science" id="science" />
+              <input
+                type="radio"
+                name="cat"
+                value="science"
+                id="science"
+                onChange={() => setCategory("science")}
+              />
               <label htmlFor="science">Science</label>
             </div>
             <div className="cat">
@@ -93,19 +104,38 @@ export default function Write() {
                 name="cat"
                 value="technology"
                 id="technology"
+                onChange={() => setCategory("technology")}
               />
               <label htmlFor="technology">Technology</label>
             </div>
             <div className="cat">
-              <input type="radio" name="cat" value="cinema" id="cinema" />
+              <input
+                type="radio"
+                name="cat"
+                value="cinema"
+                id="cinema"
+                onChange={() => setCategory("cinema")}
+              />
               <label htmlFor="cinema">Cinema</label>
             </div>
             <div className="cat">
-              <input type="radio" name="cat" value="design" id="design" />
+              <input
+                type="radio"
+                name="cat"
+                value="design"
+                id="design"
+                onChange={() => setCategory("design")}
+              />
               <label htmlFor="design">Design</label>
             </div>
             <div className="cat">
-              <input type="radio" name="cat" value="food" id="food" />
+              <input
+                type="radio"
+                name="cat"
+                value="food"
+                id="food"
+                onChange={() => setCategory("food")}
+              />
               <label htmlFor="food">Food</label>
             </div>
           </div>
