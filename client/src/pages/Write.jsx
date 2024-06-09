@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
@@ -6,25 +6,42 @@ import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-export default function Write() {
+const Write = () => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [img, setImg] = useState(null);
   const [category, setCategory] = useState("");
   const navigate = useNavigate();
 
-  const write = async () => {
-    const strippedContent = content.replace(/<[^>]+>/g, "");
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login");
+    }
+  }, [navigate]);
+
+  const handleSubmit = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    // Ensure all required fields are filled
+    if (!title || !content || !img || !category) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+
+    // Create form data
     const formData = new FormData();
     formData.append("title", title);
-    formData.append("content", strippedContent);
+    formData.append("content", content);
     formData.append("image", img);
     formData.append("category", category);
 
-    const token = localStorage.getItem("token");
-
     try {
-      const res = await axios.post(
+      const response = await axios.post(
         "http://localhost:4000/posts/my-post",
         formData,
         {
@@ -34,29 +51,11 @@ export default function Write() {
           },
         }
       );
-      console.log(res.data);
+      console.log(response.data);
       navigate("/");
     } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const validateInputs = () => {
-    if (!title || !content || !img || !category) {
-      alert("Please fill in all fields");
-      return false;
-    }
-    return true;
-  };
-
-  const handleSubmit = () => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      toast.error("Please log in to publish a post");
-      return;
-    }
-    if (validateInputs()) {
-      write();
+      console.error("Error creating post:", error);
+      toast.error("An error occurred. Please try again.");
     }
   };
 
@@ -198,6 +197,6 @@ export default function Write() {
       </div>
     </>
   );
-}
+};
 
-/**/
+export default Write;

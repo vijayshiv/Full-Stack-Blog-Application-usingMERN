@@ -54,7 +54,10 @@ const Post = () => {
           src={`http://localhost:4000/images/${post.img}`}
           alt={post.title}
         />
-        <p className="text-2xl text-justify mt-8">{post.content}</p>
+        <p
+          className="text-2xl text-justify mt-8"
+          dangerouslySetInnerHTML={{ __html: post.content }}
+        />
         <br />
         <div className="flex justify-between text-3xl">
           <p className="text-left">

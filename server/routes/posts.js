@@ -8,6 +8,31 @@ const upload = multer({ dest: "images/" }); // Destination folder for uploaded i
 
 const router = express.Router();
 
+const verifyToken = (req, res, next) => {
+  // Get token from headers
+  const token = req.headers["token"];
+
+  // Check if token is provided
+  if (!token) {
+    return res
+      .status(401)
+      .json({ status: "error", message: "Unauthorized: No token provided" });
+  }
+
+  try {
+    // Verify token
+    const decoded = jwt.verify(token, config.secretKey);
+    // Attach decoded payload to request object
+    req.user = decoded;
+    next(); // Move to the next middleware
+  } catch (error) {
+    // Token is invalid
+    return res
+      .status(401)
+      .json({ status: "error", message: "Unauthorized: Invalid token" });
+  }
+};
+
 // Get all posts
 router.get("/all", (req, res) => {
   const query = "SELECT post_id, title, content, img FROM posts;";
@@ -21,25 +46,21 @@ router.get("/all", (req, res) => {
 });
 
 // Create a new post
-router.post("/my-post", upload.single("image"), (req, res) => {
-  const token = req.headers["token"];
-  if (!token || token.length == 0) {
-    res.send(util.errorMessage("Token not found"));
-    return;
-  }
+router.post("/my-post", verifyToken, upload.single("image"), (req, res) => {
+  // Use req.user.userId to get the user ID
+  const userId = req.user.id;
+
   try {
     const query =
       "INSERT INTO posts(title, content, img, category, user_id) VALUES (?,?,?,?,?);";
-    const payload = jwt.verify(token, config.secretKey);
     const { title, content, category } = req.body;
     const img = req.file ? req.file.filename : null; // Retrieve filename from multer
-    const { id } = payload;
     db.pool.execute(
       query,
-      [title, content, img, category, id],
+      [title, content, img, category, userId], // Use userId obtained from req.user
       (error, data) => {
         if (error) {
-          res.send(util.errorMessage(error));
+          res.send(util.errorMessage(error.message));
         } else {
           res.send(util.successMessage(data));
         }
