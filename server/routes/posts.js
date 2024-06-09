@@ -18,7 +18,6 @@ const verifyToken = (req, res, next) => {
       .status(401)
       .json({ status: "error", message: "Unauthorized: No token provided" });
   }
-
   try {
     // Verify token
     const decoded = jwt.verify(token, config.secretKey);
