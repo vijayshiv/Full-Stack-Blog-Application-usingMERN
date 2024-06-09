@@ -26,6 +26,8 @@ export default function Login() {
         sessionStorage.setItem("id", id);
         toast.success("Login successful.");
         navigate("/");
+      } else {
+        toast.error("Invalid email or password. Please try again.");
       }
     } catch (error) {
       console.error("Login failed:", error);

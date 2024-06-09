@@ -43,29 +43,29 @@ const Post = () => {
     <>
       <ToastContainer />
 
-      <div className="container mx-auto mt-12">
+      <div className="container mx-auto mt-16">
         <h1 className="font-bold text-4xl lg:text-6xl text-blue-900 mb-8 leading-tight">
           {post.title}
         </h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-          <div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+          <div className="flex justify-center lg:justify-start">
             <img
-              className="rounded-md shadow-md object-cover h-auto w-full"
+              className="rounded-md shadow-md object-cover mt-5 h-auto max-w-full"
               src={`http://localhost:4000/images/${post.img}`}
               alt={post.title}
             />
           </div>
           <div>
             <div
-              className="text-lg lg:text-xl text-justify mt-4 lg:mt-0"
+              className="text-lg lg:text-xl text-justify mt-4"
               dangerouslySetInnerHTML={{ __html: post.content }}
             />
             <div className="flex justify-between text-lg lg:text-xl mt-8">
+              <p></p>
               <p>
-                <strong>Category:</strong> {post.category}
-              </p>
-              <p>
-                <strong>User ID:</strong> {post.user_id}
+                <span style={{ textTransform: "uppercase" }}>
+                  <strong>Category : </strong> {post.category}
+                </span>
               </p>
             </div>
           </div>
