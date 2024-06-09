@@ -57,10 +57,10 @@ const Post = () => {
           </div>
           <div className="lg:pl-8">
             <div
-              className="text-lg lg:text-xl text-justify mt-4"
+              className="text-lg lg:text-2xl text-justify mt-4"
               dangerouslySetInnerHTML={{ __html: post.content }}
             />
-            <div className="flex justify-between text-lg lg:text-xl mt-8">
+            <div className="flex justify-between text-lg lg:text-xl mt-8 float-right">
               <p></p>
               <p>
                 <span style={{ textTransform: "uppercase" }}>
