@@ -12,7 +12,7 @@ createdTimestamp DATETIME default CURRENT_TIMESTAMP
 CREATE TABLE posts(
 post_id INT PRIMARY KEY AUTO_INCREMENT,
 title VARCHAR(100),
-content VARCHAR(1000),
+content VARCHAR(2048),
 img VARCHAR(255),
 category VARCHAR(20),
 user_id INT REFERENCES users(id), 
@@ -28,6 +28,8 @@ USE blogapp;
 SELECT * FROM users;
 SELECT * FROM posts;
 truncate table posts;
+truncate table users;
+delete from posts where post_id = 4;
 
 
 

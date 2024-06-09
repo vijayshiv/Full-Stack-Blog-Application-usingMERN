@@ -12,10 +12,10 @@ export default function Home() {
         if (res.data.status === "success") {
           setPosts(res.data.data);
         } else {
-          console.error("Failed to fetch posts");
+          console.log("Failed to fetch posts");
         }
       } catch (error) {
-        console.error("Error fetching posts:", error);
+        console.log("Error fetching posts:", error);
       }
     };
 
@@ -25,9 +25,8 @@ export default function Home() {
   return (
     <div>
       <div>
-        {posts.map((post) => {
-          const isOdd = post.post_id % 2 !== 0;
-          console.log("Is post_id odd?", isOdd); // Add this line for troubleshooting
+        {posts.map((post, index) => {
+          const isOdd = index % 2 !== 0;
           return (
             <div
               key={post.post_id}
@@ -40,15 +39,15 @@ export default function Home() {
                 <div className="relative image-wrapper">
                   <img
                     className="m-10 relative z-10 h-[370px] w-[290px]"
-                    src={post.img}
-                    alt="Fine"
+                    src={`http://localhost:4000/images/${post.img}`}
+                    alt={post.title}
                   />
                 </div>
               </div>
 
               <div className="flex-grow">
                 <Link to={`/post/${post.post_id}`}>
-                  <h1 className="px-10 text-justify font-bold text-5xl mt-10 py-10">
+                  <h1 className="px-10 text-left font-bold text-5xl mt-10 py-10 ">
                     {post.title}
                   </h1>
                 </Link>
