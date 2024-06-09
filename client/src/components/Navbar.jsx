@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import logo from "../images/logo.png";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 
-export default function Navbar() {
+const Navbar = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -105,13 +105,13 @@ export default function Navbar() {
               } justify-between items-center w-full lg:flex lg:w-auto lg:order-1`}
               id="mobile-menu-2"
             >
-              <ul className="flex flex-col mt-4 font-medium lg:flex-row lg:space-x-8 lg:mt-0">
+              <ul className="flex flex-col mt-4 font-medium lg:flex-row lg:space-x-8 lg:mt-0 ">
                 <li>
                   <NavLink
                     to="/"
                     className={`block py-2 pr-4 pl-3 duration-200 ${
                       isActive("/") ? "text-blue-700" : "text-gray-700"
-                    } border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 hover:text-blue-700 lg:p-0 text-xl`}
+                    } border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 hover:text-blue-700 lg:p-0 text-3xl`}
                   >
                     Home
                   </NavLink>
@@ -121,7 +121,7 @@ export default function Navbar() {
                     to="/write"
                     className={`block py-2 pr-4 pl-3 duration-200 ${
                       isActive("/write") ? "text-blue-700" : "text-gray-700"
-                    } border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 hover:text-blue-700 lg:p-0 text-xl`}
+                    } border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 hover:text-blue-700 lg:p-0 text-3xl`}
                   >
                     Write
                   </NavLink>
@@ -132,9 +132,23 @@ export default function Navbar() {
                       onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                       className={`block py-2 pr-4 pl-3 duration-100 text-gray-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 hover:text-blue-700 lg:p-0 ${
                         isDropdownOpen ? "hover:cursor-pointer" : ""
-                      } text-xl`}
+                      } text-3xl`}
                     >
                       Category
+                      <svg
+                        className={`w-6 h-6 inline-block ml-1 transition-transform transform ${
+                          isDropdownOpen ? "rotate-180" : ""
+                        }`}
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M10 12a1 1 0 01-.7-.29l-4-4a1 1 0 111.42-1.42L10 10.59l3.29-3.3a1 1 0 111.42 1.42l-4 4a1 1 0 01-.71.29z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
                     </summary>
                     {isDropdownOpen && (
                       <ul className="absolute bg-white border border-gray-200 rounded-lg mt-2 py-1 w-36">
@@ -197,4 +211,6 @@ export default function Navbar() {
       </header>
     </>
   );
-}
+};
+
+export default Navbar;
