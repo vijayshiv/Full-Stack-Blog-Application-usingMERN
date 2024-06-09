@@ -44,8 +44,8 @@ const Post = () => {
       <ToastContainer />
 
       <div className="container mx-auto mt-16">
-        <h1 className="font-bold text-4xl lg:text-6xl text-blue-900 mb-8 leading-tight">
-          {post.title}
+        <h1 className="font-bold text-4xl lg:text-6xl text-blue-900 mb-8 leading-tight font-serif">
+          "{post.title}"
         </h1>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
           <div className="flex justify-center lg:justify-start">
@@ -55,7 +55,7 @@ const Post = () => {
               alt={post.title}
             />
           </div>
-          <div>
+          <div className="lg:pl-8">
             <div
               className="text-lg lg:text-xl text-justify mt-4"
               dangerouslySetInnerHTML={{ __html: post.content }}

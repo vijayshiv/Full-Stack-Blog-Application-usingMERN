@@ -60,7 +60,7 @@ export default function Home() {
               </h1>
             </Link>
             <p
-              className="px-10 text-2xl text-justify"
+              className="px-10 text-xl text-justify "
               dangerouslySetInnerHTML={{ __html: truncatedContent }}
             />
             <div
