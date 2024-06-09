@@ -33,7 +33,7 @@ export default function Home() {
         return (
           <div
             key={post.post_id}
-            className="flex flex-col md:flex-row text-2xl font-sans list-disc"
+            className="flex flex-col md:flex-row text-xl font-sans list-disc"
             style={{
               flexDirection: isOdd ? "row" : "row-reverse",
             }}
@@ -50,7 +50,7 @@ export default function Home() {
 
             <div className="flex-grow">
               <Link to={`/post/${post.post_id}`}>
-                <h1 className="px-10 text-left font-bold text-5xl mt-10 py-10 ">
+                <h1 className="px-10 text-left font-bold text-3xl mt-10 py-10 ">
                   {post.title}
                 </h1>
               </Link>
