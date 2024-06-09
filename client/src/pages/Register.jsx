@@ -1,53 +1,94 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 export default function Register() {
   const [fullname, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-
   const navigate = useNavigate();
+
   const submitData = async () => {
-    const body = { fullname, email, password };
-    const req = await axios.post("http://localhost:4000/user/register", body);
-    if (req.data.status == "success") {
-      console.log("success");
-      navigate("/login");
+    if (
+      !fullname.trim() ||
+      !email.trim() ||
+      !password.trim() ||
+      !confirmPassword.trim()
+    ) {
+      toast.error("Please fill in all fields.");
+      return;
+    }
+
+    // Validate email format
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(email.trim())) {
+      toast.error("Please enter a valid email address.");
+      return;
+    }
+
+    // Validate password length
+    if (password.trim().length < 6) {
+      toast.error("Password must be at least 6 characters long.");
+      return;
+    }
+
+    // Validate password match
+    if (password !== confirmPassword) {
+      toast.error("Passwords do not match.");
+      return;
+    }
+
+    try {
+      const body = { fullname, email, password };
+      const req = await axios.post("http://localhost:4000/user/register", body);
+      if (req.data.status === "success") {
+        toast.success("Registration successful.");
+        navigate("/login");
+      } else {
+        toast.error("Registration failed. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error occurred:", error);
+      toast.error("An error occurred. Please try again later.");
     }
   };
 
   return (
     <>
+      <ToastContainer />
       <div className="bg-grey-lighter min-h-screen flex flex-col">
-        <div className="container  max-w-sm mx-auto flex mt-20 items-center justify-center px-2">
-          <div className=" bg-gray-50 px-6 py-8 rounded shadow-blue-800 shadow-2xl text-black w-full">
+        <div className="container max-w-sm mx-auto flex mt-20 items-center justify-center px-2">
+          <div className="bg-gray-50 px-6 py-8 rounded shadow-blue-800 shadow-2xl text-black w-full">
             <h1 className="mb-8 text-3xl text-center font-bold">Sign up</h1>
             <input
               type="text"
               className="block border border-gray-950 w-full p-3 rounded mb-4"
               placeholder="Full Name"
-              onChange={(e) => {
-                console.log(e.target.value);
-                setFullName(e.target.value);
-              }}
+              value={fullname}
+              onChange={(e) => setFullName(e.target.value)}
             />
             <input
               type="text"
-              className="block border  border-gray-950 w-full p-3 rounded mb-4"
+              className="block border border-gray-950 w-full p-3 rounded mb-4"
               placeholder="Email"
+              value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
             <input
               type="password"
-              className="block border  border-gray-950 w-full p-3 rounded mb-4"
+              className="block border border-gray-950 w-full p-3 rounded mb-4"
               placeholder="Password"
+              value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
             <input
               type="password"
-              className="block border  border-gray-950 w-full p-3 rounded mb-4"
+              className="block border border-gray-950 w-full p-3 rounded mb-4"
               placeholder="Confirm Password"
+              value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
             />
             <button
@@ -57,10 +98,9 @@ export default function Register() {
             >
               Create Account
             </button>
-            Already have an account?
-            <Link to="/login" className="underline ml-2">
-              Login
-            </Link>
+            <p className="text-center mt-2">
+              Already have an account? <Link to="/login">Login</Link>
+            </p>
           </div>
         </div>
       </div>
