@@ -95,9 +95,6 @@ const Write = () => {
                 onChange={handleChange}
               />
             </div>
-            <div className="mt-2 text-sm text-gray-500">
-              Total : {charCount}/{maxCharCount}
-            </div>
           </div>
         </div>
         <div className="md:basis-1/4 p-4">
@@ -208,6 +205,9 @@ const Write = () => {
             </div>
           </div>
         </div>
+      </div>
+      <div className="text-sm text-gray-500 ml-4 mt-2 text-left">
+        Total characters: {charCount}/{maxCharCount}
       </div>
     </>
   );

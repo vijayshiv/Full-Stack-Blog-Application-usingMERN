@@ -80,4 +80,18 @@ router.get("/post/:id", (req, res) => {
   });
 });
 
+// Get all posts by category
+router.get("/by-category/:category", (req, res) => {
+  const { category } = req.params;
+  const query =
+    "SELECT post_id, title, content, img FROM posts WHERE category = ?;";
+  db.pool.query(query, [category], (error, data) => {
+    if (error) {
+      res.send(util.errorMessage(error));
+    } else {
+      res.send(util.successMessage(data));
+    }
+  });
+});
+
 module.exports = router;

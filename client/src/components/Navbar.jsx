@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import logo from "../images/logo.png";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 
@@ -6,9 +6,10 @@ export default function Navbar() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const dropdownRef = useRef(null);
 
   const navigate = useNavigate();
-  const location = useLocation(); // Use useLocation here
+  const location = useLocation();
 
   useEffect(() => {
     const token = sessionStorage.getItem("token");
@@ -18,7 +19,20 @@ export default function Navbar() {
     } else {
       setIsLoggedIn(false);
     }
-  }, [location]); // Add location as a dependency to useEffect
+  }, [location]);
+
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const handleClickOutside = (event) => {
+    if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      setIsDropdownOpen(false);
+    }
+  };
 
   const isActive = (path) => {
     return location.pathname === path;
@@ -113,7 +127,7 @@ export default function Navbar() {
                   </NavLink>
                 </li>
                 <li>
-                  <details className="dropdown">
+                  <details ref={dropdownRef} className="dropdown">
                     <summary
                       onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                       className={`block py-2 pr-4 pl-3 duration-100 text-gray-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 hover:text-blue-700 lg:p-0 ${
