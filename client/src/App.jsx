@@ -7,6 +7,7 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Write from "./pages/Write";
 import Post from "./pages/Post"; // Ensure this is correctly imported
+import Profile from "./pages/Profile";
 import Layout from "./Layout";
 
 const router = createBrowserRouter([
@@ -19,6 +20,7 @@ const router = createBrowserRouter([
       { path: "/login", element: <Login /> },
       { path: "/post/:id", element: <Post /> }, // Ensure the path is correctly set to /post/:id
       { path: "/write", element: <Write /> },
+      { path: "/profile", element: <Profile /> },
     ],
   },
 ]);
