@@ -26,6 +26,10 @@ export default function Home() {
     <div>
       {posts.map((post, index) => {
         const isOdd = index % 2 !== 0;
+        const truncatedContent =
+          post.content.length > 220
+            ? post.content.substring(0, 220) + "..."
+            : post.content;
         return (
           <div
             key={post.post_id}
@@ -52,7 +56,7 @@ export default function Home() {
               </Link>
               <p
                 className="px-10 text-2xl text-justify"
-                dangerouslySetInnerHTML={{ __html: post.content }}
+                dangerouslySetInnerHTML={{ __html: truncatedContent }}
               />
               <div
                 className={`flex ${

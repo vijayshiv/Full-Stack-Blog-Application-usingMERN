@@ -14,8 +14,9 @@ const Write = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
     if (!token) {
+      toast.error("Please log in to add a post.");
       navigate("/login");
     }
   }, [navigate]);
@@ -23,6 +24,7 @@ const Write = () => {
   const handleSubmit = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
+      toast.error("Please log in to add a post.");
       navigate("/login");
       return;
     }
