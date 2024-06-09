@@ -1,1 +1,12 @@
-node_modules
+# Ignore node_modules
+node_modules/
+
+# Ignore log files
+logs/
+*.log
+
+# Ignore environment variables file
+.env
+
+# Ignore the images folder
+server/images/
