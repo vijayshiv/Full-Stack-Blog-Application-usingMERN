@@ -16,15 +16,15 @@ const Post = () => {
           `http://localhost:4000/posts/post/${id}`
         );
 
-        console.log("Response from server:", response.data); // Log response data
+        console.log("Response from server:", response.data);
         if (response.data.status === "success") {
           console.log(response.data.data[0]);
-          setPost(response.data.data[0]); // Accessing data correctly
+          setPost(response.data.data[0]);
         } else {
           toast.error("Failed to fetch post");
         }
       } catch (error) {
-        console.error("Error fetching post:", error); // Log error
+        console.error("Error fetching post:", error);
         setError(error.message);
       }
     };
@@ -43,29 +43,32 @@ const Post = () => {
     <>
       <ToastContainer />
 
-      <div className="post mt-12">
-        <h1 className="font-bold text-7xl text-left mb-8 leading-tight tracking-wide text-blue-900 filter ">
+      <div className="container mx-auto mt-12">
+        <h1 className="font-bold text-4xl lg:text-6xl text-blue-900 mb-8 leading-tight">
           {post.title}
         </h1>
-
-        <br />
-        <img
-          className="h-2/3 w-2/3 rounded-lg shadow-lg object-cover"
-          src={`http://localhost:4000/images/${post.img}`}
-          alt={post.title}
-        />
-        <p
-          className="text-2xl text-justify mt-8"
-          dangerouslySetInnerHTML={{ __html: post.content }}
-        />
-        <br />
-        <div className="flex justify-between text-3xl">
-          <p className="text-left">
-            <strong>Category:</strong> {post.category}
-          </p>
-          <p className="text-right">
-            <strong>User ID:</strong> {post.user_id}
-          </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+          <div>
+            <img
+              className="rounded-md shadow-md object-cover h-auto w-full"
+              src={`http://localhost:4000/images/${post.img}`}
+              alt={post.title}
+            />
+          </div>
+          <div>
+            <div
+              className="text-lg lg:text-xl text-justify mt-4 lg:mt-0"
+              dangerouslySetInnerHTML={{ __html: post.content }}
+            />
+            <div className="flex justify-between text-lg lg:text-xl mt-8">
+              <p>
+                <strong>Category:</strong> {post.category}
+              </p>
+              <p>
+                <strong>User ID:</strong> {post.user_id}
+              </p>
+            </div>
+          </div>
         </div>
       </div>
       <hr className="border-2 border-gray-700 bg-gray-700 h-px w-auto my-8" />

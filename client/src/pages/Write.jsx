@@ -11,6 +11,8 @@ const Write = () => {
   const [content, setContent] = useState("");
   const [img, setImg] = useState(null);
   const [category, setCategory] = useState("");
+  const [charCount, setCharCount] = useState(0);
+  const [maxCharCount] = useState(4096); // Maximum character count
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -20,6 +22,13 @@ const Write = () => {
       navigate("/login");
     }
   }, [navigate]);
+
+  const handleChange = (value) => {
+    if (value.length <= maxCharCount) {
+      setContent(value);
+      setCharCount(value.length);
+    }
+  };
 
   const handleSubmit = async () => {
     const token = localStorage.getItem("token");
@@ -83,8 +92,11 @@ const Write = () => {
                 className="h-48 w-auto overflow-y"
                 theme="snow"
                 value={content}
-                onChange={setContent}
+                onChange={handleChange}
               />
+            </div>
+            <div className="mt-2 text-sm text-gray-500">
+              Total : {charCount}/{maxCharCount}
             </div>
           </div>
         </div>
