@@ -42,36 +42,30 @@ const Post = () => {
   return (
     <>
       <ToastContainer />
-
-      <div className="container mx-auto mt-16">
+      <div className="container mx-auto mt-16 px-4 sm:px-6 lg:px-8">
         <h1 className="font-bold text-4xl lg:text-6xl text-blue-900 mb-8 leading-tight font-serif">
           "{post.title}"
         </h1>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-          <div className="flex justify-center lg:justify-start">
-            <img
-              className="rounded-md shadow-md object-cover mt-5 h-auto max-w-full"
-              src={`http://localhost:4000/images/${post.img}`}
-              alt={post.title}
-            />
-          </div>
-          <div className="lg:pl-8">
-            <div
-              className="text-lg lg:text-2xl text-justify mt-4"
-              dangerouslySetInnerHTML={{ __html: post.content }}
-            />
-            <div className="flex justify-between text-lg lg:text-xl mt-8 float-right">
-              <p></p>
-              <p>
-                <span style={{ textTransform: "uppercase" }}>
-                  <strong>Category : </strong> {post.category}
-                </span>
-              </p>
-            </div>
-          </div>
+        <div className="clearfix">
+          <img
+            className="float-left mr-4 mb-4 sm:mr-6 sm:mb-6 md:mr-8 md:mb-8 lg:mr-10 lg:mb-10 w-full md:max-w-[50%] rounded-md shadow-md object-cover"
+            src={`http://localhost:4000/images/${post.img}`}
+            alt={post.title}
+          />
+          <div
+            className="text-base sm:text-lg md:text-xl lg:text-2xl text-justify mt-4"
+            dangerouslySetInnerHTML={{ __html: post.content }}
+          />
         </div>
+        <div className="flex flex-col sm:flex-row justify-between text-base sm:text-lg md:text-xl lg:text-xl mt-8">
+          <p></p>
+          <p>
+            <span className="uppercase font-bold">Category : </span>{" "}
+            {post.category}
+          </p>
+        </div>
+        <hr className="border-2 border-gray-700 bg-gray-700 h-px w-auto my-8" />
       </div>
-      <hr className="border-2 border-gray-700 bg-gray-700 h-px w-auto my-8" />
     </>
   );
 };
