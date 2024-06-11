@@ -42,22 +42,22 @@ const Post = () => {
   return (
     <>
       <ToastContainer />
-      <div className="container mx-auto mt-16 px-4 sm:px-6 lg:px-8">
+      <div className="container mx-auto mt-16">
         <h1 className="font-bold text-4xl lg:text-6xl text-blue-900 mb-8 leading-tight font-serif">
           "{post.title}"
         </h1>
         <div className="clearfix">
           <img
-            className="float-left mr-4 mb-4 sm:mr-6 sm:mb-6 md:mr-8 md:mb-8 lg:mr-10 lg:mb-10 w-full md:max-w-[50%] rounded-md shadow-md object-cover"
+            className="float-left mr-10 mb-5 max-w-[50%] rounded-md shadow-md object-cover"
             src={`http://localhost:4000/images/${post.img}`}
             alt={post.title}
           />
           <div
-            className="text-base sm:text-lg md:text-xl lg:text-2xl text-justify mt-4"
+            className="text-lg lg:text-2xl text-justify mt-4"
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
         </div>
-        <div className="flex flex-col sm:flex-row justify-between text-base sm:text-lg md:text-xl lg:text-xl mt-8">
+        <div className="flex justify-between text-lg lg:text-xl mt-8">
           <p></p>
           <p>
             <span className="uppercase font-bold">Category : </span>{" "}
