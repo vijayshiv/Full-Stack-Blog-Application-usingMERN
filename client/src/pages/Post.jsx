@@ -79,14 +79,13 @@ const Post = () => {
                 dangerouslySetInnerHTML={{ __html: post.content }}
               />
             </div>
-            <div className="flex justify-between text-lg lg:text-xl mt-8">
+            <div className="flex justify-between text-lg lg:text-xl mt-16">
               <p></p>
-              <p>
+              <p className="text-2xl capitalize">
                 <span className="uppercase font-bold">Category : </span>{" "}
                 {post.category}
               </p>
             </div>
-            <hr className="border-2 border-gray-700 bg-gray-700 h-px w-auto my-8" />
           </div>
           <div className="w-1/4 h- overflow-y-auto">
             {" "}
