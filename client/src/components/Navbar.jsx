@@ -6,6 +6,7 @@ const Navbar = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userName, setUserName] = useState("");
   const dropdownRef = useRef(null);
 
   const navigate = useNavigate();
@@ -14,10 +15,14 @@ const Navbar = () => {
   useEffect(() => {
     const token = sessionStorage.getItem("token");
     const userId = sessionStorage.getItem("id");
+    const name = sessionStorage.getItem("name");
+
     if (token && userId) {
       setIsLoggedIn(true);
+      setUserName(name ? capitalizeName(name) : "");
     } else {
       setIsLoggedIn(false);
+      setUserName("");
     }
   }, [location]);
 
@@ -41,8 +46,16 @@ const Navbar = () => {
   const handleLogout = () => {
     sessionStorage.removeItem("token");
     sessionStorage.removeItem("id");
+    sessionStorage.removeItem("name"); // Remove the name from session storage
     setIsLoggedIn(false);
+    setUserName("");
     navigate("/login");
+  };
+  const capitalizeName = (name) => {
+    return name
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
   };
 
   return (
@@ -56,12 +69,20 @@ const Navbar = () => {
 
             <div className="flex items-center lg:order-2">
               {isLoggedIn ? (
-                <button
-                  onClick={handleLogout}
-                  className="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-orange-300 font-medium rounded-lg text-xl px-4 lg:px-5 py-2 lg:py-2.5 mr-2 focus:outline-none"
-                >
-                  Logout
-                </button>
+                <>
+                  <Link
+                    to="/profile"
+                    className="text-xl mr-4 font-serif p-1.5 rounded-md border-2 border-solid border-black bg-gray-100 hover:bg-gray-200"
+                  >
+                    {userName}
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-orange-300 rounded-lg text-xl px-4 lg:px-3 py-1 lg:py-2 mr-2 focus:outline-none"
+                  >
+                    Logout
+                  </button>
+                </>
               ) : (
                 <>
                   <Link

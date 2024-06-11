@@ -19,11 +19,13 @@ export default function Login() {
       const body = { email, password };
       const res = await axios.post("http://localhost:4000/user/login", body);
       if (res.data.status === "success") {
-        const { token, id } = res.data.data;
+        const { token, id, name } = res.data.data;
         localStorage.setItem("token", token);
         localStorage.setItem("id", id);
+        localStorage.setItem("name", name);
         sessionStorage.setItem("token", token);
         sessionStorage.setItem("id", id);
+        sessionStorage.setItem("name", name);
         toast.success("Login successful.");
         navigate("/");
       } else {

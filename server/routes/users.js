@@ -38,11 +38,13 @@ router.post("/login", (req, res) => {
         } else {
           const payload = {
             id: user.id,
+            name: user.fullname,
           };
           const token = jwt.sign(payload, config.secretKey);
           const userData = {
             token,
             id: user.id,
+            name: user.fullname,
           };
           res.send(util.successMessage(userData));
         }
