@@ -172,7 +172,7 @@ const Navbar = () => {
                       </svg>
                     </summary>
                     {isDropdownOpen && (
-                      <ul className="absolute bg-white border border-gray-200 rounded-lg mt-2 py-1 w-36">
+                      <ul className="absolute bg-white border border-gray-200 rounded-lg mt-2 py-1 w-36 z-50">
                         <li>
                           <NavLink
                             to="/?cat=art"
