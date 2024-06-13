@@ -1,3 +1,6 @@
+CREATE DATABASE blogapp;
+USE blogapp;
+
 -- User registration table
 CREATE TABLE users (
 id INT PRIMARY KEY AUTO_INCREMENT,
@@ -20,7 +23,6 @@ isDeleted INTEGER(1) DEFAULT 0,
 createdTimestamp DATETIME default CURRENT_TIMESTAMP
 );
 
-USE blogapp;
 SELECT * FROM users;
 SELECT * FROM posts;
 
