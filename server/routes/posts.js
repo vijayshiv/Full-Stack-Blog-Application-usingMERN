@@ -1,36 +1,10 @@
 const express = require("express");
 const db = require("../db");
 const util = require("../utils");
-const jwt = require("jsonwebtoken");
-const config = require("../config");
 const multer = require("multer");
 const upload = multer({ dest: "images/" }); // Destination folder for uploaded images
 
 const router = express.Router();
-
-const verifyToken = (req, res, next) => {
-  // Get token from headers
-  const token = req.headers["token"];
-
-  // Check if token is provided
-  if (!token) {
-    return res
-      .status(401)
-      .json({ status: "error", message: "Unauthorized: No token provided" });
-  }
-  try {
-    // Verify token
-    const decoded = jwt.verify(token, config.secretKey);
-    // Attach decoded payload to request object
-    req.user = decoded;
-    next(); // Move to the next middleware
-  } catch (error) {
-    // Token is invalid
-    return res
-      .status(401)
-      .json({ status: "error", message: "Unauthorized: Invalid token" });
-  }
-};
 
 // Get all posts
 router.get("/all", (req, res) => {
@@ -45,7 +19,7 @@ router.get("/all", (req, res) => {
 });
 
 // Create a new post
-router.post("/my-post", verifyToken, upload.single("image"), (req, res) => {
+router.post("/my-post", upload.single("image"), (req, res) => {
   // Use req.user.userId to get the user ID
   const userId = req.user.id;
 
