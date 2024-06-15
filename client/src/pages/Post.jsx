@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const Post = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [post, setPost] = useState(null);
   const [suggestions, setSuggestions] = useState([]);
   const [error, setError] = useState(null);
@@ -18,9 +19,9 @@ const Post = () => {
         );
         console.log("Response from server:", response.data);
         if (response.data.status === "success") {
-          console.log(response.data.data[0]);
-          setPost(response.data.data[0]);
-          fetchSuggestions(response.data.data[0].category); // Fetch suggestions based on category
+          const fetchedPost = response.data.data[0];
+          setPost(fetchedPost);
+          fetchSuggestions(fetchedPost.category, fetchedPost.post_id); // Fetch suggestions based on category and current post id
         } else {
           toast.error("Failed to fetch post");
         }
@@ -29,18 +30,21 @@ const Post = () => {
         setError(error.message);
       }
     };
+
     fetchPost();
+    window.scrollTo(0, 0); // Scroll to top whenever the post changes
   }, [id]);
 
-  const fetchSuggestions = async (category) => {
+  const fetchSuggestions = async (category, postId) => {
     try {
       const response = await axios.get(
         `http://localhost:4000/posts/by-category/${category}`
       );
       if (response.data.status === "success") {
-        setSuggestions(
-          response.data.data.filter((item) => item.post_id !== id)
+        const filteredSuggestions = response.data.data.filter(
+          (item) => item.post_id !== postId
         ); // Exclude the current post from suggestions
+        setSuggestions(shuffleArray(filteredSuggestions)); // Shuffle suggestions
       } else {
         toast.error("Failed to fetch suggestions");
       }
@@ -48,6 +52,10 @@ const Post = () => {
       console.error("Error fetching suggestions:", error);
       toast.error("Failed to fetch suggestions");
     }
+  };
+
+  const shuffleArray = (array) => {
+    return array.sort(() => Math.random() - 0.5);
   };
 
   if (error) {
@@ -72,7 +80,7 @@ const Post = () => {
                 className="float-left mr-10 mb-5 max-w-[50%] rounded-md shadow-md object-cover cursor-pointer"
                 src={`http://localhost:4000/images/${post.img}`}
                 alt={post.title}
-                onClick={() => (window.location.href = `/post/${post.post_id}`)}
+                onClick={() => navigate(`/post/${post.post_id}`)}
               />
               <div
                 className="text-lg lg:text-2xl text-justify mt-4"
@@ -97,7 +105,11 @@ const Post = () => {
               <ul>
                 {suggestions.map((item) => (
                   <li key={item.post_id} className="mb-4">
-                    <Link to={`/post/${item.post_id}`} className="block">
+                    <Link
+                      to={`/post/${item.post_id}`}
+                      className="block"
+                      onClick={() => window.scrollTo(0, 0)} // Scroll to top on click
+                    >
                       <img
                         src={`http://localhost:4000/images/${item.img}`}
                         alt={item.title}
@@ -111,6 +123,7 @@ const Post = () => {
                     <Link
                       to={`/post/${item.post_id}`}
                       className="text-black-700 hover:underline bg-slate-200 hover:bg-slate-300 p-1 rounded-sm"
+                      onClick={() => window.scrollTo(0, 0)} // Scroll to top on click
                     >
                       Read More
                     </Link>
