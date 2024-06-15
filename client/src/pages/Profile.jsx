@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
+import { Link } from "react-router-dom";
 const Profile = () => {
   const [user, setUser] = useState({
     fullname: "",
@@ -146,6 +146,7 @@ const Profile = () => {
   return (
     <div className="container mx-auto mt-4">
       <ToastContainer />
+      <Link to="/my-post"> Go to posts</Link>
       <h1 className="font-bold text-3xl lg:text-5xl text-blue-900 leading-tight font-serif text-center">
         Profile
       </h1>
