@@ -26,7 +26,7 @@ createdTimestamp DATETIME default CURRENT_TIMESTAMP
 SELECT * FROM users;
 SELECT * FROM posts;
 
-
+update users set isDeleted = 0 where id = 4;
 
 
 
