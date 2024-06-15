@@ -16,7 +16,8 @@ export default function Home() {
         }
         const res = await axios.get(url);
         if (res.data.status === "success") {
-          setPosts(res.data.data);
+          const fetchedPosts = res.data.data;
+          setPosts(shuffleArray(fetchedPosts)); // Shuffle the posts array before setting it
         } else {
           console.log("Failed to fetch posts");
         }
@@ -27,6 +28,21 @@ export default function Home() {
 
     fetchPosts();
   }, [category]);
+
+  // Function to shuffle an array
+  const shuffleArray = (array) => {
+    let currentIndex = array.length,
+      randomIndex;
+    while (currentIndex !== 0) {
+      randomIndex = Math.floor(Math.random() * currentIndex);
+      currentIndex--;
+      [array[currentIndex], array[randomIndex]] = [
+        array[randomIndex],
+        array[currentIndex],
+      ];
+    }
+    return array;
+  };
 
   const renderPosts = () => {
     return posts.map((post, index) => {
