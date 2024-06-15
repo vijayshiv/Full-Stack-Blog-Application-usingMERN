@@ -19,7 +19,7 @@ router.get("/all", (req, res) => {
 });
 
 // Create a new post
-router.post("/my-post", upload.single("image"), (req, res) => {
+router.post("/add-post", upload.single("image"), (req, res) => {
   // Use req.user.userId to get the user ID
   const userId = req.user.id;
 

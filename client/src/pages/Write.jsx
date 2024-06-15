@@ -53,7 +53,7 @@ const Write = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:4000/posts/my-post",
+        "http://localhost:4000/posts/add-post",
         formData,
         {
           headers: {
