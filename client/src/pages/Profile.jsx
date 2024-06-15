@@ -7,13 +7,11 @@ const Profile = () => {
   const [user, setUser] = useState({
     fullname: "",
     email: "",
-    password: "",
   });
 
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Fetch user details when component mounts
     const fetchUserDetails = async () => {
       try {
         const token = localStorage.getItem("token");
@@ -44,7 +42,22 @@ const Profile = () => {
     try {
       const token = localStorage.getItem("token");
       const id = localStorage.getItem("id");
-      const userData = { ...user, id: id };
+      const { email, fullname, oldPassword, newPassword } = user;
+
+      // Validate new password only if it is provided
+      if (newPassword && !oldPassword) {
+        toast.error("Please provide the old password to change the password");
+        setLoading(false);
+        return;
+      }
+
+      // Prepare the user data for update
+      const userData = { id, email, fullname };
+      if (oldPassword && newPassword) {
+        userData.oldPassword = oldPassword;
+        userData.newPassword = newPassword;
+      }
+
       const response = await axios.put(
         "http://localhost:4000/user/update",
         userData,
@@ -52,14 +65,22 @@ const Profile = () => {
           headers: { token },
         }
       );
+      console.log(response.data.status);
       if (response.data.status === "success") {
         toast.success("Profile updated successfully");
+        toast.success("Please login again");
+        sessionStorage.clear();
+        localStorage.clear();
+        window.location.href = "/login";
       } else {
-        toast.error("Failed to update profile");
+        toast.error(response.data.error || "Failed to update profile");
       }
     } catch (error) {
       console.error("Error updating profile:", error);
-      toast.error("An error occurred while updating profile");
+      toast.error(
+        error.response?.data?.error ||
+          "An error occurred while updating profile"
+      );
     } finally {
       setLoading(false);
     }
@@ -108,11 +129,9 @@ const Profile = () => {
       );
       if (response.data.status === "success") {
         toast.success("Account deleted successfully");
-        // Clear both session storage and local storage
         sessionStorage.clear();
         localStorage.clear();
-        // Redirect to login page
-        window.location.href = "/login"; // Adjust the path as needed
+        window.location.href = "/login";
       } else {
         toast.error("Failed to delete account");
       }
@@ -157,16 +176,29 @@ const Profile = () => {
         </div>
         <div>
           <label className="block text-lg font-medium text-gray-700">
-            Password
+            Old Password
           </label>
           <input
             type="password"
-            name="password"
-            value={user.password}
+            name="oldPassword"
+            value={user.oldPassword}
             onChange={handleChange}
             className="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md px-4 py-2"
           />
         </div>
+        <div>
+          <label className="block text-lg font-medium text-gray-700">
+            New Password
+          </label>
+          <input
+            type="password"
+            name="newPassword"
+            value={user.newPassword}
+            onChange={handleChange}
+            className="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md px-4 py-2"
+          />
+        </div>
+
         <button
           type="submit"
           className={`w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white ${
