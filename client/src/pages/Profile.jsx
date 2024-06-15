@@ -144,14 +144,15 @@ const Profile = () => {
   };
 
   return (
-    <div className="container mx-auto mt-16">
+    <div className="container mx-auto mt-4">
       <ToastContainer />
-      <h1 className="font-bold text-4xl lg:text-6xl text-blue-900 mb-8 leading-tight font-serif">
+      <h1 className="font-bold text-3xl lg:text-5xl text-blue-900 leading-tight font-serif text-center">
         Profile
       </h1>
-      <form className="grid grid-cols-1 gap-8 items-start">
-        <div>
-          <label className="block text-lg font-medium text-gray-700">
+      <h6 className="mb-4 text-center">You can change name and email too</h6>
+      <form className="max-w-md mx-auto">
+        <div className="mb-2 text-left">
+          <label className="text-xl font-medium text-gray-700 mb-2 block">
             Full Name
           </label>
           <input
@@ -159,11 +160,11 @@ const Profile = () => {
             name="fullname"
             value={user.fullname}
             onChange={handleChange}
-            className="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md px-4 py-2"
+            className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-base focus:outline-none focus:border-blue-500"
           />
         </div>
-        <div>
-          <label className="block text-lg font-medium text-gray-700">
+        <div className="mb-2 text-left">
+          <label className="text-xl font-medium text-gray-700 mb-2 block">
             Email
           </label>
           <input
@@ -171,11 +172,11 @@ const Profile = () => {
             name="email"
             value={user.email}
             onChange={handleChange}
-            className="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md px-4 py-2"
+            className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-base focus:outline-none focus:border-blue-500"
           />
         </div>
-        <div>
-          <label className="block text-lg font-medium text-gray-700">
+        <div className="mb-2 text-left">
+          <label className="text-xl font-medium text-gray-700 mb-2 block">
             Old Password
           </label>
           <input
@@ -183,11 +184,11 @@ const Profile = () => {
             name="oldPassword"
             value={user.oldPassword}
             onChange={handleChange}
-            className="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md px-4 py-2"
+            className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-base focus:outline-none focus:border-blue-500"
           />
         </div>
-        <div>
-          <label className="block text-lg font-medium text-gray-700">
+        <div className="mb-4 text-left">
+          <label className="text-xl font-medium text-gray-700 mb-2 block">
             New Password
           </label>
           <input
@@ -195,15 +196,15 @@ const Profile = () => {
             name="newPassword"
             value={user.newPassword}
             onChange={handleChange}
-            className="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md px-4 py-2"
+            className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-base focus:outline-none focus:border-blue-500"
           />
         </div>
 
         <button
           type="submit"
-          className={`w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white ${
-            loading ? "bg-gray-500" : "bg-blue-600 hover:bg-blue-700"
-          } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 mt-4`}
+          className={`w-full text-center py-2 rounded bg-blue-700 text-white hover:bg-blue-800 focus:outline-none my-1 ${
+            loading ? "opacity-50 cursor-not-allowed" : ""
+          }`}
           disabled={loading}
           onClick={handleUpdate}
         >
@@ -212,7 +213,7 @@ const Profile = () => {
         <button
           type="button"
           onClick={confirmDelete}
-          className="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 mt-4"
+          className="w-full text-center py-2 rounded bg-red-600 text-white hover:bg-red-800 focus:outline-none my-1"
           disabled={loading}
         >
           {loading ? "Deleting..." : "Delete Account"}
