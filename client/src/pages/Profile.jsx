@@ -3,6 +3,8 @@ import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Link } from "react-router-dom";
+import { FiArrowRight } from "react-icons/fi";
+
 const Profile = () => {
   const [user, setUser] = useState({
     fullname: "",
@@ -146,11 +148,17 @@ const Profile = () => {
   return (
     <div className="container mx-auto mt-4">
       <ToastContainer />
-      <Link to="/my-post"> Go to posts</Link>
       <h1 className="font-bold text-3xl lg:text-5xl text-blue-900 leading-tight font-serif text-center">
         Profile
       </h1>
       <h6 className="mb-4 text-center">You can change name and email too</h6>
+      <Link
+        to="/my-post"
+        className="flex items-center text-2xl mb-4 ml-[316px] sm:ml-[20px]"
+      >
+        Go to posts
+        <FiArrowRight className="ml-1" />
+      </Link>
       <form className="max-w-md mx-auto">
         <div className="mb-2 text-left">
           <label className="text-xl font-medium text-gray-700 mb-2 block">
