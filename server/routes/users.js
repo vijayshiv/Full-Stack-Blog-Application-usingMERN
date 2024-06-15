@@ -87,7 +87,7 @@ router.put("/update", async (req, res) => {
       .query("SELECT password FROM users WHERE id = ?", [id]);
 
     if (!userData) {
-      return res.status(404).json({ error: "User not found" });
+      return res.send(util.errorMessage("User not found"));
     }
 
     // Verify old password if newPassword is provided
@@ -99,7 +99,7 @@ router.put("/update", async (req, res) => {
 
       // Compare hashed old password with the one from the database
       if (hashedOldPassword !== userData[0].password) {
-        return res.status(401).json({ error: "Old password is incorrect" });
+        return res.send(util.errorMessage("Old password is incorrect"));
       }
     }
 
@@ -118,7 +118,6 @@ router.put("/update", async (req, res) => {
     if (newPassword) {
       // Hash the new password before updating
       const hashedNewPassword = String(encrypt.SHA256(newPassword));
-      console.log(newPassword);
       query += " password = ?,";
       values.push(hashedNewPassword);
     }
@@ -130,13 +129,12 @@ router.put("/update", async (req, res) => {
     // Execute the SQL query
     await db.pool.promise().execute(query, values);
 
-    res.status(200).json({ message: "User updated successfully" });
+    res.send(util.successMessage("User updated successfully"));
   } catch (error) {
     console.error("Database Error:", error);
-    res.status(500).json({ error: "An error occurred while updating user" });
+    res.send(util.errorMessage("An error occurred while updating user"));
   }
 });
-
 
 router.post("/delete", (req, res) => {
   const { id } = req.body;
@@ -163,46 +161,3 @@ router.post("/delete", (req, res) => {
 });
 
 module.exports = router;
-// router.put("/update", (req, res) => {
-//   const { id, email, fullname, password } = req.body;
-
-//   // Check if any of the fields are missing
-//   if (!id) {
-//     return res.send(util.errorMessage("User ID is required"));
-//   }
-
-//   // Construct the SQL UPDATE query based on the provided fields
-//   let query = "UPDATE users SET";
-//   const values = [];
-//   if (email) {
-//     query += " email = ?,";
-//     values.push(email);
-//   }
-//   if (fullname) {
-//     query += " fullname = ?,";
-//     values.push(fullname);
-//   }
-//   if (password) {
-//     // Hash the new password before updating
-//     const hashedPassword = String(encrypt.SHA256(password));
-//     query += " password = ?,";
-//     values.push(hashedPassword);
-//   }
-
-//   // Remove the trailing comma and add the WHERE clause
-//   query = query.slice(0, -1) + " WHERE id = ?";
-//   values.push(id);
-//   console.log(query);
-//   db.pool.execute(query, values, (error, result) => {
-//     if (error) {
-//       console.error("Database Error:", error);
-//       res.send(util.errorMessage(error));
-//     } else {
-//       if (result.affectedRows === 0) {
-//         res.send(util.errorMessage("User not found"));
-//       } else {
-//         res.send(util.successMessage("User updated successfully"));
-//       }
-//     }
-//   });
-// });
