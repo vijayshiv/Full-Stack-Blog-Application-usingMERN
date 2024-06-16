@@ -154,9 +154,9 @@ const Profile = () => {
       <h6 className="mb-4 text-center">You can change name and email too</h6>
       <Link
         to="/my-post"
-        className="flex items-center text-2xl mb-4 ml-[316px] sm:ml-[20px]"
+        className="flex items-center text-2xl mb-4 sm:ml-[352px] underline"
       >
-        Go to posts
+        Go to your posts
         <FiArrowRight className="ml-1" />
       </Link>
       <form className="max-w-md mx-auto">
