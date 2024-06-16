@@ -87,7 +87,7 @@ const Post = () => {
             </h1>
             <div className="clearfix">
               <img
-                className="float-left mr-10 mb-5 max-w-[50%] rounded-md shadow-md object-cover cursor-pointer"
+                className="float-left mr-10 mb-5 max-w-[55%] rounded-md shadow-md object-cover cursor-pointer"
                 src={`http://localhost:4000/images/${post.img}`}
                 alt={post.title}
                 onClick={() => navigate(`/post/${post.post_id}`)}
