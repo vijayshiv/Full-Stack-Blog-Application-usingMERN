@@ -2,18 +2,18 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { Link } from "react-router-dom";
+import { FiArrowRight } from "react-icons/fi";
 
 const Profile = () => {
   const [user, setUser] = useState({
     fullname: "",
     email: "",
-    password: "",
   });
 
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Fetch user details when component mounts
     const fetchUserDetails = async () => {
       try {
         const token = localStorage.getItem("token");
@@ -43,39 +43,97 @@ const Profile = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
+      const id = localStorage.getItem("id");
+      const { email, fullname, oldPassword, newPassword } = user;
+
+      // Validate new password only if it is provided
+      if (newPassword && !oldPassword) {
+        toast.error("Please provide the old password to change the password");
+        setLoading(false);
+        return;
+      }
+
+      // Prepare the user data for update
+      const userData = { id, email, fullname };
+      if (oldPassword && newPassword) {
+        userData.oldPassword = oldPassword;
+        userData.newPassword = newPassword;
+      }
+
       const response = await axios.put(
         "http://localhost:4000/user/update",
-        user,
+        userData,
         {
           headers: { token },
         }
       );
+      console.log(response.data.status);
       if (response.data.status === "success") {
         toast.success("Profile updated successfully");
+        toast.success("Please login again");
+        sessionStorage.clear();
+        localStorage.clear();
+        window.location.href = "/login";
       } else {
-        toast.error("Failed to update profile");
+        toast.error(response.data.error || "Failed to update profile");
       }
     } catch (error) {
       console.error("Error updating profile:", error);
-      toast.error("An error occurred while updating profile");
+      toast.error(
+        error.response?.data?.error ||
+          "An error occurred while updating profile"
+      );
     } finally {
       setLoading(false);
     }
   };
 
+  const confirmDelete = () => {
+    toast.dark(
+      <>
+        Are you sure you want to delete your account?
+        <button
+          onClick={() => handleDelete()}
+          className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded ml-4"
+        >
+          Yes
+        </button>
+        <button
+          onClick={() => toast.dismiss()}
+          className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded ml-4"
+        >
+          No
+        </button>
+      </>,
+      {
+        position: "top-center",
+        hideProgressBar: true,
+        closeOnClick: false,
+        draggable: false,
+        pauseOnHover: true,
+        autoClose: false,
+      }
+    );
+  };
+
   const handleDelete = async () => {
-    if (!window.confirm("Are you sure you want to delete your account?")) {
-      return;
-    }
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.delete("http://localhost:4000/user/delete", {
-        headers: { token },
-      });
+      const response = await axios.post(
+        "http://localhost:4000/user/delete",
+        {
+          id: localStorage.getItem("id"),
+        },
+        {
+          headers: { token },
+        }
+      );
       if (response.data.status === "success") {
         toast.success("Account deleted successfully");
-        // You can redirect the user to the login page or home page after deletion
+        sessionStorage.clear();
+        localStorage.clear();
+        window.location.href = "/login";
       } else {
         toast.error("Failed to delete account");
       }
@@ -88,17 +146,22 @@ const Profile = () => {
   };
 
   return (
-    <div className="container mx-auto mt-16">
+    <div className="container mx-auto mt-4">
       <ToastContainer />
-      <h1 className="font-bold text-4xl lg:text-6xl text-blue-900 mb-8 leading-tight font-serif">
+      <h1 className="font-bold text-3xl lg:text-5xl text-blue-900 leading-tight font-serif text-center">
         Profile
       </h1>
-      <form
-        onSubmit={handleUpdate}
-        className="grid grid-cols-1 gap-8 items-start"
+      <h6 className="mb-4 text-center">You can change name and email too</h6>
+      <Link
+        to="/my-post"
+        className="flex items-center text-2xl mb-4 sm:ml-[352px] underline"
       >
-        <div>
-          <label className="block text-lg font-medium text-gray-700">
+        Go to your posts
+        <FiArrowRight className="ml-1" />
+      </Link>
+      <form className="max-w-md mx-auto">
+        <div className="mb-2 text-left">
+          <label className="text-xl font-medium text-gray-700 mb-2 block">
             Full Name
           </label>
           <input
@@ -106,11 +169,11 @@ const Profile = () => {
             name="fullname"
             value={user.fullname}
             onChange={handleChange}
-            className="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+            className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-base focus:outline-none focus:border-blue-500"
           />
         </div>
-        <div>
-          <label className="block text-lg font-medium text-gray-700">
+        <div className="mb-2 text-left">
+          <label className="text-xl font-medium text-gray-700 mb-2 block">
             Email
           </label>
           <input
@@ -118,34 +181,48 @@ const Profile = () => {
             name="email"
             value={user.email}
             onChange={handleChange}
-            className="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+            className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-base focus:outline-none focus:border-blue-500"
           />
         </div>
-        <div>
-          <label className="block text-lg font-medium text-gray-700">
-            Password
+        <div className="mb-2 text-left">
+          <label className="text-xl font-medium text-gray-700 mb-2 block">
+            Old Password
           </label>
           <input
             type="password"
-            name="password"
-            value={user.password}
+            name="oldPassword"
+            value={user.oldPassword}
             onChange={handleChange}
-            className="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+            className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-base focus:outline-none focus:border-blue-500"
           />
         </div>
+        <div className="mb-4 text-left">
+          <label className="text-xl font-medium text-gray-700 mb-2 block">
+            New Password
+          </label>
+          <input
+            type="password"
+            name="newPassword"
+            value={user.newPassword}
+            onChange={handleChange}
+            className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-base focus:outline-none focus:border-blue-500"
+          />
+        </div>
+
         <button
           type="submit"
-          className={`w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white ${
-            loading ? "bg-gray-500" : "bg-blue-600 hover:bg-blue-700"
-          } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}
+          className={`w-full text-center py-2 rounded bg-blue-700 text-white hover:bg-blue-800 focus:outline-none my-1 ${
+            loading ? "opacity-50 cursor-not-allowed" : ""
+          }`}
           disabled={loading}
+          onClick={handleUpdate}
         >
           {loading ? "Updating..." : "Update Profile"}
         </button>
         <button
           type="button"
-          onClick={handleDelete}
-          className="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+          onClick={confirmDelete}
+          className="w-full text-center py-2 rounded bg-red-600 text-white hover:bg-red-800 focus:outline-none my-1"
           disabled={loading}
         >
           {loading ? "Deleting..." : "Delete Account"}

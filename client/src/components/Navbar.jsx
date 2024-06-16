@@ -44,9 +44,8 @@ const Navbar = () => {
   };
 
   const handleLogout = () => {
-    sessionStorage.removeItem("token");
-    sessionStorage.removeItem("id");
-    sessionStorage.removeItem("name"); // Remove the name from session storage
+    sessionStorage.clear();
+    localStorage.clear();
     setIsLoggedIn(false);
     setUserName("");
     navigate("/login");

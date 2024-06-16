@@ -1,3 +1,6 @@
+CREATE DATABASE blogapp;
+USE blogapp;
+
 -- User registration table
 CREATE TABLE users (
 id INT PRIMARY KEY AUTO_INCREMENT,
@@ -20,11 +23,11 @@ isDeleted INTEGER(1) DEFAULT 0,
 createdTimestamp DATETIME default CURRENT_TIMESTAMP
 );
 
-USE blogapp;
 SELECT * FROM users;
 SELECT * FROM posts;
 
+update users set isDeleted = 0 where id = 4;
 
-
-
+select * from posts where post_id = 4;
+update posts set isDeleted = 0 where post_id = 1;
 

@@ -9,6 +9,8 @@ import Write from "./pages/Write";
 import Post from "./pages/Post"; // Ensure this is correctly imported
 import Profile from "./pages/Profile";
 import Layout from "./Layout";
+import MyPosts from "./pages/MyPost";
+import EditPost from "./pages/EditPost";
 
 const router = createBrowserRouter([
   {
@@ -18,9 +20,11 @@ const router = createBrowserRouter([
       { path: "/", element: <Home /> },
       { path: "/register", element: <Register /> },
       { path: "/login", element: <Login /> },
-      { path: "/post/:id", element: <Post /> }, // Ensure the path is correctly set to /post/:id
+      { path: "/post/:id", element: <Post /> },
       { path: "/write", element: <Write /> },
       { path: "/profile", element: <Profile /> },
+      { path: "/my-post", element: <MyPosts /> },
+      { path: "/edit-post/:id", element: <EditPost /> },
     ],
   },
 ]);
