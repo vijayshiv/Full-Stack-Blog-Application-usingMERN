@@ -9,7 +9,7 @@ const utils = require("./utils");
 
 const PORT = 4000;
 
-app.use(cors());
+app.use(cors("*"));
 app.use(morgan("tiny"));
 app.use(express.json());
 
@@ -44,13 +44,15 @@ const userRouter = require("./routes/users");
 app.use("/user", userRouter);
 
 const postRouter = require("./routes/posts");
-const { utimes } = require("fs");
-const { error } = require("console");
-const { decode } = require("punycode");
 app.use("/posts", postRouter);
 
 // Serve static images from the 'images' folder
 app.use("/images", express.static(path.join(__dirname, "images")));
+
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.send(utils.errorMessage("Internal Server Error"));
+});
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server started on PORT : ${PORT}`);
