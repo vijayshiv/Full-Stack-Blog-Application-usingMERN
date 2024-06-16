@@ -141,9 +141,11 @@ const MyPosts = () => {
                   {truncateContent(post.content, 10)} {/* Limit to 8 lines */}
                 </p>
                 <div className="absolute left-3 bottom-3">
-                  <button className="p-2 rounded-full bg-blue-700 text-white hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300">
-                    <RiEdit2Line />
-                  </button>
+                  <Link to={`/edit-post/${post.post_id}`}>
+                    <button className="p-2 rounded-full bg-blue-700 text-white hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300">
+                      <RiEdit2Line />
+                    </button>
+                  </Link>
                 </div>
                 <div className="absolute right-3 bottom-3">
                   <button
