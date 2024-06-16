@@ -78,6 +78,7 @@ const Post = () => {
 
   const sanitizedData = () => ({
     __html: DOMPurify.sanitize(post.content),
+
   });
 
   return (
