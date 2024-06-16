@@ -2,7 +2,7 @@ const express = require("express");
 const db = require("../db");
 const util = require("../utils");
 const multer = require("multer");
-const upload = multer({ dest: "images/" }); // Destination folder for uploaded images
+const upload = multer({ dest: "images/" });
 
 const router = express.Router();
 
@@ -20,17 +20,16 @@ router.get("/all", (req, res) => {
 
 // Create a new post
 router.post("/add-post", upload.single("image"), (req, res) => {
-  // Use req.user.id to get the user ID
   const userId = req.user.id;
 
   try {
     const query =
       "INSERT INTO posts(title, content, img, category, user_id) VALUES (?,?,?,?,?);";
     const { title, content, category } = req.body;
-    const img = req.file ? req.file.filename : null; // Retrieve filename from multer
+    const img = req.file ? req.file.filename : null;
     db.pool.execute(
       query,
-      [title, content, img, category, userId], // Use userId obtained from req.user
+      [title, content, img, category, userId],
       (error, data) => {
         if (error) {
           res.send(util.errorMessage(error.message));
@@ -78,24 +77,49 @@ router.get("/my-all-post", (req, res) => {
   });
 });
 
-router.put("/update-post/:postId", (req, res) => {
+router.put("/update-post/:postId", upload.single("img"), async (req, res) => {
   const postId = req.params.postId;
-  const { title, content, img, category } = req.body;
+  const { title, content } = req.body;
+  let img = req.file ? req.file.filename : null;
 
-  const query = `UPDATE posts SET title = ?, content = ?, img = ?, category = ? WHERE post_id = ?`;
-  const values = [title, content, img, category, postId];
+  try {
+    const queryParams = [];
+    const updateFields = [];
 
-  db.pool.execute(query, values, (error, result) => {
-    if (error) {
-      res.send(util.errorMessage("Internal server error"));
-    } else {
-      if (result.affectedRows > 0) {
-        res.send(util.errorMessage("Post updated successfully"));
-      } else {
-        res.send(util.errorMessage("Post not found"));
-      }
+    if (title) {
+      updateFields.push("title = ?");
+      queryParams.push(title);
     }
-  });
+
+    if (content) {
+      updateFields.push("content = ?");
+      queryParams.push(content);
+    }
+
+    if (img) {
+      updateFields.push("img = ?");
+      queryParams.push(img);
+    }
+
+    if (updateFields.length === 0) {
+      return res.send(util.errorMessage("No fields to update"));
+    }
+
+    // Construct the update query
+    const updateQuery = `UPDATE posts SET ${updateFields.join(
+      ", "
+    )} WHERE post_id = ?`;
+    queryParams.push(postId);
+
+    console.log(updateQuery);
+    // Execute the update query
+    await db.pool.execute(updateQuery, queryParams);
+
+    return res.send(util.successMessage("Post updated successfully"));
+  } catch (error) {
+    console.error("Error updating post:", error);
+    return res.send(util.errorMessage("Internal server error"));
+  }
 });
 
 router.delete("/delete-post/:postId", (req, res) => {
