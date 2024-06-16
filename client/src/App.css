@@ -1,5 +1,5 @@
 #root {
-  max-width: 1350px;
+  max-width: 80%;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
@@ -39,4 +39,9 @@
 
 .read-the-docs {
   color: #888;
+}
+/* global.css */
+ul,
+ol {
+  list-style-type: none;
 }

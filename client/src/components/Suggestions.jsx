@@ -1,4 +1,3 @@
-// Suggestions.js
 import React from "react";
 import { Link } from "react-router-dom";
 
@@ -9,7 +8,8 @@ const Suggestions = ({ suggestions }) => {
         <h2 className="font-bold text-2xl mb-4">
           Other Suggested Posts You May Like
         </h2>
-        <ul>
+        <ul style={{ listStyleType: "none" }}>
+          {" "}
           {suggestions.map((item) => (
             <li key={item.post_id} className="mb-4">
               <Link

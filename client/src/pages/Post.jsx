@@ -76,14 +76,16 @@ const Post = () => {
     return <div>Loading...</div>;
   }
 
-  const sanitizedData = () => ({
-    __html: DOMPurify.sanitize(post.content),
-
-  });
-
   return (
     <>
       <ToastContainer />
+      <style>
+        {`
+          .post-content ul, .post-content ol {
+            list-style-type: disc;  
+          }
+        `}
+      </style>
       <div className="container mx-auto mt-16">
         <div className="flex">
           <div className="w-3/4">
@@ -98,12 +100,14 @@ const Post = () => {
                 onClick={() => navigate(`/post/${post.post_id}`)}
               />
               <div
-                className="mt-4"
+                className="mt-4 post-content"
                 style={{
-                  fontSize: "1.2rem", // Adjust font size here
+                  fontSize: "1.2rem",
                   textAlign: "justify",
                 }}
-                dangerouslySetInnerHTML={sanitizedData()}
+                dangerouslySetInnerHTML={{
+                  __html: DOMPurify.sanitize(post.content),
+                }}
               />
             </div>
             <div className="flex justify-between text-lg lg:text-xl mt-16">
