@@ -3,6 +3,8 @@ import logo from "../images/logo.png";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 
 const Navbar = () => {
+  const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -67,21 +69,56 @@ const Navbar = () => {
             </Link>
 
             <div className="flex items-center lg:order-2">
+              <div className="relative mr-4">
+                <button
+                  onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
+                  className="text-xl font-serif p-1.5 rounded-md  focus:outline-none"
+                >
+                  {userName}
+                  <svg
+                    className={`w-4 h-4 inline-block ml-1 transition-transform transform ${
+                      isUserDropdownOpen ? "rotate-180" : ""
+                    }`}
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 12a1 1 0 01-.7-.29l-4-4a1 1 0 111.42-1.42L10 10.59l3.29-3.3a1 1 0 111.42 1.42l-4 4a1 1 0 01-.71.29z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </button>
+
+                {isUserDropdownOpen && (
+                  <ul className="absolute bg-white border border-gray-200 rounded-lg mt-2 py-1 w-36 z-50">
+                    <li>
+                      <NavLink
+                        to="/profile"
+                        className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                      >
+                        Profile
+                      </NavLink>
+                    </li>
+                    <li>
+                      <NavLink
+                        to="/my-post"
+                        className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                      >
+                        My Posts
+                      </NavLink>
+                    </li>
+                  </ul>
+                )}
+              </div>
               {isLoggedIn ? (
-                <>
-                  <Link
-                    to="/profile"
-                    className="text-xl mr-4 font-serif p-1.5 rounded-md border-2 border-solid border-black bg-gray-100 hover:bg-gray-200"
-                  >
-                    {userName}
-                  </Link>
-                  <button
-                    onClick={handleLogout}
-                    className="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-orange-300 rounded-lg text-xl px-4 lg:px-3 py-1 lg:py-2 mr-2 focus:outline-none"
-                  >
-                    Logout
-                  </button>
-                </>
+                <button
+                  onClick={handleLogout}
+                  className="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-orange-300 rounded-lg text-xl px-4 lg:px-3 py-1 lg:py-2 mr-2 focus:outline-none"
+                >
+                  Logout
+                </button>
               ) : (
                 <>
                   <Link
