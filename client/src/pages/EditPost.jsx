@@ -40,18 +40,17 @@ const EditPost = () => {
   const handleSave = async () => {
     const token = sessionStorage.getItem("token");
     try {
-      // Create FormData object to send file
       const formData = new FormData();
       formData.append("title", title);
       formData.append("content", content);
       formData.append("img", img);
       const response = await axios.put(
         `http://localhost:4000/posts/update-post/${id}`,
-        formData, // Send FormData instead of a plain object
+        formData,
         {
           headers: {
             token: token,
-            "Content-Type": "multipart/form-data", // Set content type for FormData
+            "Content-Type": "multipart/form-data",
           },
         }
       );
@@ -67,13 +66,12 @@ const EditPost = () => {
     }
   };
 
-  // Handle image change and preview
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     const reader = new FileReader();
     reader.onloadend = () => {
-      setImg(file); // Set image file
-      setPreviewImg(reader.result); // Set preview image
+      setImg(file);
+      setPreviewImg(reader.result);
     };
     if (file) {
       reader.readAsDataURL(file);

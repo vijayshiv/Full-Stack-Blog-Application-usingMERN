@@ -4,6 +4,7 @@ import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Suggestions from "../components/Suggestions";
+import DOMPurify from "dompurify";
 
 const Post = () => {
   const { id } = useParams();
@@ -53,7 +54,6 @@ const Post = () => {
           }
           return !isCurrentPost;
         });
-        // console.log(shuffleArray(filteredSuggestions).slice(0, 1));
         setSuggestions(shuffleArray(filteredSuggestions).slice(0, 4));
       } else {
         toast.error("Failed to fetch suggestions");
@@ -76,6 +76,10 @@ const Post = () => {
     return <div>Loading...</div>;
   }
 
+  const sanitizedData = () => ({
+    __html: DOMPurify.sanitize(post.content),
+  });
+
   return (
     <>
       <ToastContainer />
@@ -95,10 +99,10 @@ const Post = () => {
               <div
                 className="mt-4"
                 style={{
-                  fontSize: "130%",
+                  fontSize: "1.2rem", // Adjust font size here
                   textAlign: "justify",
                 }}
-                dangerouslySetInnerHTML={{ __html: post.content }}
+                dangerouslySetInnerHTML={sanitizedData()}
               />
             </div>
             <div className="flex justify-between text-lg lg:text-xl mt-16">
