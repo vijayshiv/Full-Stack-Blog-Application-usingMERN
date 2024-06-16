@@ -26,6 +26,7 @@ const Write = () => {
   const handleChange = (value) => {
     if (value.length <= maxCharCount) {
       setContent(value);
+      console.log(value);
       setCharCount(value.length);
     }
   };
