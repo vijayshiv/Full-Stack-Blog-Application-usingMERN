@@ -20,8 +20,9 @@ const Post = () => {
         console.log("Response from server:", response.data);
         if (response.data.status === "success") {
           const fetchedPost = response.data.data[0];
+          console.log("Fetched post:", fetchedPost);
           setPost(fetchedPost);
-          fetchSuggestions(fetchedPost.category, fetchedPost.post_id); // Fetch suggestions based on category and current post id
+          fetchSuggestions(fetchedPost.category, fetchedPost.post_id);
         } else {
           toast.error("Failed to fetch post");
         }
@@ -32,7 +33,7 @@ const Post = () => {
     };
 
     fetchPost();
-    window.scrollTo(0, 0); // Scroll to top whenever the post changes
+    window.scrollTo(0, 0);
   }, [id]);
 
   const fetchSuggestions = async (category, postId) => {
@@ -40,11 +41,19 @@ const Post = () => {
       const response = await axios.get(
         `http://localhost:4000/posts/by-category/${category}`
       );
+      postId = id;
       if (response.data.status === "success") {
-        const filteredSuggestions = response.data.data.filter(
-          (item) => item.post_id !== postId
-        ); // Exclude the current post from suggestions
-        setSuggestions(shuffleArray(filteredSuggestions)); // Shuffle suggestions
+        const filteredSuggestions = response.data.data.filter((item) => {
+          const isCurrentPost = item.post_id == id;
+          if (isCurrentPost) {
+            console.log(
+              `Excluding current post from suggestions: ${item.title}`
+            );
+          }
+          return !isCurrentPost;
+        });
+        // console.log(shuffleArray(filteredSuggestions).slice(0, 1));
+        setSuggestions(shuffleArray(filteredSuggestions).slice(0, 4));
       } else {
         toast.error("Failed to fetch suggestions");
       }
@@ -90,14 +99,12 @@ const Post = () => {
             <div className="flex justify-between text-lg lg:text-xl mt-16">
               <p></p>
               <p className="text-2xl capitalize">
-                <span className="uppercase font-bold">Category : </span>{" "}
+                <span className="uppercase font-bold">Category : </span>
                 {post.category}
               </p>
             </div>
           </div>
           <div className="w-1/4 h- overflow-y-auto">
-            {" "}
-            {/* Adjusted height */}
             <div className="mt-3 ml-12">
               <h2 className="font-bold text-2xl mb-4">
                 Other Suggested Posts You May Like
@@ -108,12 +115,12 @@ const Post = () => {
                     <Link
                       to={`/post/${item.post_id}`}
                       className="block"
-                      onClick={() => window.scrollTo(0, 0)} // Scroll to top on click
+                      onClick={() => window.scrollTo(0, 0)}
                     >
                       <img
                         src={`http://localhost:4000/images/${item.img}`}
                         alt={item.title}
-                        className="w-full h-56  object-cover rounded-md mb-2 cursor-pointer"
+                        className="w-full h-56 object-cover rounded-md mb-2 cursor-pointer"
                       />
                       <h3 className="text-2xl mb-4 font-semibold text-blue-700 hover:underline cursor-pointer">
                         {item.title}
@@ -123,7 +130,7 @@ const Post = () => {
                     <Link
                       to={`/post/${item.post_id}`}
                       className="text-black-700 hover:underline bg-slate-200 hover:bg-slate-300 p-1 rounded-sm"
-                      onClick={() => window.scrollTo(0, 0)} // Scroll to top on click
+                      onClick={() => window.scrollTo(0, 0)}
                     >
                       Read More
                     </Link>
