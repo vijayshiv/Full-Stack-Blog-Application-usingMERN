@@ -53,4 +53,7 @@ router.post("/login", (req, res) => {
   });
 });
 
+router.post("/update", (req, res) => {
+  
+});
 module.exports = router;
