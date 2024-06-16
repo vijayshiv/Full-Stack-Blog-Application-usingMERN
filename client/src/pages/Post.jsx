@@ -92,7 +92,8 @@ const Post = () => {
                 onClick={() => navigate(`/post/${post.post_id}`)}
               />
               <div
-                className="text-lg lg:text-2xl text-justify mt-4"
+                className=" text-justify mt-4"
+                style={{ fontSize: "120%" }}
                 dangerouslySetInnerHTML={{ __html: post.content }}
               />
             </div>
@@ -122,7 +123,7 @@ const Post = () => {
                         alt={item.title}
                         className="w-full h-56 object-cover rounded-md mb-2 cursor-pointer"
                       />
-                      <h3 className="text-2xl mb-4 font-semibold text-blue-700 hover:underline cursor-pointer">
+                      <h3 className="text-2xl mb-4 font-semibold text-blue-700 hover:underline cursor-pointer text-left">
                         {item.title}
                       </h3>
                     </Link>
