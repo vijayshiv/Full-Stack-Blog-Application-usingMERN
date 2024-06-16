@@ -36,7 +36,14 @@ const Navbar = () => {
   const handleClickOutside = (event) => {
     if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
       setIsDropdownOpen(false);
+      if (isMobileMenuOpen) {
+        setIsMobileMenuOpen(false); // Close the mobile menu if it's open
+      }
     }
+  };
+
+  const handleDropdownToggle = () => {
+    setIsDropdownOpen(!isDropdownOpen);
   };
 
   const isActive = (path) => {
@@ -150,9 +157,7 @@ const Navbar = () => {
                 <li>
                   <details ref={dropdownRef} className="dropdown">
                     <summary
-                      onClick={() =>
-                        setIsDropdownOpen((prevState) => !prevState)
-                      }
+                      onClick={handleDropdownToggle}
                       className={`block py-2 pr-4 pl-3 duration-100 text-gray-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 hover:text-blue-700 lg:p-0 ${
                         isDropdownOpen ? "hover:cursor-pointer" : ""
                       } text-3xl`}
