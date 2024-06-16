@@ -43,14 +43,26 @@ export default function Home() {
     }
     return array;
   };
+  // Inside renderPosts function
 
   const renderPosts = () => {
     return posts.map((post, index) => {
       const isOdd = index % 2 !== 0;
-      const truncatedContent =
-        post.content.length > 220
-          ? post.content.substring(0, 220) + "..."
-          : post.content;
+      // Modify the truncatedContent logic to handle HTML tags properly
+      const truncatedContent = (str, maxLength) => {
+        const div = document.createElement("div");
+        div.innerHTML = str;
+        let text = div.textContent || div.innerText || "";
+        text = text.trim();
+        return text.length > maxLength
+          ? `${text.substring(0, maxLength)}...`
+          : text;
+      };
+
+      // Inside renderPosts function
+      console.log("Post Content:", post.content);
+      console.log("Truncated Content Length:", truncatedContent.length);
+
       return (
         <div
           key={post.post_id}
@@ -75,9 +87,11 @@ export default function Home() {
                 {post.title}
               </h1>
             </Link>
-            <p
-              className="px-10 text-xl text-justify "
-              dangerouslySetInnerHTML={{ __html: truncatedContent }}
+            <div
+              className="px-10 text-xl text-justify"
+              dangerouslySetInnerHTML={{
+                __html: truncatedContent(post.content, 250),
+              }}
             />
             <div
               className={`flex ${
