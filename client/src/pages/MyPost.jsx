@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { RiEdit2Line, RiDeleteBinLine } from "react-icons/ri"; // Import React Icons
+import { Link } from "react-router-dom";
 
 const MyPosts = () => {
   const [posts, setPosts] = useState([]);
@@ -78,16 +79,20 @@ const MyPosts = () => {
               className="bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden relative"
             >
               {post.img && (
-                <img
-                  src={`http://localhost:4000/images/${post.img}`}
-                  alt={post.title}
-                  className="w-full h-48 object-cover rounded-t-lg"
-                />
+                <Link to={`/post/${post.post_id}`}>
+                  <img
+                    src={`http://localhost:4000/images/${post.img}`}
+                    alt={post.title}
+                    className="w-full h-48 object-cover rounded-t-lg"
+                  />
+                </Link>
               )}
               <div className="p-5">
-                <h2 className="mb-2 text-xl font-bold tracking-tight text-gray-900 text-balance">
-                  {post.title}
-                </h2>
+                <Link to={`/post/${post.post_id}`}>
+                  <h2 className="mb-2 text-xl font-bold tracking-tight text-gray-900 text-balance">
+                    {post.title}
+                  </h2>
+                </Link>
                 <p
                   className="mb-3 font-normal text-gray-700 text-justify"
                   style={{ maxHeight: "8.4rem", overflow: "clip" }}
