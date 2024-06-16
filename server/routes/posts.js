@@ -1,36 +1,10 @@
 const express = require("express");
 const db = require("../db");
 const util = require("../utils");
-const jwt = require("jsonwebtoken");
-const config = require("../config");
 const multer = require("multer");
-const upload = multer({ dest: "images/" }); // Destination folder for uploaded images
+const upload = multer({ dest: "images/" });
 
 const router = express.Router();
-
-const verifyToken = (req, res, next) => {
-  // Get token from headers
-  const token = req.headers["token"];
-
-  // Check if token is provided
-  if (!token) {
-    return res
-      .status(401)
-      .json({ status: "error", message: "Unauthorized: No token provided" });
-  }
-  try {
-    // Verify token
-    const decoded = jwt.verify(token, config.secretKey);
-    // Attach decoded payload to request object
-    req.user = decoded;
-    next(); // Move to the next middleware
-  } catch (error) {
-    // Token is invalid
-    return res
-      .status(401)
-      .json({ status: "error", message: "Unauthorized: Invalid token" });
-  }
-};
 
 // Get all posts
 router.get("/all", (req, res) => {
@@ -45,18 +19,17 @@ router.get("/all", (req, res) => {
 });
 
 // Create a new post
-router.post("/my-post", verifyToken, upload.single("image"), (req, res) => {
-  // Use req.user.userId to get the user ID
+router.post("/add-post", upload.single("image"), (req, res) => {
   const userId = req.user.id;
 
   try {
     const query =
       "INSERT INTO posts(title, content, img, category, user_id) VALUES (?,?,?,?,?);";
     const { title, content, category } = req.body;
-    const img = req.file ? req.file.filename : null; // Retrieve filename from multer
+    const img = req.file ? req.file.filename : null;
     db.pool.execute(
       query,
-      [title, content, img, category, userId], // Use userId obtained from req.user
+      [title, content, img, category, userId],
       (error, data) => {
         if (error) {
           res.send(util.errorMessage(error.message));
@@ -90,6 +63,79 @@ router.get("/by-category/:category", (req, res) => {
       res.send(util.errorMessage(error));
     } else {
       res.send(util.successMessage(data));
+    }
+  });
+});
+
+router.get("/my-all-post", (req, res) => {
+  // getting the user id which is stored in storage
+  const userId = req.user.id;
+  const query = `SELECT post_id, title, content, img, category FROM posts WHERE user_id = ? AND isDeleted = 0;`;
+
+  db.pool.execute(query, [userId], (error, all_post) => {
+    res.send(util.result(all_post, error));
+  });
+});
+
+router.put("/update-post/:postId", upload.single("img"), async (req, res) => {
+  const postId = req.params.postId;
+  const { title, content } = req.body;
+  let img = req.file ? req.file.filename : null;
+
+  try {
+    const queryParams = [];
+    const updateFields = [];
+
+    if (title) {
+      updateFields.push("title = ?");
+      queryParams.push(title);
+    }
+
+    if (content) {
+      updateFields.push("content = ?");
+      queryParams.push(content);
+    }
+
+    if (img) {
+      updateFields.push("img = ?");
+      queryParams.push(img);
+    }
+
+    if (updateFields.length === 0) {
+      return res.send(util.errorMessage("No fields to update"));
+    }
+
+    // Construct the update query
+    const updateQuery = `UPDATE posts SET ${updateFields.join(
+      ", "
+    )} WHERE post_id = ?`;
+    queryParams.push(postId);
+
+    console.log(updateQuery);
+    // Execute the update query
+    await db.pool.execute(updateQuery, queryParams);
+
+    return res.send(util.successMessage("Post updated successfully"));
+  } catch (error) {
+    console.error("Error updating post:", error);
+    return res.send(util.errorMessage("Internal server error"));
+  }
+});
+
+router.delete("/delete-post/:postId", (req, res) => {
+  const postId = req.params.postId;
+
+  const query = `UPDATE posts SET isDeleted = 1 WHERE post_id = ?`;
+
+  db.pool.execute(query, [postId], (error, result) => {
+    if (error) {
+      res.send(util.errorMessage("Internal server error"));
+    } else {
+      if (result.affectedRows > 0) {
+        res.send(util.successMessage("Post deleted successfully"));
+      } else {
+        res.send(util.errorMessage("Post not found"));
+      }
     }
   });
 });
