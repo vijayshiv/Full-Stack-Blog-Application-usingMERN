@@ -28,5 +28,6 @@ SELECT * FROM posts;
 
 update users set isDeleted = 0 where id = 4;
 
-
+select * from posts where post_id = 4;
+update posts set isDeleted = 0 where post_id = 1;
 

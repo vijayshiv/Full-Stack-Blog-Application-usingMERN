@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { RiEdit2Line, RiDeleteBinLine } from "react-icons/ri"; // Import React Icons
+import { RiEdit2Line, RiDeleteBinLine } from "react-icons/ri";
 import { Link } from "react-router-dom";
 
 const MyPosts = () => {
   const [posts, setPosts] = useState([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState("");
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [postIdToDelete, setPostIdToDelete] = useState(null);
+
   useEffect(() => {
     const name = sessionStorage.getItem("name");
     const token = sessionStorage.getItem("token");
@@ -31,7 +34,8 @@ const MyPosts = () => {
         "http://localhost:4000/posts/my-all-post",
         { headers: { token, id } }
       );
-      console.log("Response:", response.data.data); // Log the response data
+
+      console.log(response.data.data);
       setPosts(response.data.data);
     } catch (error) {
       console.error("Error fetching posts:", error);
@@ -40,7 +44,6 @@ const MyPosts = () => {
   };
 
   const truncateContent = (content, lineLimit) => {
-    // Remove HTML tags and truncate content to specified number of lines
     const plainText = content.replace(/<[^>]+>/g, "");
     const lines = plainText.split("\n");
     if (lines.length > lineLimit) {
@@ -49,12 +52,50 @@ const MyPosts = () => {
     return plainText;
   };
 
+  const confirmDelete = (postId) => {
+    setPostIdToDelete(postId);
+    setShowDeleteConfirmation(true);
+  };
+
+  const handleDelete = async () => {
+    try {
+      const token = sessionStorage.getItem("token");
+      if (!token) {
+        toast.error("Please log in to delete posts.");
+        return;
+      }
+
+      const response = await axios.delete(
+        `http://localhost:4000/posts/delete-post/${postIdToDelete}`,
+        { headers: { token } }
+      );
+      console.log(response.data);
+      console.log(response.data.data);
+      if (response.data.status === "success") {
+        console.log("calling fetchPost()");
+        fetchPosts();
+        toast.success(response.data.data);
+        // Remove the deleted post from the posts array
+      } else {
+        toast.error(response.data.error);
+      }
+    } catch (error) {
+      console.error("Error deleting post:", error);
+      toast.error("An error occurred while deleting the post.");
+    } finally {
+      // Reset state after deletion
+      setShowDeleteConfirmation(false);
+      setPostIdToDelete(null);
+    }
+  };
+
   const capitalizeName = (name) => {
     return name
       .split(" ")
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(" ");
   };
+
   return (
     <div className="container mx-auto">
       <h1
@@ -105,7 +146,10 @@ const MyPosts = () => {
                   </button>
                 </div>
                 <div className="absolute right-3 bottom-3">
-                  <button className="p-2 rounded-full bg-red-700 text-white hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300">
+                  <button
+                    onClick={() => confirmDelete(post.post_id)}
+                    className="p-2 rounded-full bg-red-700 text-white hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300"
+                  >
                     <RiDeleteBinLine />
                   </button>
                 </div>
@@ -116,6 +160,29 @@ const MyPosts = () => {
           <p>No posts found.</p>
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirmation && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white p-4 rounded shadow-md">
+            <p className="mb-2">Are you sure you want to delete this post?</p>
+            <div className="flex justify-center">
+              <button
+                onClick={handleDelete}
+                className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mr-2"
+              >
+                Yes
+              </button>
+              <button
+                onClick={() => setShowDeleteConfirmation(false)}
+                className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded ml-2"
+              >
+                No
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
