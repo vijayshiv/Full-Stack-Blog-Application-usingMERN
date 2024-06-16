@@ -36,14 +36,7 @@ const Navbar = () => {
   const handleClickOutside = (event) => {
     if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
       setIsDropdownOpen(false);
-      if (isMobileMenuOpen) {
-        setIsMobileMenuOpen(false); // Close the mobile menu if it's open
-      }
     }
-  };
-
-  const handleDropdownToggle = () => {
-    setIsDropdownOpen(!isDropdownOpen);
   };
 
   const isActive = (path) => {
@@ -57,7 +50,6 @@ const Navbar = () => {
     setUserName("");
     navigate("/login");
   };
-
   const capitalizeName = (name) => {
     return name
       .split(" ")
@@ -157,7 +149,7 @@ const Navbar = () => {
                 <li>
                   <details ref={dropdownRef} className="dropdown">
                     <summary
-                      onClick={handleDropdownToggle}
+                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                       className={`block py-2 pr-4 pl-3 duration-100 text-gray-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 hover:text-blue-700 lg:p-0 ${
                         isDropdownOpen ? "hover:cursor-pointer" : ""
                       } text-3xl`}
@@ -178,7 +170,6 @@ const Navbar = () => {
                         />
                       </svg>
                     </summary>
-
                     {isDropdownOpen && (
                       <ul className="absolute bg-white border border-gray-200 rounded-lg mt-2 py-1 w-36 z-50">
                         <li>
