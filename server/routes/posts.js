@@ -108,7 +108,7 @@ router.delete("/delete-post/:postId", (req, res) => {
       res.send(util.errorMessage("Internal server error"));
     } else {
       if (result.affectedRows > 0) {
-        res.send(util.errorMessage("Post deleted successfully"));
+        res.send(util.successMessage("Post deleted successfully"));
       } else {
         res.send(util.errorMessage("Post not found"));
       }
