@@ -3,13 +3,12 @@ import { Link } from "react-router-dom";
 
 const Suggestions = ({ suggestions }) => {
   return (
-    <div className="w-1/4 h- overflow-y-auto">
-      <div className="mt-3 ml-12">
+    <div className="overflow-x-auto lg:overflow-y-auto">
+      <div className="mt-3 lg:ml-12">
         <h2 className="font-bold text-2xl mb-4">
           Other Suggested Posts You May Like
         </h2>
-        <ul style={{ listStyleType: "none" }}>
-          {" "}
+        <ul className="flex lg:block space-x-4 lg:space-x-0" style={{ listStyleType: "none" }}>
           {suggestions.map((item) => (
             <li key={item.post_id} className="mb-4">
               <Link
@@ -20,9 +19,9 @@ const Suggestions = ({ suggestions }) => {
                 <img
                   src={`http://localhost:4000/images/${item.img}`}
                   alt={item.title}
-                  className="w-full h-56 object-cover rounded-md mb-2 cursor-pointer"
+                  className="w-40 h-40 lg:w-full lg:h-56 object-cover rounded-md mb-2 cursor-pointer"
                 />
-                <h3 className="text-2xl mb-4 font-semibold text-blue-700 hover:underline cursor-pointer text-left">
+                <h3 className="text-xl lg:text-2xl mb-4 font-semibold text-blue-700 hover:underline cursor-pointer text-left">
                   {item.title}
                 </h3>
               </Link>
