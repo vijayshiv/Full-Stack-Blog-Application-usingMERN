@@ -4,6 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 
 export default function Home() {
   const [posts, setPosts] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const location = useLocation();
   const category = new URLSearchParams(location.search).get("cat");
 
@@ -43,10 +44,15 @@ export default function Home() {
     }
     return array;
   };
-  // Inside renderPosts function
 
+  // Function to filter posts by title
+  const filteredPosts = posts.filter((post) =>
+    post.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Inside renderPosts function
   const renderPosts = () => {
-    return posts.map((post, index) => {
+    return filteredPosts.map((post, index) => {
       const isOdd = index % 2 !== 0;
       // Modify the truncatedContent logic to handle HTML tags properly
       const truncatedContent = (str, maxLength) => {
@@ -58,10 +64,6 @@ export default function Home() {
           ? `${text.substring(0, maxLength)}...`
           : text;
       };
-
-      // Inside renderPosts function
-      console.log("Post Content:", post.content);
-      console.log("Truncated Content Length:", truncatedContent.length);
 
       return (
         <div
@@ -110,5 +112,18 @@ export default function Home() {
     });
   };
 
-  return <div>{renderPosts()}</div>;
+  return (
+    <div>
+      <div className="p-4">
+        <input
+          type="text"
+          placeholder="Search by title..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-1/2 px-3 py-2 border rounded-md shadow-md focus:outline-none focus:border-blue-500"
+        />
+      </div>
+      {renderPosts()}
+    </div>
+  );
 }
