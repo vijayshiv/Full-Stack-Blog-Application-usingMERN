@@ -28,12 +28,16 @@ const CategoryDropdown = () => {
   };
 
   return (
-    <div ref={dropdownRef} className="relative">
+    <div
+      ref={dropdownRef}
+      className="relative inline-block" // Change here
+    >
       <button
         onClick={handleToggleDropdown}
         className={`block py-2 pr-4 pl-3 duration-200 ${
           isActive("/cat=?") ? "text-blue-700" : "text-gray-700"
         } border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 hover:text-blue-700 lg:p-0 text-3xl`}
+        style={{ zIndex: 1 }}
       >
         Category
         <svg
@@ -53,7 +57,12 @@ const CategoryDropdown = () => {
       </button>
 
       {isDropdownOpen && (
-        <ul className="absolute bg-white border border-gray-200 rounded-lg mt-2 py-1 w-36 z-50">
+        <ul
+          className="absolute bg-white border border-gray-200 rounded-lg mt-2 py-1 w-36 z-50"
+          style={{ top: "3rem" }}
+        >
+          {" "}
+          {/* Adjust top position here */}
           <li>
             <NavLink
               to="/?cat=art"
