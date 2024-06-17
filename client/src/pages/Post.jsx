@@ -152,8 +152,8 @@ const Post = () => {
         `}
       </style>
       <div className="container mx-auto mt-16">
-        <div className="flex">
-          <div className="w-3/4">
+        <div className="flex flex-col lg:flex-row">
+          <div className="lg:w-3/4">
             <h1 className="font-bold text-3xl lg:text-5xl text-blue-900 mb-8 leading-tight font-serif">
               "{post.title}"
             </h1>
@@ -162,7 +162,6 @@ const Post = () => {
                 className="float-left mr-10 mb-5 max-w-[55%] rounded-md shadow-md object-cover cursor-pointer"
                 src={`http://localhost:4000/images/${post.img}`}
                 alt={post.title}
-                onClick={() => navigate(`/post/${post.post_id}`)}
               />
               <div
                 className="post-content mt-4"
@@ -183,7 +182,9 @@ const Post = () => {
               </p>
             </div>
           </div>
-          <Suggestions suggestions={suggestions} />
+          <div className="lg:w-1/4 lg:ml-12 mt-8 lg:mt-0">
+            <Suggestions suggestions={suggestions} />
+          </div>
         </div>
       </div>
     </>
