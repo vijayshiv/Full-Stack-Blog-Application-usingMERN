@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import logo from "../images/logo.png";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import CategoryDropdown from "./CategoryDropdown";
 
 const Navbar = () => {
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
@@ -35,11 +36,13 @@ const Navbar = () => {
     };
   }, []);
 
+  useEffect(() => {
+    console.log("Dropdown Open:", isDropdownOpen);
+    console.log("User Dropdown Open:", isUserDropdownOpen);
+  }, [isDropdownOpen, isUserDropdownOpen]);
+
   const handleClickOutside = (event) => {
-    if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-      setIsDropdownOpen(false);
-    }
-    if (userDropdownRef.current && !userDropdownRef.current.contains(event.target)) {
+    if (!userDropdownRef.current.contains(event.target)) {
       setIsUserDropdownOpen(false);
     }
   };
@@ -190,82 +193,7 @@ const Navbar = () => {
                   </NavLink>
                 </li>
                 <li>
-                  <details ref={dropdownRef} className="dropdown">
-                    <summary
-                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                      className={`block py-2 pr-4 pl-3 duration-100 text-gray-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 hover:text-blue-700 lg:p-0 ${
-                        isDropdownOpen ? "hover:cursor-pointer" : ""
-                      } text-3xl`}
-                    >
-                      Category
-                      <svg
-                        className={`w-6 h-6 inline-block ml-1 transition-transform transform ${
-                          isDropdownOpen ? "rotate-180" : ""
-                        }`}
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M10 12a1 1 0 01-.7-.29l-4-4a1 1 0 111.42-1.42L10 10.59l3.29-3.3a1 1 0 111.42 1.42l-4 4a1 1 0 01-.71.29z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </summary>
-                    {isDropdownOpen && (
-                      <ul className="absolute bg-white border border-gray-200 rounded-lg mt-2 py-1 w-36 z-50">
-                        <li>
-                          <NavLink
-                            to="/?cat=art"
-                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                          >
-                            Art
-                          </NavLink>
-                        </li>
-                        <li>
-                          <NavLink
-                            to="/?cat=technology"
-                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                          >
-                            Technology
-                          </NavLink>
-                        </li>
-                        <li>
-                          <NavLink
-                            to="/?cat=science"
-                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                          >
-                            Science
-                          </NavLink>
-                        </li>
-                        <li>
-                          <NavLink
-                            to="/?cat=design"
-                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                          >
-                            Design
-                          </NavLink>
-                        </li>
-                        <li>
-                          <NavLink
-                            to="/?cat=food"
-                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                          >
-                            Food
-                          </NavLink>
-                        </li>
-                        <li>
-                          <NavLink
-                            to="/?cat=cinema"
-                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                          >
-                            Cinema
-                          </NavLink>
-                        </li>
-                      </ul>
-                    )}
-                  </details>
+                  <CategoryDropdown />
                 </li>
               </ul>
             </div>
