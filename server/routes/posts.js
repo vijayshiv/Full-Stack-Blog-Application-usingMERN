@@ -140,4 +140,17 @@ router.delete("/delete-post/:postId", (req, res) => {
   });
 });
 
+router.get("/search", (req, res) => {
+  const searchTerm = req.query.q; // Get the search term from the query parameter
+  const query = `SELECT post_id, title, content, img FROM posts WHERE title LIKE ?`; // Use SQL LIKE operator to search for titles containing the search term
+  const searchValue = `%${searchTerm}%`; // Add wildcards to search for partial matches
+  db.pool.query(query, [searchValue], (error, data) => {
+    if (error) {
+      res.send(util.errorMessage(error));
+    } else {
+      res.send(util.successMessage(data));
+    }
+  });
+});
+
 module.exports = router;
