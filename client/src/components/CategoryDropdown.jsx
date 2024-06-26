@@ -36,7 +36,7 @@ const CategoryDropdown = () => {
         onClick={handleToggleDropdown}
         className={`block py-2 pr-4 pl-3 duration-200 ${
           isActive("/cat=?") ? "text-blue-700" : "text-gray-700"
-        } border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 hover:text-blue-700 lg:p-0 text-3xl`}
+        } border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 hover:text-blue-700 lg:p-0 md:text-3xl`}
         style={{ zIndex: 1 }}
       >
         Category
@@ -58,7 +58,7 @@ const CategoryDropdown = () => {
 
       {isDropdownOpen && (
         <ul
-          className="absolute bg-white border border-gray-200 rounded-lg mt-2 py-1 w-36 z-50"
+          className="absolute bg-white border border-gray-200 rounded-lg mt-2 py-1 w-28 md:w-36 z-50"
           style={{ top: "3rem" }}
         >
           {" "}
@@ -66,7 +66,7 @@ const CategoryDropdown = () => {
           <li>
             <NavLink
               to="/?cat=art"
-              className="block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-blue-700"
+              className="text-xs block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-blue-700 md:text-lg"
             >
               Art
             </NavLink>
@@ -74,7 +74,7 @@ const CategoryDropdown = () => {
           <li>
             <NavLink
               to="/?cat=technology"
-              className="block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-blue-700"
+              className="text-xs block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-blue-700 md:text-lg"
             >
               Technology
             </NavLink>
@@ -82,7 +82,7 @@ const CategoryDropdown = () => {
           <li>
             <NavLink
               to="/?cat=science"
-              className="block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-blue-700"
+              className="text-xs block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-blue-700 md:text-lg"
             >
               Science
             </NavLink>
@@ -90,7 +90,7 @@ const CategoryDropdown = () => {
           <li>
             <NavLink
               to="/?cat=design"
-              className="block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-blue-700"
+              className="text-xs block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-blue-700 md:text-lg"
             >
               Design
             </NavLink>
@@ -98,7 +98,7 @@ const CategoryDropdown = () => {
           <li>
             <NavLink
               to="/?cat=food"
-              className="block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-blue-700"
+              className="text-xs block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-blue-700 md:text-lg"
             >
               Food
             </NavLink>
@@ -106,7 +106,7 @@ const CategoryDropdown = () => {
           <li>
             <NavLink
               to="/?cat=cinema"
-              className="block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-blue-700"
+              className="text-xs px-2 py-0 block md:px-4 md:py-2 text-gray-700 hover:bg-gray-100 hover:text-blue-700 md:text-lg"
             >
               Cinema
             </NavLink>

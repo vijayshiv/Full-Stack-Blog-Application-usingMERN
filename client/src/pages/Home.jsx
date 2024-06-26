@@ -48,16 +48,13 @@ export default function Home() {
     return array;
   };
 
-  // Function to filter posts by title
   const filteredPosts = posts.filter((post) =>
     post.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Inside renderPosts function
   const renderPosts = () => {
     return filteredPosts.map((post, index) => {
       const isOdd = index % 2 !== 0;
-      // Modify the truncatedContent logic to handle HTML tags properly
       const truncatedContent = (str, maxLength) => {
         const div = document.createElement("div");
         div.innerHTML = str;
@@ -71,14 +68,14 @@ export default function Home() {
       return (
         <div
           key={post.post_id}
-          className="flex flex-col md:flex-row text-xl font-sans list-disc"
+          className="flex flex-col md:flex-row text-xl font-sans list-disc my-4"
           style={{
-            flexDirection: isOdd ? "row" : "row-reverse",
+            flexDirection: isMobile || isOdd ? "row" : "row-reverse",
             alignItems: "stretch", // Ensure children stretch to same height
           }}
         >
-          <div className=" flex flex-col md:flex-row">
-            <div className=" md:flex-shrink-0 md:mr-10">
+          <div className="flex flex-col md:flex-row">
+            <div className="md:flex-shrink-0 md:mr-10">
               <div className="relative image-wrapper">
                 <img
                   className="m-10 relative z-10 h-32 w-52 md:h-[333px] md:w-[261px]" // Reduced by 10%
@@ -89,7 +86,7 @@ export default function Home() {
             </div>
             <div className="flex flex-col justify-between flex-grow">
               <Link to={`/post/${post.post_id}`}>
-                <h1 className="text-xl md:text-2xl px-10 text-left font-bold lg:text-4xl mt-10 py-10 ">
+                <h1 className="text-xl md:text-2xl px-10 text-left font-bold lg:text-4xl mt-10 py-10">
                   {post.title}
                 </h1>
               </Link>
@@ -113,55 +110,6 @@ export default function Home() {
               </div>
             </div>
           </div>
-          {/* {isMobile && (
-            <div className=" md:flex-shrink-0 md:mr-10">
-              <div className="relative image-wrapper">
-                <img
-                  className="m-10 relative z-10 h-[333px] w-[261px]" // Reduced by 10%
-                  src={`http://localhost:4000/images/${post.img}`}
-                  alt={post.title}
-                />
-              </div>
-            </div>
-          )} */}
-
-          {/* <div className="flex flex-col justify-between flex-grow">
-            <Link to={`/post/${post.post_id}`}>
-              <h1 className="text-xl md:text-2xl px-10 text-left font-bold lg:text-4xl mt-10 py-10 ">
-                {post.title}
-              </h1>
-            </Link>
-
-            <div
-              className="px-10 text-xs md:text-lg lg:text-xl text-justify flex-grow"
-              dangerouslySetInnerHTML={{
-                __html: truncatedContent(post.content, 250),
-              }}
-            />
-            <div
-              className={`flex ${
-                isOdd ? "justify-end" : "justify-start ml-9"
-              } mr-10 mb-10`} // Added mb-10 to ensure spacing at the bottom
-            >
-              <Link to={`/post/${post.post_id}`}>
-                <button className="px-1 py-1 md:p-3 mt-10 text-[10px] md:text-lg border-2 border-solid border-black hover:bg-gray-200">
-                  Read More
-                </button>
-              </Link>
-            </div>
-          </div> */}
-
-          {/* {!isMobile && (
-            <div className="md:flex-shrink-0 md:mr-10">
-              <div className="relative image-wrapper">
-                <img
-                  className="m-10 relative z-10 h-[333px] w-[261px]" // Reduced by 10%
-                  src={`http://localhost:4000/images/${post.img}`}
-                  alt={post.title}
-                />
-              </div>
-            </div>
-          )} */}
         </div>
       );
     });
@@ -175,7 +123,7 @@ export default function Home() {
           placeholder="Search by title..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className=" md:w-1/2 px-3 py-2 border rounded-md shadow-md focus:outline-none focus:border-blue-500"
+          className="w-[95%] md:w-1/2 px-3 py-2 border rounded-md shadow-md focus:outline-none focus:border-blue-500"
         />
       </div>
       {renderPosts()}
