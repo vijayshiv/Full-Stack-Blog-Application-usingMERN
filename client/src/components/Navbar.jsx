@@ -79,7 +79,7 @@ const Navbar = () => {
                 <div ref={userDropdownRef} className="relative mr-4">
                   <button
                     onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
-                    className=" text-xs sm:text-lg md:text-xl font-serif p-1.5 mt-4 md:mt-0 rounded-md focus:outline-none"
+                    className="text-xs sm:text-lg md:text-xl font-serif p-1.5 mt-1 md:mt-0 rounded-md focus:outline-none"
                   >
                     {userName}
                     <svg
