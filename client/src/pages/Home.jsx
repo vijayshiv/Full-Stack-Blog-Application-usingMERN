@@ -10,6 +10,7 @@ export default function Home() {
   const category = new URLSearchParams(location.search).get("cat");
 
   const isMobile = useMediaQuery({ maxWidth: 768 }); // Define mobile breakpoint here
+  const isMediumOrLarger = useMediaQuery({ minWidth: 769 }); // Define medium and larger screens
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -65,16 +66,22 @@ export default function Home() {
           : text;
       };
 
+      const flexDirection =
+        isMobile || (isMediumOrLarger && isOdd) ? "row" : "row-reverse";
+
       return (
         <div
           key={post.post_id}
           className="flex flex-col md:flex-row text-xl font-sans list-disc my-4"
           style={{
-            flexDirection: isMobile || isOdd ? "row" : "row-reverse",
+            flexDirection: flexDirection,
             alignItems: "stretch", // Ensure children stretch to same height
           }}
         >
-          <div className="flex flex-col md:flex-row">
+          <div
+            className="flex flex-col md:flex-row"
+            style={{ flexDirection: flexDirection }}
+          >
             <div className="md:flex-shrink-0 md:mr-10">
               <div className="relative image-wrapper">
                 <img
@@ -86,7 +93,7 @@ export default function Home() {
             </div>
             <div className="flex flex-col justify-between flex-grow">
               <Link to={`/post/${post.post_id}`}>
-                <h1 className="text-xl md:text-2xl px-10 text-left font-bold lg:text-4xl mt-10 py-10">
+                <h1 className="text-xl md:text-2xl px-10 text-left font-bold lg:text-5xl mt-10 py-10">
                   {post.title}
                 </h1>
               </Link>
