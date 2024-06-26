@@ -99,17 +99,18 @@ const MyPosts = () => {
   return (
     <div className="container mx-auto">
       <h1
-        className="text-5xl font-semibold mb-10 mt-4 font-serif pb-2 relative"
+        className="
+    text-xl sm:text-3xl md:text-4xl lg:text-5xl 
+    font-semibold mb-6 sm:mb-8 md:mb-10 mt-4 font-serif py-2 pt-2 pb-2 
+    relative text-transparent bg-clip-text
+  "
         style={{
           backgroundImage: "linear-gradient(to right, #003366, #330066)",
-          color: "white",
-          WebkitTextFillColor: "transparent",
-          WebkitBackgroundClip: "text",
           textShadow: "0px 0px 0px rgba(0, 0, 0, 1)",
         }}
       >
         <span className="block relative z-10">{userName}'s Posts</span>
-        <span className="absolute inset-0 bg-gradient-to-r from-blue-800 to-purple-900 opacity-75 rounded-lg shadow-lg"></span>{" "}
+        <span className="absolute inset-0 bg-gradient-to-r from-blue-800 to-purple-900 opacity-75 rounded-lg shadow-lg"></span>
       </h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
