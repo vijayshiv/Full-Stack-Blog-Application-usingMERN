@@ -107,22 +107,23 @@ const Post = () => {
       left: 0; /* Position number correctly */
     }
 
+    /* Default styles */
     .post-content h1 {
-      font-size: 2rem; /* Reduced by 20% from 2.5rem */
+      font-size: 1.25rem; /* Default size for small screens */
       color: #1a202c;
       margin-top: 1em;
       margin-bottom: 0.5em;
     }
 
     .post-content h2 {
-      font-size: 1.6rem; /* Reduced by 20% from 2rem */
+      font-size: 1rem; /* Default size for small screens */
       color: #2d3748;
       margin-top: 0.75em;
       margin-bottom: 0.5em;
     }
 
     .post-content h3 {
-      font-size: 1.4rem; /* Reduced by 20% from 1.75rem */
+      font-size: 0.875rem; /* Default size for small screens */
       color: #4a5568;
       margin-top: 0.5em;
       margin-bottom: 0.5em;
@@ -149,13 +150,43 @@ const Post = () => {
     .post-content a:hover {
       color: #2c5282;
     }
+
+    /* Medium screens (md) */
+    @media (min-width: 768px) {
+      .post-content h1 {
+        font-size: 2rem; /* Increased by 60% for medium screens */
+      }
+
+      .post-content h2 {
+        font-size: 1.6rem; /* Increased by 60% for medium screens */
+      }
+
+      .post-content h3 {
+        font-size: 1.4rem; /* Increased by 60% for medium screens */
+      }
+    }
+
+    /* Large screens (lg) */
+    @media (min-width: 1024px) {
+      .post-content h1 {
+        font-size: 2.2rem; /* Original size for large screens */
+      }
+
+      .post-content h2 {
+        font-size: 1.9rem; /* Original size for large screens */
+      }
+
+      .post-content h3 {
+        font-size: 1.4rem; /* Original size for large screens */
+      }
+    }
   `}
       </style>
 
-      <div className="container mx-auto mt-16">
+      <div className="container mx-auto mt-16 px-4">
         <div className="flex flex-col lg:flex-row">
           <div className="lg:w-3/4">
-            <h1 className="font-bold text-3xl lg:text-5xl text-blue-900 mb-8 leading-tight font-serif">
+            <h1 className="font-bold text-2xl sm:text-3xl lg:text-5xl text-blue-900 mb-8 leading-tight font-serif">
               "{post.title}"
             </h1>
             <div className="clearfix">
@@ -168,6 +199,7 @@ const Post = () => {
                 className="post-content mt-4"
                 style={{
                   textAlign: "justify",
+                  fontSize: "1rem", // Base font size
                 }}
                 dangerouslySetInnerHTML={{
                   __html: DOMPurify.sanitize(post.content),
@@ -176,7 +208,7 @@ const Post = () => {
             </div>
             <div className="flex justify-between text-lg lg:text-xl mt-16">
               <p></p>
-              <p className="text-2xl capitalize">
+              <p className="text-xl sm:text-2xl capitalize">
                 <span className="uppercase font-bold">Category : </span>
                 {post.category}
               </p>
