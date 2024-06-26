@@ -10,7 +10,7 @@ export default function Home() {
   const category = new URLSearchParams(location.search).get("cat");
 
   const isMobile = useMediaQuery({ maxWidth: 768 }); // Define mobile breakpoint here
-  const isMediumOrLarger = useMediaQuery({ minWidth: 769 }); // Define medium and larger screens
+  const isMediumOrAbove = useMediaQuery({ minWidth: 769 }); // Define medium and larger screens
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -54,11 +54,10 @@ export default function Home() {
   );
 
   const renderPosts = () => {
-    return filteredPosts.map((post, index) => {
-      const isOdd = index % 2 !== 0;
-      const truncatedContent = (str, maxLength) => {
+    return filteredPosts.map((post) => {
+      const truncateContent = (content, maxLength) => {
         const div = document.createElement("div");
-        div.innerHTML = str;
+        div.innerHTML = content;
         let text = div.textContent || div.innerText || "";
         text = text.trim();
         return text.length > maxLength
@@ -66,55 +65,78 @@ export default function Home() {
           : text;
       };
 
-      const flexDirection =
-        isMobile || (isMediumOrLarger && isOdd) ? "row" : "row-reverse";
+      const imageWrapperClass = isMediumOrAbove ? "relative image-wrapper" : "";
+      const flexDirection = isMediumOrAbove
+        ? posts.indexOf(post) % 2 === 0
+          ? "row"
+          : "row-reverse"
+        : "column";
 
       return (
         <div
           key={post.post_id}
-          className="flex flex-col md:flex-row text-xl font-sans list-disc my-4"
-          style={{
-            flexDirection: flexDirection,
-            alignItems: "stretch", // Ensure children stretch to same height
-          }}
+          className={`flex flex-col md:flex-row text-xl font-sans list-disc my-4 ${
+            isMobile ? "flex-col" : ""
+          }`}
+          style={{ flexDirection: flexDirection }}
         >
+          <div className={imageWrapperClass}>
+            <img
+              className={`${
+                isMediumOrAbove
+                  ? "mt-12 mr-20 relative z-10 h-32 w-52 md:h-[333px] md:w-[600px]"
+                  : "mx-auto mb-4 h-48 w-auto"
+              }`}
+              src={`http://localhost:4000/images/${post.img}`}
+              alt={post.title}
+            />
+          </div>
           <div
-            className="flex flex-col md:flex-row"
-            style={{ flexDirection: flexDirection }}
+            className={`${
+              isMobile
+                ? "text-center"
+                : "flex flex-col justify-between flex-grow"
+            } ${
+              isMobile
+                ? "px-4 text-sm"
+                : "px-10 text-xs md:text-lg lg:text-xl text-justify flex-grow"
+            }`}
           >
-            <div className="md:flex-shrink-0 md:mr-10">
-              <div className="relative image-wrapper">
-                <img
-                  className="m-10 relative z-10 h-32 w-52 md:h-[333px] md:w-[261px]" // Reduced by 10%
-                  src={`http://localhost:4000/images/${post.img}`}
-                  alt={post.title}
-                />
-              </div>
-            </div>
-            <div className="flex flex-col justify-between flex-grow">
-              <Link to={`/post/${post.post_id}`}>
-                <h1 className="text-xl md:text-2xl px-10 text-left font-bold lg:text-5xl mt-10 py-10">
-                  {post.title}
-                </h1>
-              </Link>
-
-              <div
-                className="px-10 text-xs md:text-lg lg:text-xl text-justify flex-grow"
-                dangerouslySetInnerHTML={{
-                  __html: truncatedContent(post.content, 250),
-                }}
-              />
-              <div
-                className={`flex ${
-                  isOdd ? "justify-end" : "justify-start ml-9"
-                } mr-10 mb-10`} // Added mb-10 to ensure spacing at the bottom
+            <Link to={`/post/${post.post_id}`}>
+              <h1
+                className={`${
+                  isMobile
+                    ? "text-xl font-bold mt-4 mb-2 text-center"
+                    : "text-xl md:text-2xl font-bold lg:text-4xl mt-4 py-10 ml-14"
+                }`}
               >
-                <Link to={`/post/${post.post_id}`}>
-                  <button className="px-1 py-1 md:p-3 mt-10 text-[10px] md:text-lg border-2 border-solid border-black hover:bg-gray-200">
-                    Read More
-                  </button>
-                </Link>
-              </div>
+                {post.title}
+              </h1>
+            </Link>
+            <div
+              className="sm:m-0 text-justify md:ml-14"
+              dangerouslySetInnerHTML={{
+                __html: truncateContent(post.content, isMobile ? 150 : 250),
+              }}
+            />
+            <div
+              className={`${
+                isMobile
+                  ? "flex justify-center mt-2 mb-4"
+                  : "flex justify-start ml-9 mr-10 mb-10 ml-14"
+              }`}
+            >
+              <Link to={`/post/${post.post_id}`}>
+                <button
+                  className={`${
+                    isMobile
+                      ? "px-2 py-2 text-sm"
+                      : "px-1 py-1 md:p-2 mt-4 ml-5 text-[10px] md:text-lg"
+                  } border-2 border-solid border-black hover:bg-gray-200`}
+                >
+                  Read More
+                </button>
+              </Link>
             </div>
           </div>
         </div>

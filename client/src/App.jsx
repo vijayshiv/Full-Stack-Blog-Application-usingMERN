@@ -2,6 +2,7 @@ import "./App.css";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import ScrollToTop from "./ScrollToTop"; // Import the ScrollToTop component
 import Register from "./pages/Register";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
@@ -15,7 +16,12 @@ import EditPost from "./pages/EditPost";
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <Layout />,
+    element: (
+      <>
+        <ScrollToTop />
+        <Layout />
+      </>
+    ),
     children: [
       { path: "/", element: <Home /> },
       { path: "/register", element: <Register /> },
