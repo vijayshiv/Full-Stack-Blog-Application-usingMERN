@@ -83,7 +83,7 @@ const Write = () => {
               </label>
               <input
                 type="text"
-                className=" w-[205px] md:ml-3 border-2 md:w-72 "
+                className=" w-[268px] md:ml-3 border-2 md:w-72 "
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
               />
