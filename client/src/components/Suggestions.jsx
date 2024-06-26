@@ -8,7 +8,10 @@ const Suggestions = ({ suggestions }) => {
         <h2 className="font-bold text-2xl mb-4">
           Other Suggested Posts You May Like
         </h2>
-        <ul className="flex lg:block space-x-4 lg:space-x-0" style={{ listStyleType: "none" }}>
+        <ul
+          className="flex lg:block space-x-4 lg:space-x-0"
+          style={{ listStyleType: "none" }}
+        >
           {suggestions.map((item) => (
             <li key={item.post_id} className="mb-4">
               <Link
@@ -21,7 +24,7 @@ const Suggestions = ({ suggestions }) => {
                   alt={item.title}
                   className="w-40 h-40 lg:w-full lg:h-56 object-cover rounded-md mb-2 cursor-pointer"
                 />
-                <h3 className="text-xl lg:text-2xl mb-4 font-semibold text-blue-700 hover:underline cursor-pointer text-left">
+                <h3 className="text-md text-center lg:text-2xl mb-4 font-semibold text-blue-700 hover:underline cursor-pointer ">
                   {item.title}
                 </h3>
               </Link>
