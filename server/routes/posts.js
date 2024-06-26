@@ -141,10 +141,11 @@ router.delete("/delete-post/:postId", (req, res) => {
 });
 
 router.get("/search", (req, res) => {
-  const searchTerm = req.query.q; // Get the search term from the query parameter
-  const query = `SELECT post_id, title, content, img FROM posts WHERE title LIKE ?`; // Use SQL LIKE operator to search for titles containing the search term
-  const searchValue = `%${searchTerm}%`; // Add wildcards to search for partial matches
-  db.pool.query(query, [searchValue], (error, data) => {
+  const searchTerm = req.query.q;
+  const query = `SELECT post_id, title, content, img FROM posts WHERE LOWER(title) LIKE ? OR LOWER(content) LIKE ?`; // Updated SQL query to search in both title and content in a case-insensitive manner
+  const searchValue = `%${searchTerm.toLowerCase()}%`; // Convert the search term to lowercase for case-insensitive search
+  const searchValues = [searchValue, searchValue];
+  db.pool.query(query, searchValues, (error, data) => {
     if (error) {
       res.send(util.errorMessage(error));
     } else {
