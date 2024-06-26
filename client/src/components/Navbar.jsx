@@ -79,7 +79,7 @@ const Navbar = () => {
                 <div ref={userDropdownRef} className="relative mr-4">
                   <button
                     onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
-                    className=" text-xs sm:text-lg md:text-xl font-serif p-1.5 rounded-md focus:outline-none"
+                    className=" text-xs sm:text-lg md:text-xl font-serif p-1.5 mt-4 md:mt-0 rounded-md focus:outline-none"
                   >
                     {userName}
                     <svg
@@ -99,11 +99,11 @@ const Navbar = () => {
                   </button>
 
                   {isUserDropdownOpen && (
-                    <ul className="absolute bg-white border border-gray-200 rounded-lg mt-2 py-1 w-36 z-50">
+                    <ul className="absolute bg-white border border-gray-200 rounded-lg mt-2 py-1 w-24 md:w-36 z-50">
                       <li>
                         <NavLink
                           to="/profile"
-                          className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                          className="text-xs md:text-sm block px-4 py-2 text-gray-700 hover:bg-gray-100"
                         >
                           Profile
                         </NavLink>
@@ -111,7 +111,7 @@ const Navbar = () => {
                       <li>
                         <NavLink
                           to="/my-post"
-                          className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                          className="text-xs md:text-sm block px-4 py-2 text-gray-700 hover:bg-gray-100"
                         >
                           My Posts
                         </NavLink>
@@ -131,13 +131,13 @@ const Navbar = () => {
                 <>
                   <Link
                     to="/login"
-                    className="text-gray-800 hover:bg-gray-50 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-xl px-4 lg:px-5 py-2 lg:py-2.5 mr-2 focus:outline-none"
+                    className="text-xs sm:text-lg md:text-xl text-gray-800 hover:bg-gray-50 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg px-4 lg:px-5 py-2 lg:py-2.5 mr-2 focus:outline-none"
                   >
                     Log in
                   </Link>
                   <Link
                     to="/register"
-                    className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-orange-300 font-medium rounded-lg text-xl px-4 lg:px-5 py-2 lg:py-2.5 mr-2 focus:outline-none"
+                    className="text-xs sm:text-lg md:text-xl text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-orange-300 font-medium rounded-lg px-4 lg:px-5 py-2 lg:py-2.5 mr-2 focus:outline-none"
                   >
                     Sign up
                   </Link>
@@ -151,7 +151,7 @@ const Navbar = () => {
             >
               <span className="sr-only">Open main menu</span>
               <svg
-                className="w-6 h-6"
+                className="w-4 h-4 md:w-6 md:h-6"
                 fill="currentColor"
                 viewBox="0 0 20 20"
                 xmlns="http://www.w3.org/2000/svg"
@@ -174,9 +174,9 @@ const Navbar = () => {
                 <li>
                   <NavLink
                     to="/"
-                    className={`block py-2 pr-4 pl-3 duration-200 ${
+                    className={` block py-2 pr-4 pl-3 duration-200 ${
                       isActive("/") ? "text-blue-700" : "text-gray-700"
-                    } border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 hover:text-blue-700 lg:p-0 text-3xl`}
+                    } border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 hover:text-blue-700 lg:p-0 md:text-3xl`}
                   >
                     Home
                   </NavLink>
@@ -186,7 +186,7 @@ const Navbar = () => {
                     to="/write"
                     className={`block py-2 pr-4 pl-3 duration-200 ${
                       isActive("/write") ? "text-blue-700" : "text-gray-700"
-                    } border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 hover:text-blue-700 lg:p-0 text-3xl`}
+                    } border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 hover:text-blue-700 lg:p-0 md:text-3xl`}
                   >
                     Write
                   </NavLink>
