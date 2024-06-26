@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
@@ -10,6 +10,15 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check if user is already logged in
+    const token = sessionStorage.getItem("token");
+    if (token) {
+      toast.warning("You are already signed in.");
+      navigate("/"); // Redirect to home or dashboard
+    }
+  }, [navigate]);
 
   const submitData = async () => {
     if (

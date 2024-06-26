@@ -1,7 +1,11 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 
 export default function Footer() {
+  useEffect(() => {
+    window.scrollTo(0, 0); // Scrolls to the top when component mounts
+  }, []);
+
   return (
     <footer className="bg-white text-black py-8">
       <div className="container mx-auto px-4">
@@ -20,7 +24,7 @@ export default function Footer() {
             <h3 className="text-xl font-bold mb-2">Quick Links</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/all" className="hover:text-blue-800">
+                <Link to="/" className="hover:text-blue-800">
                   Home
                 </Link>
               </li>

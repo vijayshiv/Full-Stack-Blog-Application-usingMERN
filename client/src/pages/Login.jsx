@@ -40,7 +40,7 @@ export default function Login() {
   return (
     <>
       <ToastContainer />
-      <div className="bg-grey-lighter min-h-screen flex flex-col">
+      <div className="bg-grey-lighter min-h-[80vh] flex flex-col">
         <div className="container max-w-sm mx-auto mt-20 flex items-center justify-center px-2">
           <div className="bg-gray-50 px-6 py-8 rounded shadow-blue-800 shadow-2xl text-black w-full">
             <h1 className="mb-8 text-3xl text-center font-bold">
