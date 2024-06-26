@@ -77,13 +77,13 @@ const Write = () => {
       <div className="flex flex-col md:flex-row">
         <div className="md:basis-3/4 p-4">
           <div className="flex flex-col">
-            <div className="mt-8 text-2xl text-left">
-              <label htmlFor="title" className="font-bold">
-                TITLE :
+            <div className="mt-8 text-2xl text-left flex flex-col md:flex-row ">
+              <label htmlFor="title" className="font-bold text-center">
+                TITLE
               </label>
               <input
                 type="text"
-                className="ml-3 border-2"
+                className=" w-[205px] md:ml-3 border-2 md:w-72 "
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
               />

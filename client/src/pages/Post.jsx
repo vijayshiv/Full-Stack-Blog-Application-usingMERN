@@ -81,76 +81,77 @@ const Post = () => {
       <ToastContainer />
       <style>
         {`
-          .post-content ul {
-            list-style-type: disc;
-            padding-left: 40px; /* Add padding for indentation */
-            margin-left: 0; /* Reset margin to align with padding */
-          }
+    .post-content ul {
+      list-style-type: disc;
+      padding-left: 40px; /* Add padding for indentation */
+      margin-left: 0; /* Reset margin to align with padding */
+    }
 
-          .post-content ol {
-            list-style-type: none; /* Remove default numbering */
-            counter-reset: list-counter; /* Initialize counter */
-            padding-left: 40px; /* Add padding for indentation */
-            margin-left: 0; /* Reset margin to align with padding */
-          }
+    .post-content ol {
+      list-style-type: none; /* Remove default numbering */
+      counter-reset: list-counter; /* Initialize counter */
+      padding-left: 40px; /* Add padding for indentation */
+      margin-left: 0; /* Reset margin to align with padding */
+    }
 
-          .post-content ol li {
-            counter-increment: list-counter; /* Increment counter */
-            position: relative;
-            padding-left: 1.5em; /* Add padding to list items */
-          }
+    .post-content ol li {
+      counter-increment: list-counter; /* Increment counter */
+      position: relative;
+      padding-left: 1.5em; /* Add padding to list items */
+    }
 
-          .post-content ol li::before {
-            content: counter(list-counter) ". "; /* Add number and period */
-            font-weight: bold; /* Make the number bold */
-            position: absolute;
-            left: 0; /* Position number correctly */
-          }
+    .post-content ol li::before {
+      content: counter(list-counter) ". "; /* Add number and period */
+      font-weight: bold; /* Make the number bold */
+      position: absolute;
+      left: 0; /* Position number correctly */
+    }
 
-          .post-content h1 {
-            font-size: 2.5rem;
-            color: #1a202c;
-            margin-top: 1em;
-            margin-bottom: 0.5em;
-          }
+    .post-content h1 {
+      font-size: 2rem; /* Reduced by 20% from 2.5rem */
+      color: #1a202c;
+      margin-top: 1em;
+      margin-bottom: 0.5em;
+    }
 
-          .post-content h2 {
-            font-size: 2rem;
-            color: #2d3748;
-            margin-top: 0.75em;
-            margin-bottom: 0.5em;
-          }
+    .post-content h2 {
+      font-size: 1.6rem; /* Reduced by 20% from 2rem */
+      color: #2d3748;
+      margin-top: 0.75em;
+      margin-bottom: 0.5em;
+    }
 
-          .post-content h3 {
-            font-size: 1.75rem;
-            color: #4a5568;
-            margin-top: 0.5em;
-            margin-bottom: 0.5em;
-          }
+    .post-content h3 {
+      font-size: 1.4rem; /* Reduced by 20% from 1.75rem */
+      color: #4a5568;
+      margin-top: 0.5em;
+      margin-bottom: 0.5em;
+    }
 
-          .post-content p {
-            margin: 0.5em 0;
-            line-height: 1.6;
-          }
+    .post-content p {
+      margin: 0.5em 0;
+      line-height: 1.6;
+    }
 
-          .post-content strong, .post-content b {
-            font-weight: bold;
-          }
+    .post-content strong, .post-content b {
+      font-weight: bold;
+    }
 
-          .post-content em, .post-content i {
-            font-style: italic;
-          }
+    .post-content em, .post-content i {
+      font-style: italic;
+    }
 
-          .post-content a {
-            color: #3182ce;
-            text-decoration: underline;
-          }
+    .post-content a {
+      color: #3182ce;
+      text-decoration: underline;
+    }
 
-          .post-content a:hover {
-            color: #2c5282;
-          }
-        `}
+    .post-content a:hover {
+      color: #2c5282;
+    }
+  `}
       </style>
+
       <div className="container mx-auto mt-16">
         <div className="flex flex-col lg:flex-row">
           <div className="lg:w-3/4">
@@ -166,7 +167,6 @@ const Post = () => {
               <div
                 className="post-content mt-4"
                 style={{
-                  fontSize: "1.2rem",
                   textAlign: "justify",
                 }}
                 dangerouslySetInnerHTML={{

@@ -36,11 +36,6 @@ const Navbar = () => {
     };
   }, []);
 
-  useEffect(() => {
-    console.log("Dropdown Open:", isDropdownOpen);
-    console.log("User Dropdown Open:", isUserDropdownOpen);
-  }, [isDropdownOpen, isUserDropdownOpen]);
-
   const handleClickOutside = (event) => {
     if (!userDropdownRef.current.contains(event.target)) {
       setIsUserDropdownOpen(false);
@@ -70,9 +65,13 @@ const Navbar = () => {
     <>
       <header className="sticky z-50 top-0">
         <nav className="bg-white border-gray-800 px-4 lg:px-6 py-2.5">
-          <div className="flex flex-wrap justify-between items-center mx-auto max-w-screen-xl">
-            <Link to="/" className="flex items-center">
-              <img src={logo} className="mr-3 h-16 w-44" alt="Logo" />
+          <div className="flex flex-wrap justify-center md:justify-between items-center mx-auto max-w-screen-xl">
+            <Link to="/" className="flex items-center ">
+              <img
+                src={logo}
+                className="w-24 md:w-44 mr-3 sm:h-12 md:h-16 "
+                alt="Logo"
+              />
             </Link>
 
             <div className="flex items-center lg:order-2">
@@ -80,7 +79,7 @@ const Navbar = () => {
                 <div ref={userDropdownRef} className="relative mr-4">
                   <button
                     onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
-                    className="text-xl font-serif p-1.5 rounded-md  focus:outline-none"
+                    className=" text-xs sm:text-lg md:text-xl font-serif p-1.5 rounded-md focus:outline-none"
                   >
                     {userName}
                     <svg
@@ -124,7 +123,7 @@ const Navbar = () => {
               {isLoggedIn ? (
                 <button
                   onClick={handleLogout}
-                  className="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-orange-300 rounded-lg text-xl px-4 lg:px-3 py-1 lg:py-2 mr-2 focus:outline-none"
+                  className=" text-xs sm:text-lg md:text-xl text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-orange-300 rounded-lg  px-4 lg:px-3 py-1 lg:py-2 mr-2 focus:outline-none"
                 >
                   Logout
                 </button>
@@ -171,7 +170,7 @@ const Navbar = () => {
               } justify-between items-center w-full lg:flex lg:w-auto lg:order-1`}
               id="mobile-menu-2"
             >
-              <ul className="flex flex-col mt-4 font-medium lg:flex-row lg:space-x-8 lg:mt-0 ">
+              <ul className="flex flex-col mt-4 font-medium lg:flex-row lg:space-x-8 lg:mt-0">
                 <li>
                   <NavLink
                     to="/"

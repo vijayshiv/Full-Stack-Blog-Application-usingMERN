@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link, useLocation } from "react-router-dom";
+import { useMediaQuery } from "react-responsive";
 
 export default function Home() {
   const [posts, setPosts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const location = useLocation();
   const category = new URLSearchParams(location.search).get("cat");
+
+  const isMobile = useMediaQuery({ maxWidth: 768 }); // Define mobile breakpoint here
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -71,26 +74,66 @@ export default function Home() {
           className="flex flex-col md:flex-row text-xl font-sans list-disc"
           style={{
             flexDirection: isOdd ? "row" : "row-reverse",
+            alignItems: "stretch", // Ensure children stretch to same height
           }}
         >
-          <div className="md:flex-shrink-0 md:mr-10">
-            <div className="relative image-wrapper">
-              <img
-                className="m-10 relative z-10 h-[370px] w-[290px]"
-                src={`http://localhost:4000/images/${post.img}`}
-                alt={post.title}
+          <div className=" flex flex-col md:flex-row">
+            <div className=" md:flex-shrink-0 md:mr-10">
+              <div className="relative image-wrapper">
+                <img
+                  className="m-10 relative z-10 h-32 w-52 md:h-[333px] md:w-[261px]" // Reduced by 10%
+                  src={`http://localhost:4000/images/${post.img}`}
+                  alt={post.title}
+                />
+              </div>
+            </div>
+            <div className="flex flex-col justify-between flex-grow">
+              <Link to={`/post/${post.post_id}`}>
+                <h1 className="text-xl md:text-2xl px-10 text-left font-bold lg:text-4xl mt-10 py-10 ">
+                  {post.title}
+                </h1>
+              </Link>
+
+              <div
+                className="px-10 text-xs md:text-lg lg:text-xl text-justify flex-grow"
+                dangerouslySetInnerHTML={{
+                  __html: truncatedContent(post.content, 250),
+                }}
               />
+              <div
+                className={`flex ${
+                  isOdd ? "justify-end" : "justify-start ml-9"
+                } mr-10 mb-10`} // Added mb-10 to ensure spacing at the bottom
+              >
+                <Link to={`/post/${post.post_id}`}>
+                  <button className="px-1 py-1 md:p-3 mt-10 text-[10px] md:text-lg border-2 border-solid border-black hover:bg-gray-200">
+                    Read More
+                  </button>
+                </Link>
+              </div>
             </div>
           </div>
+          {/* {isMobile && (
+            <div className=" md:flex-shrink-0 md:mr-10">
+              <div className="relative image-wrapper">
+                <img
+                  className="m-10 relative z-10 h-[333px] w-[261px]" // Reduced by 10%
+                  src={`http://localhost:4000/images/${post.img}`}
+                  alt={post.title}
+                />
+              </div>
+            </div>
+          )} */}
 
-          <div className="flex-grow">
+          {/* <div className="flex flex-col justify-between flex-grow">
             <Link to={`/post/${post.post_id}`}>
-              <h1 className="px-10 text-left font-bold text-5xl mt-10 py-10 ">
+              <h1 className="text-xl md:text-2xl px-10 text-left font-bold lg:text-4xl mt-10 py-10 ">
                 {post.title}
               </h1>
             </Link>
+
             <div
-              className="px-10 text-xl text-justify"
+              className="px-10 text-xs md:text-lg lg:text-xl text-justify flex-grow"
               dangerouslySetInnerHTML={{
                 __html: truncatedContent(post.content, 250),
               }}
@@ -98,15 +141,27 @@ export default function Home() {
             <div
               className={`flex ${
                 isOdd ? "justify-end" : "justify-start ml-9"
-              } mr-10`}
+              } mr-10 mb-10`} // Added mb-10 to ensure spacing at the bottom
             >
               <Link to={`/post/${post.post_id}`}>
-                <button className="p-3 mt-10 text-xl border-2 border-solid border-black hover:bg-gray-200">
+                <button className="px-1 py-1 md:p-3 mt-10 text-[10px] md:text-lg border-2 border-solid border-black hover:bg-gray-200">
                   Read More
                 </button>
               </Link>
             </div>
-          </div>
+          </div> */}
+
+          {/* {!isMobile && (
+            <div className="md:flex-shrink-0 md:mr-10">
+              <div className="relative image-wrapper">
+                <img
+                  className="m-10 relative z-10 h-[333px] w-[261px]" // Reduced by 10%
+                  src={`http://localhost:4000/images/${post.img}`}
+                  alt={post.title}
+                />
+              </div>
+            </div>
+          )} */}
         </div>
       );
     });
@@ -120,7 +175,7 @@ export default function Home() {
           placeholder="Search by title..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-1/2 px-3 py-2 border rounded-md shadow-md focus:outline-none focus:border-blue-500"
+          className=" md:w-1/2 px-3 py-2 border rounded-md shadow-md focus:outline-none focus:border-blue-500"
         />
       </div>
       {renderPosts()}
