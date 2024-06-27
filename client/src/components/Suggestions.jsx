@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import baseURL from "../config/apiConfig";
 
 const Suggestions = ({ suggestions }) => {
   return (
@@ -20,7 +21,7 @@ const Suggestions = ({ suggestions }) => {
                 onClick={() => window.scrollTo(0, 0)}
               >
                 <img
-                  src={`http://localhost:4000/images/${item.img}`}
+                  src={`${baseURL}/images/${item.img}`}
                   alt={item.title}
                   className="w-40 h-40 lg:w-full lg:h-56 object-cover rounded-md mb-2 cursor-pointer"
                 />

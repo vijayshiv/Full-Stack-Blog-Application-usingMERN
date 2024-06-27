@@ -5,6 +5,8 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Suggestions from "../components/Suggestions";
 import DOMPurify from "dompurify";
+import baseURL from "../config/apiConfig";
+import api from "../config/api";
 
 const Post = () => {
   const { id } = useParams();
@@ -16,9 +18,7 @@ const Post = () => {
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        const response = await axios.get(
-          `http://localhost:4000/posts/post/${id}`
-        );
+        const response = await api.get(`/posts/post/${id}`);
         console.log("Response from server:", response.data);
         if (response.data.status === "success") {
           const fetchedPost = response.data.data[0];
@@ -40,9 +40,7 @@ const Post = () => {
 
   const fetchSuggestions = async (category, postId) => {
     try {
-      const response = await axios.get(
-        `http://localhost:4000/posts/by-category/${category}`
-      );
+      const response = await api.get(`/posts/by-category/${category}`);
       postId = id;
       if (response.data.status === "success") {
         const filteredSuggestions = response.data.data.filter((item) => {
@@ -186,13 +184,13 @@ const Post = () => {
       <div className="container mx-auto mt-16 px-4">
         <div className="flex flex-col lg:flex-row">
           <div className="lg:w-3/4">
-            <h1 className="font-bold text-2xl sm:text-3xl lg:text-5xl text-blue-900 mb-8 leading-tight font-serif">
+            <h1 className="font-bold text-3xl sm:text-3xl lg:text-5xl text-blue-900 mb-8 leading-tight font-serif">
               "{post.title}"
             </h1>
             <div className="clearfix">
               <img
                 className="float-left mr-10 mb-5 max-w-[55%] rounded-md shadow-md object-cover cursor-pointer"
-                src={`http://localhost:4000/images/${post.img}`}
+                src={`${baseURL}/images/${post.img}`}
                 alt={post.title}
               />
               <div

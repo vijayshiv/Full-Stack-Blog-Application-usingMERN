@@ -5,6 +5,7 @@ import "react-quill/dist/quill.snow.css";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import api from "../config/api";
 
 const Write = () => {
   const [title, setTitle] = useState("");
@@ -53,16 +54,12 @@ const Write = () => {
     formData.append("category", category);
 
     try {
-      const response = await axios.post(
-        "http://localhost:4000/posts/add-post",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            token: token,
-          },
-        }
-      );
+      const response = await api.post("/posts/add-post", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          token: token,
+        },
+      });
       console.log(response.data);
       navigate("/");
     } catch (error) {
