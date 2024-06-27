@@ -3,6 +3,8 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { RiEdit2Line, RiDeleteBinLine } from "react-icons/ri";
 import { Link } from "react-router-dom";
+import api from "../config/api";
+import baseURL from "../config/apiConfig";
 
 const MyPosts = () => {
   const [posts, setPosts] = useState([]);
@@ -30,11 +32,9 @@ const MyPosts = () => {
         return;
       }
 
-      const response = await axios.get(
-        "http://localhost:4000/posts/my-all-post",
-        { headers: { token, id } }
-      );
-
+      const response = await api.get("/posts/my-all-post", {
+        headers: { token, id },
+      });
       console.log(response.data.data);
       setPosts(response.data.data);
     } catch (error) {
@@ -64,9 +64,8 @@ const MyPosts = () => {
         toast.error("Please log in to delete posts.");
         return;
       }
-
-      const response = await axios.delete(
-        `http://localhost:4000/posts/delete-post/${postIdToDelete}`,
+      const response = await api.delete(
+        `/posts/delete-post/${postIdToDelete}`,
         { headers: { token } }
       );
       console.log(response.data);
@@ -123,7 +122,7 @@ const MyPosts = () => {
               {post.img && (
                 <Link to={`/post/${post.post_id}`}>
                   <img
-                    src={`http://localhost:4000/images/${post.img}`}
+                    src={`${baseURL}/images/${post.img}`}
                     alt={post.title}
                     className="w-full h-48 object-cover rounded-t-lg"
                   />

@@ -4,6 +4,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Link } from "react-router-dom";
 import { FiArrowRight } from "react-icons/fi";
+import api from "../config/api";
 
 const Profile = () => {
   const [user, setUser] = useState({
@@ -17,7 +18,7 @@ const Profile = () => {
     const fetchUserDetails = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await axios.get("http://localhost:4000/user/details", {
+        const response = await api.get("/user/details", {
           headers: { token },
         });
         if (response.data.status === "success") {
@@ -60,13 +61,9 @@ const Profile = () => {
         userData.newPassword = newPassword;
       }
 
-      const response = await axios.put(
-        "http://localhost:4000/user/update",
-        userData,
-        {
-          headers: { token },
-        }
-      );
+      const response = await api.put("/user/update", serData, {
+        headers: { token },
+      });
       console.log(response.data.status);
       if (response.data.status === "success") {
         toast.success("Profile updated successfully");
@@ -120,8 +117,8 @@ const Profile = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.post(
-        "http://localhost:4000/user/delete",
+      const response = await api.post(
+        "/user/delete",
         {
           id: localStorage.getItem("id"),
         },

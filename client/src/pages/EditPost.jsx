@@ -4,6 +4,8 @@ import axios from "axios";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { toast } from "react-toastify";
+import baseURL from "../config/apiConfig";
+import api from "../config/api";
 
 const EditPost = () => {
   const { id } = useParams();
@@ -16,15 +18,14 @@ const EditPost = () => {
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        const response = await axios.get(
-          `http://localhost:4000/posts/post/${id}`
-        );
+        // const response = await axios.get(`${baseURL}/posts/post/${id}`);
+        const response = await api.get(`/posts/post/${id}`);
         if (response.data.status === "success") {
           const fetchedPost = response.data.data[0];
           setTitle(fetchedPost.title);
           setContent(fetchedPost.content);
           setImg(fetchedPost.img);
-          setPreviewImg(`http://localhost:4000/images/${fetchedPost.img}`); // Set preview image URL
+          setPreviewImg(`${baseURL}/images/${fetchedPost.img}`); // Set preview image URL
         } else {
           toast.error("Failed to fetch post data");
         }
@@ -45,7 +46,7 @@ const EditPost = () => {
       formData.append("content", content);
       formData.append("img", img);
       const response = await axios.put(
-        `http://localhost:4000/posts/update-post/${id}`,
+        `${baseURL}/posts/update-post/${id}`,
         formData,
         {
           headers: {
@@ -78,9 +79,7 @@ const EditPost = () => {
     }
   };
 
-  const imageUrl = previewImg
-    ? previewImg
-    : `http://localhost:4000/images/${img}`;
+  const imageUrl = previewImg ? previewImg : `${baseURL}/images/${img}`;
 
   return (
     <div className="container mx-auto mt-16">

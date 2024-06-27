@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link, useLocation } from "react-router-dom";
 import { useMediaQuery } from "react-responsive";
+import baseURL from "../config/apiConfig";
 
 export default function Home() {
   const [posts, setPosts] = useState([]);
@@ -15,9 +16,9 @@ export default function Home() {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        let url = "http://localhost:4000/posts/all";
+        let url = `${baseURL}/posts/all`;
         if (category) {
-          url = `http://localhost:4000/posts/by-category/${category}`;
+          url = `${baseURL}/posts/by-category/${category}`;
         }
         const res = await axios.get(url);
         if (res.data.status === "success") {
@@ -87,7 +88,7 @@ export default function Home() {
                   ? "mt-12 mr-20 relative z-10 h-32 w-52 md:h-[333px] md:w-[600px]"
                   : "mx-auto mb-4 h-48 w-auto"
               }`}
-              src={`http://localhost:4000/images/${post.img}`}
+              src={`${baseURL}/images/${post.img}`}
               alt={post.title}
             />
           </div>

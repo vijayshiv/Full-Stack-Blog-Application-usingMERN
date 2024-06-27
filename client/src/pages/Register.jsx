@@ -3,6 +3,7 @@ import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import api from "../config/api";
 
 export default function Register() {
   const [fullname, setFullName] = useState("");
@@ -12,11 +13,10 @@ export default function Register() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if user is already logged in
     const token = sessionStorage.getItem("token");
     if (token) {
       toast.warning("You are already signed in.");
-      navigate("/"); // Redirect to home or dashboard
+      navigate("/");
     }
   }, [navigate]);
 
@@ -52,7 +52,8 @@ export default function Register() {
 
     try {
       const body = { fullname, email, password };
-      const req = await axios.post("http://localhost:4000/user/register", body);
+
+      const req = await api.post("/user/register", body);
       if (req.data.status === "success") {
         toast.success("Registration successful.");
         navigate("/login");

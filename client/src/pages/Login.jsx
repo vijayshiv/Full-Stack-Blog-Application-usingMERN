@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import api from "../config/api";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -17,7 +18,7 @@ export default function Login() {
 
     try {
       const body = { email, password };
-      const res = await axios.post("http://localhost:4000/user/login", body);
+      const res = await api.post("/user/login", body);
       if (res.data.status === "success") {
         const { token, id, name } = res.data.data;
         localStorage.setItem("token", token);
