@@ -124,7 +124,7 @@ export default function Home() {
               className={`${
                 isMobile
                   ? "flex justify-center mt-2 mb-4"
-                  : "flex justify-start ml-9 mr-10 mb-10 ml-14"
+                  : "flex justify-start mr-10 mb-10 ml-14"
               }`}
             >
               <Link to={`/post/${post.post_id}`}>
