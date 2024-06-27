@@ -2,11 +2,14 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link, useLocation } from "react-router-dom";
 import { useMediaQuery } from "react-responsive";
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa"; // Import icons from react-icons
 import baseURL from "../config/apiConfig";
 
 export default function Home() {
   const [posts, setPosts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [postsPerPage] = useState(4); // Number of posts per page
   const location = useLocation();
   const category = new URLSearchParams(location.search).get("cat");
 
@@ -50,12 +53,24 @@ export default function Home() {
     return array;
   };
 
-  const filteredPosts = posts.filter((post) =>
-    post.title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Function to filter posts by title
+  const filterPosts = (post) => {
+    return post.title.toLowerCase().includes(searchTerm.toLowerCase());
+  };
+
+  // Calculate current posts for pagination
+  const indexOfLastPost = currentPage * postsPerPage;
+  const indexOfFirstPost = indexOfLastPost - postsPerPage;
+  const filteredPosts = posts.filter(filterPosts);
+  const currentPosts = filteredPosts.slice(indexOfFirstPost, indexOfLastPost);
+
+  const paginate = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    window.scrollTo(0, 0); // Scroll to the top of the page
+  };
 
   const renderPosts = () => {
-    return filteredPosts.map((post) => {
+    return currentPosts.map((post) => {
       const truncateContent = (content, maxLength) => {
         const div = document.createElement("div");
         div.innerHTML = content;
@@ -145,6 +160,27 @@ export default function Home() {
     });
   };
 
+  const pageNumbers = [];
+  for (let i = 1; i <= Math.ceil(filteredPosts.length / postsPerPage); i++) {
+    pageNumbers.push(i);
+  }
+
+  // Function to handle previous page click
+  const handlePrevClick = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+      window.scrollTo(0, 0); // Scroll to the top of the page
+    }
+  };
+
+  // Function to handle next page click
+  const handleNextClick = () => {
+    if (currentPage < Math.ceil(filteredPosts.length / postsPerPage)) {
+      setCurrentPage(currentPage + 1);
+      window.scrollTo(0, 0); // Scroll to the top of the page
+    }
+  };
+
   return (
     <div>
       <div className="p-4">
@@ -157,6 +193,44 @@ export default function Home() {
         />
       </div>
       {renderPosts()}
+      <ul className="flex justify-center items-center">
+        <li>
+          <button
+            onClick={handlePrevClick}
+            className={`mx-1 px-1 py-1 md:px-2 rounded-2xl md:py-2 focus:outline-none bg-white text-black hover:bg-slate-200 ${
+              currentPage === 1 ? "cursor-not-allowed opacity-50" : ""
+            }`}
+            disabled={currentPage === 1}
+          >
+            <FaChevronLeft />
+          </button>
+        </li>
+        {pageNumbers.map((number) => (
+          <li key={number}>
+            <button
+              className={`mx-1 px-2 py-1  hover:underline md:px-2 border md:py-1 rounded-sm shadow-md focus:outline-none bg-white text-black hover:bg-slate-200 ${
+                number === currentPage ? "shadow-blue-400  " : ""
+              }`}
+              onClick={() => paginate(number)}
+            >
+              {number}
+            </button>
+          </li>
+        ))}
+        <li>
+          <button
+            onClick={handleNextClick}
+            className={`mx-1 px-1 py-1 md:px-2 rounded-2xl md:py-2 focus:outline-none bg-white text-black hover:bg-slate-200  ${
+              currentPage === Math.ceil(filteredPosts.length / postsPerPage)
+                ? "cursor-not-allowed opacity-50"
+                : ""
+            }`}
+            disabled={currentPage === Math.ceil(filteredPosts.length / postsPerPage)}
+          >
+            <FaChevronRight />
+          </button>
+        </li>
+      </ul>
     </div>
   );
 }
