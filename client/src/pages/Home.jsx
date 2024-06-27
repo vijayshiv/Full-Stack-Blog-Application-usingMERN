@@ -9,7 +9,7 @@ export default function Home() {
   const [posts, setPosts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [postsPerPage] = useState(4); // Number of posts per page
+  const [postsPerPage] = useState(6); // Number of posts per page
   const location = useLocation();
   const category = new URLSearchParams(location.search).get("cat");
 
