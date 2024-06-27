@@ -3,6 +3,9 @@ import { Link } from "react-router-dom";
 import baseURL from "../config/apiConfig";
 
 const Suggestions = ({ suggestions }) => {
+  // Display only the first 4 items on medium screens and above
+  const visibleSuggestions = suggestions.slice(0, 3);
+
   return (
     <div className="lg:ml-12">
       <h2 className="font-bold text-2xl mb-4">
@@ -13,7 +16,7 @@ const Suggestions = ({ suggestions }) => {
           className="flex lg:block space-x-4 lg:space-x-0"
           style={{ listStyleType: "none" }}
         >
-          {suggestions.map((item) => (
+          {visibleSuggestions.map((item) => (
             <li key={item.post_id} className="mb-4">
               <Link
                 to={`/post/${item.post_id}`}
@@ -25,7 +28,7 @@ const Suggestions = ({ suggestions }) => {
                   alt={item.title}
                   className="w-40 h-40 lg:w-full lg:h-56 object-cover rounded-md mb-2 cursor-pointer"
                 />
-                <h3 className="text-md text-center lg:text-2xl mb-4 font-semibold text-blue-700 hover:underline cursor-pointer truncate-text">
+                <h3 className="text-md text-center lg:text-xl mb-4 font-semibold text-blue-700 hover:underline cursor-pointer truncate-text">
                   {item.title}
                 </h3>
               </Link>
@@ -48,7 +51,7 @@ const Suggestions = ({ suggestions }) => {
               overflow: hidden;
               text-overflow: ellipsis;
               white-space: nowrap;
-              max-width: 150px; /* Adjust this width as needed */
+              max-width: 150px; 
             }
           }
         `}
