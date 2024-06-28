@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import { RiEdit2Line, RiDeleteBinLine } from "react-icons/ri";
 import { Link } from "react-router-dom";
 import api from "../config/api";
-import baseURL from "../config/apiConfig";
+import baseURL from "../config/apiURL";
 
 const MyPosts = () => {
   const [posts, setPosts] = useState([]);
