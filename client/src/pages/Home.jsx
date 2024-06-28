@@ -3,7 +3,7 @@ import axios from "axios";
 import { Link, useLocation } from "react-router-dom";
 import { useMediaQuery } from "react-responsive";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa"; // Import icons from react-icons
-import baseURL from "../config/apiConfig";
+import baseURL from "../config/apiURL";
 
 export default function Home() {
   const [posts, setPosts] = useState([]);

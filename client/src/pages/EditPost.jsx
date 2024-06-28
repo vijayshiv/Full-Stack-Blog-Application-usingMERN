@@ -4,7 +4,7 @@ import axios from "axios";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { toast } from "react-toastify";
-import baseURL from "../config/apiConfig";
+import baseURL from "../config/apiURL";
 import api from "../config/api";
 
 const EditPost = () => {

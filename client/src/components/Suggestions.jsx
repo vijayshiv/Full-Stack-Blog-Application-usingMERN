@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import baseURL from "../config/apiConfig";
+import baseURL from "../config/apiURL";
 
 const Suggestions = ({ suggestions }) => {
   // Display only the first 4 items on medium screens and above

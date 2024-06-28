@@ -5,7 +5,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Suggestions from "../components/Suggestions";
 import DOMPurify from "dompurify";
-import baseURL from "../config/apiConfig";
+import baseURL from "../config/apiURL";
 import api from "../config/api";
 
 const Post = () => {
