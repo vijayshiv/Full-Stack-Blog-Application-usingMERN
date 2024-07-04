@@ -10,6 +10,7 @@ export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [isEmailUnique, setIsEmailUnique] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -19,6 +20,16 @@ export default function Register() {
       navigate("/");
     }
   }, [navigate]);
+
+  const checkEmailUnique = async (email) => {
+    try {
+      const response = await api.post("/user/check-email", { email });
+      return response.data.isUnique;
+    } catch (error) {
+      toast.error("An error occurred. Please try again later.");
+      return false;
+    }
+  };
 
   const submitData = async () => {
     if (
@@ -35,6 +46,13 @@ export default function Register() {
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailPattern.test(email.trim())) {
       toast.error("Please enter a valid email address.");
+      return;
+    }
+
+    // Check if email is unique
+    const isUnique = await checkEmailUnique(email.trim());
+    if (!isUnique) {
+      toast.error("Email is already registered.");
       return;
     }
 
@@ -85,8 +103,14 @@ export default function Register() {
               className="block border border-gray-950 w-full p-3 rounded mb-4"
               placeholder="Email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                setIsEmailUnique(true); // Reset email uniqueness check when email is changed
+              }}
             />
+            {!isEmailUnique && (
+              <p className="text-red-600 mb-4">Email is already registered.</p>
+            )}
             <input
               type="password"
               className="block border border-gray-950 w-full p-3 rounded mb-4"

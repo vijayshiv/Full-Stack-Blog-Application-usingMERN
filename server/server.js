@@ -16,6 +16,7 @@ app.use(express.json());
 app.use((req, res, next) => {
   console.log(`Incoming request to ${req.url}`);
   if (
+    req.url === "/user/check-email" ||
     req.url === "/user/login" ||
     req.url === "/user/register" ||
     req.url === "/posts/all" ||
