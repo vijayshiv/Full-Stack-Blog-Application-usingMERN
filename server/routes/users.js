@@ -20,6 +20,21 @@ router.post("/register", (req, res) => {
   );
 });
 
+// Add this route to your server code
+router.post("/check-email", (req, res) => {
+  const query = "SELECT COUNT(*) as count FROM users WHERE email = ?";
+  const { email } = req.body;
+
+  db.pool.execute(query, [email], (error, results) => {
+    if (error) {
+      console.error("Database query error:", error);
+      return res.send(util.errorMessage("Database query error"));
+    }
+    const count = results[0].count;
+    res.send({ isUnique: count === 0 });
+  });
+});
+
 router.post("/login", (req, res) => {
   const query =
     "SELECT id, fullname, email, password, isDeleted FROM users WHERE email = ? AND password = ? AND isDeleted = 0;";
