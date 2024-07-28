@@ -2,31 +2,33 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link, useLocation } from "react-router-dom";
 import { useMediaQuery } from "react-responsive";
-import { FaChevronLeft, FaChevronRight } from "react-icons/fa"; // Import icons from react-icons
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import baseURL from "../config/apiURL";
 
 export default function Home() {
   const [posts, setPosts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [postsPerPage] = useState(6); // Number of posts per page
+  const [postsPerPage] = useState(6);
   const location = useLocation();
   const category = new URLSearchParams(location.search).get("cat");
 
-  const isMobile = useMediaQuery({ maxWidth: 768 }); // Define mobile breakpoint here
-  const isMediumOrAbove = useMediaQuery({ minWidth: 769 }); // Define medium and larger screens
+  const isMobile = useMediaQuery({ maxWidth: 768 });
+  const isMediumOrAbove = useMediaQuery({ minWidth: 769 });
 
   useEffect(() => {
     const fetchPosts = async () => {
       try {
         let url = `${baseURL}/posts/all`;
-        if (category) {
+        if (searchTerm) {
+          url = `${baseURL}/posts/search?q=${searchTerm}`;
+        } else if (category) {
           url = `${baseURL}/posts/by-category/${category}`;
         }
         const res = await axios.get(url);
         if (res.data.status === "success") {
           const fetchedPosts = res.data.data;
-          setPosts(shuffleArray(fetchedPosts)); // Shuffle the posts array before setting it
+          setPosts(shuffleArray(fetchedPosts));
         } else {
           console.log("Failed to fetch posts");
         }
@@ -36,9 +38,8 @@ export default function Home() {
     };
 
     fetchPosts();
-  }, [category]);
+  }, [category, searchTerm]);
 
-  // Function to shuffle an array
   const shuffleArray = (array) => {
     let currentIndex = array.length,
       randomIndex;
@@ -53,20 +54,18 @@ export default function Home() {
     return array;
   };
 
-  // Function to filter posts by title
-  const filterPosts = (post) => {
-    return post.title.toLowerCase().includes(searchTerm.toLowerCase());
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1); // Reset to page 1 on new search
   };
 
-  // Calculate current posts for pagination
   const indexOfLastPost = currentPage * postsPerPage;
   const indexOfFirstPost = indexOfLastPost - postsPerPage;
-  const filteredPosts = posts.filter(filterPosts);
-  const currentPosts = filteredPosts.slice(indexOfFirstPost, indexOfLastPost);
+  const currentPosts = posts.slice(indexOfFirstPost, indexOfLastPost);
 
   const paginate = (pageNumber) => {
     setCurrentPage(pageNumber);
-    window.scrollTo(0, 0); // Scroll to the top of the page
+    window.scrollTo(0, 0);
   };
 
   const renderPosts = () => {
@@ -161,23 +160,21 @@ export default function Home() {
   };
 
   const pageNumbers = [];
-  for (let i = 1; i <= Math.ceil(filteredPosts.length / postsPerPage); i++) {
+  for (let i = 1; i <= Math.ceil(posts.length / postsPerPage); i++) {
     pageNumbers.push(i);
   }
 
-  // Function to handle previous page click
   const handlePrevClick = () => {
     if (currentPage > 1) {
       setCurrentPage(currentPage - 1);
-      window.scrollTo(0, 0); // Scroll to the top of the page
+      window.scrollTo(0, 0);
     }
   };
 
-  // Function to handle next page click
   const handleNextClick = () => {
-    if (currentPage < Math.ceil(filteredPosts.length / postsPerPage)) {
+    if (currentPage < Math.ceil(posts.length / postsPerPage)) {
       setCurrentPage(currentPage + 1);
-      window.scrollTo(0, 0); // Scroll to the top of the page
+      window.scrollTo(0, 0);
     }
   };
 
@@ -188,7 +185,7 @@ export default function Home() {
           type="text"
           placeholder="Search by title..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={handleSearchChange}
           className="w-[95%] md:w-1/2 px-3 py-2 border rounded-md shadow-md focus:outline-none focus:border-blue-500"
         />
       </div>
@@ -221,11 +218,11 @@ export default function Home() {
           <button
             onClick={handleNextClick}
             className={`mx-1 px-1 py-1 md:px-2 rounded-2xl md:py-2 focus:outline-none bg-white text-black hover:bg-slate-200  ${
-              currentPage === Math.ceil(filteredPosts.length / postsPerPage)
+              currentPage === Math.ceil(posts.length / postsPerPage)
                 ? "cursor-not-allowed opacity-50"
                 : ""
             }`}
-            disabled={currentPage === Math.ceil(filteredPosts.length / postsPerPage)}
+            disabled={currentPage === Math.ceil(posts.length / postsPerPage)}
           >
             <FaChevronRight />
           </button>

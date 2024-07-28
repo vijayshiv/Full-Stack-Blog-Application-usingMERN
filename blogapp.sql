@@ -12,15 +12,15 @@ createdTimestamp DATETIME default CURRENT_TIMESTAMP
 );
 
 -- Post table 
-CREATE TABLE posts(
-post_id INT PRIMARY KEY AUTO_INCREMENT,
-title VARCHAR(100),
-content VARCHAR(4096),
-img VARCHAR(255),
-category VARCHAR(20),
-user_id INT REFERENCES users(id), 
-isDeleted INTEGER(1) DEFAULT 0,
-createdTimestamp DATETIME default CURRENT_TIMESTAMP
+CREATE TABLE posts (
+    post_id INT PRIMARY KEY AUTO_INCREMENT,
+    title VARCHAR(100),
+    content TEXT,
+    img VARCHAR(255),
+    category VARCHAR(20),
+    user_id INT REFERENCES users(id),
+    isDeleted INTEGER(1) DEFAULT 0,
+    createdTimestamp DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 SELECT * FROM users;

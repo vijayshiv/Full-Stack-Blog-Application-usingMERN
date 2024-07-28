@@ -12,18 +12,19 @@ const EditPost = () => {
   const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [charCount, setCharCount] = useState(0);
   const [img, setImg] = useState("");
   const [previewImg, setPreviewImg] = useState("");
 
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        // const response = await axios.get(`${baseURL}/posts/post/${id}`);
         const response = await api.get(`/posts/post/${id}`);
         if (response.data.status === "success") {
           const fetchedPost = response.data.data[0];
           setTitle(fetchedPost.title);
           setContent(fetchedPost.content);
+          setCharCount(fetchedPost.content.length); // Set initial character count
           setImg(fetchedPost.img);
           setPreviewImg(`${baseURL}/images/${fetchedPost.img}`); // Set preview image URL
         } else {
@@ -79,6 +80,15 @@ const EditPost = () => {
     }
   };
 
+  const handleContentChange = (value) => {
+    if (value.length <= 8192) {
+      setContent(value);
+      setCharCount(value.length);
+    } else {
+      toast.error("Content exceeds the maximum character limit of 8192.");
+    }
+  };
+
   const imageUrl = previewImg ? previewImg : `${baseURL}/images/${img}`;
 
   return (
@@ -94,7 +104,7 @@ const EditPost = () => {
             id="title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full p-2 border border-gray-700 rounded "
+            className="w-full p-2 border border-gray-700 rounded"
             placeholder="Post Title"
           />
           <label
@@ -106,16 +116,19 @@ const EditPost = () => {
           <ReactQuill
             id="content"
             value={content}
-            onChange={setContent}
+            onChange={handleContentChange}
             className="mb-4 h-auto border-gray-700"
           />
+          <div className="text-right">
+            <span>{charCount}/8192</span>
+          </div>
         </div>
-        <div className="w-full md:w-1/4 flex justify-center items-start ">
+        <div className="w-full md:w-1/4 flex justify-center items-start">
           {previewImg && (
             <div className="flex flex-col items-center justify-center">
               <label
                 htmlFor="preview"
-                className="block mb-1 font-bold text-left   "
+                className="block mb-1 font-bold text-left"
               >
                 Image Preview
               </label>
