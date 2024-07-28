@@ -23,8 +23,8 @@ app.use((req, res, next) => {
     req.url.startsWith("/posts/post/") ||
     req.url.startsWith("/posts/search") ||
     req.url.startsWith("/posts/by-category/") ||
-    req.url.startsWith("/posts/likes/") || // Allow likes
-    req.url.startsWith("/posts/comments/") || // Allow comments
+    req.url.startsWith("/posts/likes/") ||
+    req.url.startsWith("/posts/comments/") ||
     req.url.startsWith("/images/")
   ) {
     next();
