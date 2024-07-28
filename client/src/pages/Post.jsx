@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import Suggestions from "../components/Suggestions";
 import DOMPurify from "dompurify";
 import baseURL from "../config/apiURL";
 import api from "../config/api";
+import Suggestions from "../components/Suggestions";
+import LikeButton from "../components/LikeButton";
+import Comments from "../components/Comments";
 
 const Post = () => {
   const { id } = useParams();
@@ -41,17 +42,10 @@ const Post = () => {
   const fetchSuggestions = async (category, postId) => {
     try {
       const response = await api.get(`/posts/by-category/${category}`);
-      postId = id;
       if (response.data.status === "success") {
-        const filteredSuggestions = response.data.data.filter((item) => {
-          const isCurrentPost = item.post_id == id;
-          if (isCurrentPost) {
-            console.log(
-              `Excluding current post from suggestions: ${item.title}`
-            );
-          }
-          return !isCurrentPost;
-        });
+        const filteredSuggestions = response.data.data.filter(
+          (item) => item.post_id !== postId
+        );
         setSuggestions(shuffleArray(filteredSuggestions).slice(0, 4));
       } else {
         toast.error("Failed to fetch suggestions");
@@ -79,106 +73,103 @@ const Post = () => {
       <ToastContainer />
       <style>
         {`
-    .post-content ul {
-      list-style-type: disc;
-      padding-left: 40px; /* Add padding for indentation */
-      margin-left: 0; /* Reset margin to align with padding */
-    }
+          .post-content ul {
+            list-style-type: disc;
+            padding-left: 40px;
+            margin-left: 0;
+          }
 
-    .post-content ol {
-      list-style-type: none; /* Remove default numbering */
-      counter-reset: list-counter; /* Initialize counter */
-      padding-left: 40px; /* Add padding for indentation */
-      margin-left: 0; /* Reset margin to align with padding */
-    }
+          .post-content ol {
+            list-style-type: none;
+            counter-reset: list-counter;
+            padding-left: 40px;
+            margin-left: 0;
+          }
 
-    .post-content ol li {
-      counter-increment: list-counter; /* Increment counter */
-      position: relative;
-      padding-left: 1.5em; /* Add padding to list items */
-    }
+          .post-content ol li {
+            counter-increment: list-counter;
+            position: relative;
+            padding-left: 1.5em;
+          }
 
-    .post-content ol li::before {
-      content: counter(list-counter) ". "; /* Add number and period */
-      font-weight: bold; /* Make the number bold */
-      position: absolute;
-      left: 0; /* Position number correctly */
-    }
+          .post-content ol li::before {
+            content: counter(list-counter) ". ";
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+          }
 
-    /* Default styles */
-    .post-content h1 {
-      font-size: 1.25rem; /* Default size for small screens */
-      color: #1a202c;
-      margin-top: 1em;
-      margin-bottom: 0.5em;
-    }
+          .post-content h1 {
+            font-size: 1.25rem;
+            color: #1a202c;
+            margin-top: 1em;
+            margin-bottom: 0.5em;
+          }
 
-    .post-content h2 {
-      font-size: 1rem; /* Default size for small screens */
-      color: #2d3748;
-      margin-top: 0.75em;
-      margin-bottom: 0.5em;
-    }
+          .post-content h2 {
+            font-size: 1rem;
+            color: #2d3748;
+            margin-top: 0.75em;
+            margin-bottom: 0.5em;
+          }
 
-    .post-content h3 {
-      font-size: 0.875rem; /* Default size for small screens */
-      color: #4a5568;
-      margin-top: 0.5em;
-      margin-bottom: 0.5em;
-    }
+          .post-content h3 {
+            font-size: 0.875rem;
+            color: #4a5568;
+            margin-top: 0.5em;
+            margin-bottom: 0.5em;
+          }
 
-    .post-content p {
-      margin: 0.5em 0;
-      line-height: 1.6;
-    }
+          .post-content p {
+            margin: 0.5em 0;
+            line-height: 1.6;
+          }
 
-    .post-content strong, .post-content b {
-      font-weight: bold;
-    }
+          .post-content strong, .post-content b {
+            font-weight: bold;
+          }
 
-    .post-content em, .post-content i {
-      font-style: italic;
-    }
+          .post-content em, .post-content i {
+            font-style: italic;
+          }
 
-    .post-content a {
-      color: #3182ce;
-      text-decoration: underline;
-    }
+          .post-content a {
+            color: #3182ce;
+            text-decoration: underline;
+          }
 
-    .post-content a:hover {
-      color: #2c5282;
-    }
+          .post-content a:hover {
+            color: #2c5282;
+          }
 
-    /* Medium screens (md) */
-    @media (min-width: 768px) {
-      .post-content h1 {
-        font-size: 2rem; /* Increased by 60% for medium screens */
-      }
+          @media (min-width: 768px) {
+            .post-content h1 {
+              font-size: 2rem;
+            }
 
-      .post-content h2 {
-        font-size: 1.6rem; /* Increased by 60% for medium screens */
-      }
+            .post-content h2 {
+              font-size: 1.6rem;
+            }
 
-      .post-content h3 {
-        font-size: 1.4rem; /* Increased by 60% for medium screens */
-      }
-    }
+            .post-content h3 {
+              font-size: 1.4rem;
+            }
+          }
 
-    /* Large screens (lg) */
-    @media (min-width: 1024px) {
-      .post-content h1 {
-        font-size: 2.2rem; /* Original size for large screens */
-      }
+          @media (min-width: 1024px) {
+            .post-content h1 {
+              font-size: 2.2rem;
+            }
 
-      .post-content h2 {
-        font-size: 1.9rem; /* Original size for large screens */
-      }
+            .post-content h2 {
+              font-size: 1.9rem;
+            }
 
-      .post-content h3 {
-        font-size: 1.4rem; /* Original size for large screens */
-      }
-    }
-  `}
+            .post-content h3 {
+              font-size: 1.4rem;
+            }
+          }
+        `}
       </style>
 
       <div className="container mx-auto mt-16 px-4">
@@ -197,7 +188,7 @@ const Post = () => {
                 className="post-content mt-4"
                 style={{
                   textAlign: "justify",
-                  fontSize: "1rem", // Base font size
+                  fontSize: "1rem",
                 }}
                 dangerouslySetInnerHTML={{
                   __html: DOMPurify.sanitize(post.content),
@@ -211,6 +202,8 @@ const Post = () => {
                 {post.category}
               </p>
             </div>
+            <LikeButton postId={id} />
+            <Comments postId={id} />
           </div>
           <div className="lg:w-1/4 lg:ml-12 mt-8 lg:mt-0">
             <Suggestions suggestions={suggestions} />

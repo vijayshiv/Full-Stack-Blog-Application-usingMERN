@@ -23,11 +23,28 @@ CREATE TABLE posts (
     createdTimestamp DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Add likes field to posts table
+ALTER TABLE posts ADD COLUMN likes INT DEFAULT 0;
+
+CREATE TABLE post_likes (
+  user_id INT,
+  post_id INT,
+  PRIMARY KEY (user_id, post_id)
+);
+
+-- Create comments table
+CREATE TABLE comments (
+    comment_id INT PRIMARY KEY AUTO_INCREMENT,
+    post_id INT REFERENCES posts(post_id),
+    user_id INT REFERENCES users(id),
+    content TEXT,
+    createdTimestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
 SELECT * FROM users;
 SELECT * FROM posts;
+SELECT * FROM comments;
+SELECT * FROM post_likes;
 
-update users set isDeleted = 0 where id = 4;
 
-select * from posts where post_id = 10;
-update posts set isDeleted = 0 where post_id = 2;
 
