@@ -1,4 +1,3 @@
-// Comments.jsx
 import React, { useState, useEffect } from "react";
 import api from "../config/api";
 import { toast } from "react-toastify";
@@ -15,14 +14,21 @@ const Comments = ({ postId }) => {
   const fetchComments = async () => {
     try {
       const response = await api.get(`/posts/comments/${postId}`);
+      console.log("API Response Data:", response.data); // Log full response data
+
       if (response.data.status === "success") {
-        setComments(response.data.data);
+        if (Array.isArray(response.data.data)) {
+          setComments(response.data.data);
+        } else {
+          console.error("Invalid data format:", response.data.data);
+          toast.error("Failed to fetch comments");
+        }
       } else {
-        // toast.error("Failed to fetch comments");
+        toast.error("Failed to fetch comments");
       }
     } catch (error) {
-      console.error("Error fetching comments:", error);
-      //   toast.error("Failed to fetch comments");
+      console.error("Error fetching comments:", error.message);
+      //   toast.error("Failed to fetch ?");
     }
   };
 
@@ -41,18 +47,30 @@ const Comments = ({ postId }) => {
         { comment: newComment },
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            token: token,
           },
         }
       );
+      console.log(response.data);
+
       if (response.data.status === "success") {
-        toast.success("Comment added!");
-        setComments((prevComments) => [
-          ...prevComments,
-          response.data.data.comment,
-        ]);
-        setNewComment(""); // Clear the comment input
+        console.log("Comment response data:", response.data.data);
+        if (response.data.data.comment_id) {
+          toast.success("Comment added!");
+          setComments((prevComments) => [
+            ...prevComments,
+            {
+              comment_id: response.data.data.comment_id,
+              content: newComment,
+              createdTimestamp: new Date().toISOString(),
+            },
+          ]);
+          setNewComment(""); // Clear the comment input
+        } else {
+          toast.error("Invalid response structure");
+        }
       } else {
+        console.error("Error response data:", response.data);
         toast.error("Error adding comment");
       }
     } catch (error) {
@@ -78,9 +96,12 @@ const Comments = ({ postId }) => {
           Submit
         </button>
       </form>
-      {comments.map((comment, index) => (
-        <div key={index} className="border-b py-2">
-          <p>{comment.comment}</p>
+      {comments.map((comment) => (
+        <div key={comment.comment_id} className="border-b py-2">
+          <p>{comment.content}</p>
+          <p className="text-gray-500 text-sm">
+            {new Date(comment.createdTimestamp).toLocaleString()}
+          </p>
         </div>
       ))}
     </div>
