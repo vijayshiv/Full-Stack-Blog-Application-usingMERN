@@ -61,7 +61,7 @@ const Profile = () => {
         userData.newPassword = newPassword;
       }
 
-      const response = await api.put("/user/update", serData, {
+      const response = await api.put("/user/update", userData, {
         headers: { token },
       });
       console.log(response.data.status);
@@ -149,13 +149,12 @@ const Profile = () => {
         Profile
       </h1>
       <h6 className="mb-4 text-center">You can change name and email too</h6>
-      <Link
-        to="/my-post"
-        className="flex items-center text-2xl mb-4 sm:ml-[352px] underline"
-      >
-        Go to your posts
-        <FiArrowRight className="ml-1" />
-      </Link>
+      <div className="flex justify-center mb-4">
+        <Link to="/my-post" className="flex items-center text-2xl underline">
+          Go to your posts
+          <FiArrowRight className="ml-1" />
+        </Link>
+      </div>
       <form className="max-w-md mx-auto">
         <div className="mb-2 text-left">
           <label className="text-xl font-medium text-gray-700 mb-2 block">
