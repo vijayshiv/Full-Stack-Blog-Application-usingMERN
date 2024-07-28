@@ -13,7 +13,7 @@ const Write = () => {
   const [img, setImg] = useState(null);
   const [category, setCategory] = useState("");
   const [charCount, setCharCount] = useState(0);
-  const [maxCharCount] = useState(4096); // Maximum character count
+  const [maxCharCount] = useState(8192); // Maximum character count
   const navigate = useNavigate();
 
   useEffect(() => {

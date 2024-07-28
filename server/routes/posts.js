@@ -142,8 +142,8 @@ router.delete("/delete-post/:postId", (req, res) => {
 
 router.get("/search", (req, res) => {
   const searchTerm = req.query.q;
-  const query = `SELECT post_id, title, content, img FROM posts WHERE LOWER(title) LIKE ? OR LOWER(content) LIKE ?`; // Updated SQL query to search in both title and content in a case-insensitive manner
-  const searchValue = `%${searchTerm.toLowerCase()}%`; // Convert the search term to lowercase for case-insensitive search
+  const query = `SELECT post_id, title, content, img FROM posts WHERE LOWER(title) LIKE ? OR LOWER(content) LIKE ?`;
+  const searchValue = `%${searchTerm.toLowerCase()}%`;
   const searchValues = [searchValue, searchValue];
   db.pool.query(query, searchValues, (error, data) => {
     if (error) {
