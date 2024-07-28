@@ -142,6 +142,9 @@ router.delete("/delete-post/:postId", (req, res) => {
 
 router.get("/search", (req, res) => {
   const searchTerm = req.query.q;
+  if (!searchTerm) {
+    return res.send(util.successMessage([])); // Return empty result if no search term
+  }
   const query = `SELECT post_id, title, content, img FROM posts WHERE LOWER(title) LIKE ? OR LOWER(content) LIKE ?`;
   const searchValue = `%${searchTerm.toLowerCase()}%`;
   const searchValues = [searchValue, searchValue];
@@ -152,6 +155,123 @@ router.get("/search", (req, res) => {
       res.send(util.successMessage(data));
     }
   });
+});
+
+// Get the number of likes for a post (public)
+router.get("/likes/:postId", (req, res) => {
+  const { postId } = req.params;
+  const query = "SELECT likes FROM posts WHERE post_id = ? AND isDeleted = 0";
+  db.pool.query(query, [postId], (error, result) => {
+    if (error) {
+      res.send(util.errorMessage(error));
+    } else if (result.length > 0) {
+      res.send(util.successMessage({ likes: result[0].likes }));
+    } else {
+      res.send(util.errorMessage("Post not found"));
+    }
+  });
+});
+
+// Check if a post is liked by the user
+router.get("/is-liked/:postId", (req, res) => {
+  const { postId } = req.params;
+  const userId = req.user.id;
+  const query = "SELECT 1 FROM post_likes WHERE post_id = ? AND user_id = ?";
+  db.pool.query(query, [postId, userId], (error, result) => {
+    if (error) {
+      res.send(util.errorMessage(error));
+    } else {
+      res.send(util.successMessage({ liked: result.length > 0 }));
+    }
+  });
+});
+
+// Add or remove a like from a post (authentication required)
+router.post("/like/:postId", (req, res) => {
+  const { postId } = req.params;
+  const userId = req.user.id;
+
+  const checkIfLikedQuery =
+    "SELECT 1 FROM post_likes WHERE post_id = ? AND user_id = ?";
+  const addLikeQuery =
+    "INSERT INTO post_likes (post_id, user_id) VALUES (?, ?)";
+  const removeLikeQuery =
+    "DELETE FROM post_likes WHERE post_id = ? AND user_id = ?";
+  const updateLikesQuery = `
+    UPDATE posts 
+    SET likes = (SELECT COUNT(*) FROM post_likes WHERE post_id = ?) 
+    WHERE post_id = ?;
+  `;
+
+  db.pool.query(checkIfLikedQuery, [postId, userId], (error, result) => {
+    if (error) {
+      return res.send(util.errorMessage(error));
+    }
+
+    if (result.length > 0) {
+      // User has already liked the post, so remove the like
+      db.pool.query(removeLikeQuery, [postId, userId], (error) => {
+        if (error) {
+          return res.send(util.errorMessage(error));
+        }
+        // Update the like count in posts table
+        db.pool.query(updateLikesQuery, [postId, postId], (error) => {
+          if (error) {
+            return res.send(util.errorMessage(error));
+          }
+          res.send(util.successMessage({ message: "Like removed" }));
+        });
+      });
+    } else {
+      // User has not liked the post, so add the like
+      db.pool.query(addLikeQuery, [postId, userId], (error) => {
+        if (error) {
+          return res.send(util.errorMessage(error));
+        }
+        // Update the like count in posts table
+        db.pool.query(updateLikesQuery, [postId, postId], (error) => {
+          if (error) {
+            return res.send(util.errorMessage(error));
+          }
+          res.send(util.successMessage({ message: "Like added" }));
+        });
+      });
+    }
+  });
+});
+
+// Fetch comments for a post (public)
+router.get("/comments/:postId", async (req, res) => {
+  const postId = req.params.postId;
+
+  try {
+    const query =
+      "SELECT comments.comment_id, comments.content, comments.createdTimestamp, users.fullname FROM comments JOIN users ON comments.user_id = users.id WHERE comments.post_id = ?";
+    const [comments] = await db.pool.execute(query, [postId]);
+
+    res.json({ status: "success", data: comments });
+  } catch (error) {
+    console.error("Error fetching comments:", error);
+    res.status(500).json({ status: "error", message: "Internal server error" });
+  }
+});
+
+// Add a comment to a post (authentication required)
+router.post("/comment/:postId", async (req, res) => {
+  const postId = req.params.postId;
+  const userId = req.user.id;
+  const comment = req.body.comment;
+
+  try {
+    const query =
+      "INSERT INTO comments (post_id, user_id, content) VALUES (?, ?, ?)";
+    await db.pool.execute(query, [postId, userId, comment]);
+
+    res.json({ status: "success", message: "Comment added successfully" });
+  } catch (error) {
+    console.error("Error adding comment:", error);
+    res.status(500).json({ status: "error", message: "Internal server error" });
+  }
 });
 
 module.exports = router;
