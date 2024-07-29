@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import DOMPurify from "dompurify";
@@ -11,7 +11,6 @@ import Comments from "../components/Comments";
 
 const Post = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
   const [post, setPost] = useState(null);
   const [suggestions, setSuggestions] = useState([]);
   const [error, setError] = useState(null);
@@ -23,8 +22,6 @@ const Post = () => {
         if (response.data.status === "success") {
           const fetchedPost = response.data.data[0];
           setPost(fetchedPost);
-          // Make sure id is correctly passed
-          console.log("Post ID:", id);
           fetchSuggestions(fetchedPost.category, fetchedPost.post_id);
         } else {
           toast.error("Failed to fetch post");
@@ -41,15 +38,12 @@ const Post = () => {
 
   const fetchSuggestions = async (category, currentPostId) => {
     currentPostId = parseInt(id);
-    console.log("Current Post ID in fetchSuggestions:", currentPostId);
     try {
       const response = await api.get(`/posts/by-category/${category}`);
       if (response.data.status === "success") {
-        console.log("response data ", response.data.data);
         const filteredSuggestions = response.data.data.filter(
           (item) => item.post_id !== currentPostId
         );
-        console.log("Filtered Suggestions:", filteredSuggestions);
         setSuggestions(shuffleArray(filteredSuggestions).slice(0, 4));
       } else {
         toast.error("Failed to fetch suggestions");
@@ -205,14 +199,22 @@ const Post = () => {
                 }}
               />
             </div>
-            <div className="flex justify-between items-center text-lg lg:text-xl mt-16">
+            <div className="flex justify-between items-center sm:text-[4px] md:text-lg lg:text-xl mt-16">
               <LikeButton postId={id} />
-              <p className="md:text-xl sm:text-sm capitalize">
-                <span className="capitalize font-bold md:text-xl sm:text-sm">
-                  Category:{" "}
-                </span>
-                {post.category}
-              </p>
+              <div className="md:text-xl sm:text-xs capitalize text-right">
+                <p>
+                  <span className="capitalize font-bold md:text-xl ">
+                    Category:{" "}
+                  </span>
+                  {post.category}
+                </p>
+                <p className="mt-2">
+                  <span className="capitalize font-bold md:text-xl sm:text-sm">
+                    Posted by:{" "}
+                  </span>
+                  {post.user_name}
+                </p>
+              </div>
             </div>
             <Comments postId={id} />
           </div>
