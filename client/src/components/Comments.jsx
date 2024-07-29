@@ -14,7 +14,7 @@ const Comments = ({ postId }) => {
   const fetchComments = async () => {
     try {
       const response = await api.get(`/posts/comments/${postId}`);
-      console.log("API Response Data:", response.data); // Log full response data
+      console.log("API Response Data:", response.data);
 
       if (response.data.status === "success") {
         if (Array.isArray(response.data.data)) {
@@ -28,7 +28,7 @@ const Comments = ({ postId }) => {
       }
     } catch (error) {
       console.error("Error fetching comments:", error.message);
-      //   toast.error("Failed to fetch ?");
+      toast.error("Failed to fetch comments");
     }
   };
 
@@ -63,6 +63,7 @@ const Comments = ({ postId }) => {
               comment_id: response.data.data.comment_id,
               content: newComment,
               createdTimestamp: new Date().toISOString(),
+              name: "Anonymous", // Placeholder name
             },
           ]);
           setNewComment(""); // Clear the comment input
@@ -80,30 +81,41 @@ const Comments = ({ postId }) => {
   };
 
   return (
-    <div>
-      <h2 className="text-2xl font-bold my-4">Comments</h2>
-      <form onSubmit={handleCommentSubmit} className="mb-4">
+    <div className="p-4 max-w-2xl mx-auto">
+      <h2 className="text-3xl font-semibold mb-6 border-b pb-2">Comments</h2>
+      <form onSubmit={handleCommentSubmit} className="mb-6">
         <textarea
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
-          className="w-full p-2 border rounded"
+          className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="Add a comment"
+          rows="4"
         />
         <button
           type="submit"
-          className="bg-blue-500 text-white px-4 py-2 rounded mt-2"
+          className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-md shadow hover:bg-blue-700 transition"
         >
           Submit
         </button>
       </form>
-      {comments.map((comment) => (
-        <div key={comment.comment_id} className="border-b py-2">
-          <p>{comment.content}</p>
-          <p className="text-gray-500 text-sm">
-            {new Date(comment.createdTimestamp).toLocaleString()}
-          </p>
-        </div>
-      ))}
+      {comments.length > 0 ? (
+        comments.map((comment) => (
+          <div
+            key={comment.comment_id}
+            className="mb-4 p-4 border border-gray-200 rounded-md shadow-sm"
+          >
+            <p className="text-lg font-medium mb-2 text-left">
+              {comment.content}
+            </p>
+            <div className="text-gray-500 text-sm flex justify-between items-end">
+              <span className="capitalize">{comment.fullname}</span>
+              <span>{new Date(comment.createdTimestamp).toLocaleString()}</span>
+            </div>
+          </div>
+        ))
+      ) : (
+        <p className="text-gray-500">No comments yet.</p>
+      )}
     </div>
   );
 };
