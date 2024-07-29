@@ -23,6 +23,8 @@ const Post = () => {
         if (response.data.status === "success") {
           const fetchedPost = response.data.data[0];
           setPost(fetchedPost);
+          // Make sure id is correctly passed
+          console.log("Post ID:", id);
           fetchSuggestions(fetchedPost.category, fetchedPost.post_id);
         } else {
           toast.error("Failed to fetch post");
@@ -37,13 +39,17 @@ const Post = () => {
     window.scrollTo(0, 0);
   }, [id]);
 
-  const fetchSuggestions = async (category, postId) => {
+  const fetchSuggestions = async (category, currentPostId) => {
+    currentPostId = parseInt(id);
+    console.log("Current Post ID in fetchSuggestions:", currentPostId);
     try {
       const response = await api.get(`/posts/by-category/${category}`);
       if (response.data.status === "success") {
+        console.log("response data ", response.data.data);
         const filteredSuggestions = response.data.data.filter(
-          (item) => item.post_id !== postId
+          (item) => item.post_id !== currentPostId
         );
+        console.log("Filtered Suggestions:", filteredSuggestions);
         setSuggestions(shuffleArray(filteredSuggestions).slice(0, 4));
       } else {
         toast.error("Failed to fetch suggestions");
