@@ -267,4 +267,52 @@ router.post("/comment/:postId", async (req, res) => {
   }
 });
 
+// Edit a comment (authentication required)
+router.put("/comment/:commentId", async (req, res) => {
+  const commentId = req.params.commentId;
+  const userId = req.user.id;
+  const { content } = req.body;
+
+  try {
+    const query =
+      "UPDATE comments SET content = ? WHERE comment_id = ? AND user_id = ?";
+    const [result] = await pool.execute(query, [content, commentId, userId]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({
+        status: "error",
+        message: "Comment not found or you are not the owner of this comment",
+      });
+    }
+
+    res.json({ status: "success", message: "Comment updated successfully" });
+  } catch (error) {
+    console.error("Error updating comment:", error.message);
+    res.status(500).json({ status: "error", message: "Internal server error" });
+  }
+});
+
+// Delete a comment (authentication required)
+router.delete("/comment/:commentId", async (req, res) => {
+  const commentId = req.params.commentId;
+  const userId = req.user.id;
+
+  try {
+    const query = "DELETE FROM comments WHERE comment_id = ? AND user_id = ?";
+    const [result] = await pool.execute(query, [commentId, userId]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({
+        status: "error",
+        message: "Comment not found or you are not the owner of this comment",
+      });
+    }
+
+    res.json({ status: "success", message: "Comment deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting comment:", error.message);
+    res.status(500).json({ status: "error", message: "Internal server error" });
+  }
+});
+
 module.exports = router;
