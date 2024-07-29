@@ -3,12 +3,14 @@ USE blogapp;
 
 -- User registration table
 CREATE TABLE users (
-id INT PRIMARY KEY AUTO_INCREMENT,
-fullname VARCHAR(100),
-email VARCHAR(100),
-password VARCHAR(100),
-isDeleted INTEGER(1) DEFAULT 0,
-createdTimestamp DATETIME default CURRENT_TIMESTAMP
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    fullname VARCHAR(100),
+    email VARCHAR(100),
+    password VARCHAR(100),
+    isDeleted INTEGER(1) DEFAULT 0,
+    createdTimestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    reset_token VARCHAR(255), 
+    reset_token_expiration DATETIME 
 );
 
 -- Post table 
@@ -18,21 +20,23 @@ CREATE TABLE posts (
     content TEXT,
     img VARCHAR(255),
     category VARCHAR(20),
-    user_id INT REFERENCES users(id),
+    user_id INT,
     isDeleted INTEGER(1) DEFAULT 0,
-    createdTimestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+    createdTimestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    likes INT DEFAULT 0,  -- Added column
+    FOREIGN KEY (user_id) REFERENCES users(id) 
 );
 
--- Add likes field to posts table
-ALTER TABLE posts ADD COLUMN likes INT DEFAULT 0;
-
+-- Post likes table
 CREATE TABLE post_likes (
-  user_id INT,
-  post_id INT,
-  PRIMARY KEY (user_id, post_id)
+    user_id INT,
+    post_id INT,
+    PRIMARY KEY (user_id, post_id),
+    FOREIGN KEY (user_id) REFERENCES users(id), 
+    FOREIGN KEY (post_id) REFERENCES posts(post_id) 
 );
 
--- Create comments table
+-- Comments table
 CREATE TABLE comments (
     comment_id INT PRIMARY KEY AUTO_INCREMENT,
     post_id INT NOT NULL,
@@ -43,6 +47,7 @@ CREATE TABLE comments (
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
+-- Example SELECT statements to view data
 SELECT * FROM users;
 SELECT * FROM posts;
 SELECT * FROM comments;
