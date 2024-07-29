@@ -22,20 +22,16 @@ export default function Home() {
         let url = `${baseURL}/posts/all`;
         if (searchTerm) {
           url = `${baseURL}/posts/search?q=${encodeURIComponent(searchTerm)}`;
-          console.log("Fetching from URL:", url); // Debugging
         } else if (category) {
           url = `${baseURL}/posts/by-category/${category}`;
-          console.log("Fetching from URL:", url); // Debugging
         }
 
         const res = await axios.get(url);
-        console.log("Response Data:", res.data); // Debugging
         if (res.data.status === "success") {
           const fetchedPosts = res.data.data;
-          console.log("Fetched Posts:", fetchedPosts); // Debugging
           setPosts(shuffleArray(fetchedPosts));
         } else {
-          console.log("Failed to fetch posts");
+          toast.error("Failed to fetch posts");
         }
       } catch (error) {
         console.log("Error fetching posts:", error);

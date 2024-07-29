@@ -64,7 +64,6 @@ const Profile = () => {
       const response = await api.put("/user/update", userData, {
         headers: { token },
       });
-      console.log(response.data.status);
       if (response.data.status === "success") {
         toast.success("Profile updated successfully");
         toast.success("Please login again");
