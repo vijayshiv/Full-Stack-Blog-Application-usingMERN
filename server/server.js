@@ -19,6 +19,8 @@ app.use((req, res, next) => {
     req.url === "/user/check-email" ||
     req.url === "/user/login" ||
     req.url === "/user/register" ||
+    req.url === "/user/forgot-password" || // Add this line
+    req.url === "/user/reset-password" || // Add this line
     req.url === "/posts/all" ||
     req.url.startsWith("/posts/post/") ||
     req.url.startsWith("/posts/search") ||

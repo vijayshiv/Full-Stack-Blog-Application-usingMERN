@@ -12,6 +12,8 @@ import Profile from "./pages/Profile";
 import Layout from "./Layout";
 import MyPosts from "./pages/MyPost";
 import EditPost from "./pages/EditPost";
+import ForgotPassword from "./pages/ForgetPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 const router = createBrowserRouter([
   {
@@ -31,6 +33,8 @@ const router = createBrowserRouter([
       { path: "/profile", element: <Profile /> },
       { path: "/my-post", element: <MyPosts /> },
       { path: "/edit-post/:id", element: <EditPost /> },
+      { path: "/forgot-password", element: <ForgotPassword /> }, // New route
+      { path: "/reset-password/:token", element: <ResetPassword /> }, // New route
     ],
   },
 ]);

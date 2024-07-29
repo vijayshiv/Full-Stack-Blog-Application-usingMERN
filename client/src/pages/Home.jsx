@@ -104,8 +104,8 @@ export default function Home() {
             <img
               className={`${
                 isMediumOrAbove
-                  ? "mt-12 mr-20 relative z-10 h-32 w-52 md:h-[333px] md:w-[600px]"
-                  : "mx-auto mb-4 h-48 w-auto"
+                  ? "mt-12 mr-20 relative z-10 h-[333px] w-[600px] object-cover"
+                  : "mx-auto mb-4 h-48 w-auto object-cover"
               }`}
               src={`${baseURL}/images/${post.img}`}
               alt={post.title}
