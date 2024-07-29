@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { FaRegHeart, FaHeart } from "react-icons/fa";
 import api from "../config/api";
+import { toast } from "react-toastify";
 
 const LikeButton = ({ postId }) => {
   const [likes, setLikes] = useState(0);
@@ -24,7 +25,7 @@ const LikeButton = ({ postId }) => {
         console.error("Error fetching likes:", response.data.message);
       }
     } catch (error) {
-      console.log("Error fetching likes:", error);
+      toast.error("Error fetching likes:", error);
     }
   };
 
@@ -80,7 +81,7 @@ const LikeButton = ({ postId }) => {
         liked ? "text-blue-500" : "text-black"
       }`}
     >
-      {liked ? <FaHeart className="size-6"/> : <FaRegHeart />}
+      {liked ? <FaHeart className="size-6" /> : <FaRegHeart />}
       <span>{likes}</span>
     </button>
   );

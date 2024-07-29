@@ -27,7 +27,6 @@ const Write = () => {
   const handleChange = (value) => {
     if (value.length <= maxCharCount) {
       setContent(value);
-      console.log(value);
       setCharCount(value.length);
     }
   };
@@ -60,7 +59,6 @@ const Write = () => {
           token: token,
         },
       });
-      console.log(response.data);
       navigate("/");
     } catch (error) {
       console.error("Error creating post:", error);

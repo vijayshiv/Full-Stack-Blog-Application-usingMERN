@@ -166,7 +166,6 @@ router.post("/delete", async (req, res) => {
 // Forgot password route
 router.post("/forgot-password", async (req, res) => {
   const { email } = req.body;
-  console.log("Request received:", req.body);
   const query = "SELECT id FROM users WHERE email = ?";
   const transporter = nodemailer.createTransport({
     service: "Gmail",
