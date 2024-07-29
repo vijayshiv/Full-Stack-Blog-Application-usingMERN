@@ -72,6 +72,12 @@ export default function Login() {
                 Sign up
               </Link>
             </p>
+            <p className="text-center mt-2">
+              Forgot your password?{" "}
+              <Link to="/forgot-password" className="underline ml-2">
+                Reset it here
+              </Link>
+            </p>
           </div>
         </div>
       </div>

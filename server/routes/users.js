@@ -2,8 +2,10 @@ const express = require("express");
 const db = require("../db");
 const util = require("../utils");
 const encrypt = require("crypto-js");
+const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const config = require("../config");
+const nodemailer = require("nodemailer"); // Use a package to send emails
 
 const router = express.Router();
 
@@ -158,6 +160,80 @@ router.post("/delete", async (req, res) => {
   } catch (error) {
     console.error("Database Error:", error);
     res.send(util.errorMessage("Failed to delete user"));
+  }
+});
+
+// Forgot password route
+router.post("/forgot-password", async (req, res) => {
+  const { email } = req.body;
+  console.log("Request received:", req.body);
+  const query = "SELECT id FROM users WHERE email = ?";
+  const transporter = nodemailer.createTransport({
+    service: "Gmail",
+    auth: {
+      user: config.emailUser,
+      pass: config.emailPass,
+    },
+  });
+
+  try {
+    const [users] = await db.pool.execute(query, [email]);
+    if (users.length === 0) {
+      return res.send(util.errorMessage("Email not found"));
+    }
+
+    const userId = users[0].id;
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const resetTokenExpiration = new Date(Date.now() + 3600000); // 1 hour
+
+    await db.pool.execute(
+      "UPDATE users SET reset_token = ?, reset_token_expiration = ? WHERE id = ?",
+      [resetToken, resetTokenExpiration, userId]
+    );
+
+    // Send reset link via email
+    const resetLink = `http://localhost:5173/reset-password/${resetToken}`;
+    await transporter.sendMail({
+      to: email,
+      subject: "Password Reset Request",
+      html: `<p>You requested a password reset. Click the link below to reset your password:</p>
+             <a href="${resetLink}">Reset Password</a>`,
+    });
+
+    res.send(util.successMessage("Password reset link sent to your email"));
+  } catch (error) {
+    console.error("Error during password reset request:", error);
+    res.send(util.errorMessage("Error sending password reset email"));
+  }
+});
+
+// Reset password route
+router.post("/reset-password", async (req, res) => {
+  const { token, password } = req.body;
+  const encryptedPassword = String(
+    crypto.createHash("sha256").update(password).digest("hex")
+  );
+
+  try {
+    const [users] = await db.pool.execute(
+      "SELECT id FROM users WHERE reset_token = ? AND reset_token_expiration > NOW()",
+      [token]
+    );
+
+    if (users.length === 0) {
+      return res.send(util.errorMessage("Invalid or expired token"));
+    }
+
+    const userId = users[0].id;
+    await db.pool.execute(
+      "UPDATE users SET password = ?, reset_token = NULL, reset_token_expiration = NULL WHERE id = ?",
+      [encryptedPassword, userId]
+    );
+
+    res.send(util.successMessage("Password reset successful"));
+  } catch (error) {
+    console.error("Error resetting password:", error);
+    res.send(util.errorMessage("Error resetting password"));
   }
 });
 
