@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { FaRegHeart, FaHeart } from "react-icons/fa";
 import api from "../config/api";
 
 const LikeButton = ({ postId }) => {
@@ -62,7 +63,6 @@ const LikeButton = ({ postId }) => {
         }
       );
       if (response.data.status === "success") {
-        // Fetch updated like count after successful like/unlike
         fetchLikes();
         setLiked(!liked);
       } else {
@@ -76,11 +76,12 @@ const LikeButton = ({ postId }) => {
   return (
     <button
       onClick={handleLike}
-      className={`px-4 py-2 rounded ${
-        liked ? "bg-blue-500 text-white" : "bg-gray-300 text-black"
+      className={`flex items-center space-x-3 px-4 py-2 rounded ${
+        liked ? "text-blue-500" : "text-black"
       }`}
     >
-      {liked ? "Unlike" : "Like"} ({likes})
+      {liked ? <FaHeart className="size-6"/> : <FaRegHeart />}
+      <span>{likes}</span>
     </button>
   );
 };
