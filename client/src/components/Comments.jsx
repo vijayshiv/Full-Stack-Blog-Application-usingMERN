@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import api from "../config/api";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import "./Comments.css"; // Ensure this is correctly imported
 
 const Comments = ({ postId }) => {
   const [comments, setComments] = useState([]);
@@ -14,8 +15,6 @@ const Comments = ({ postId }) => {
   const fetchComments = async () => {
     try {
       const response = await api.get(`/posts/comments/${postId}`);
-      console.log("API Response Data:", response.data);
-
       if (response.data.status === "success") {
         if (Array.isArray(response.data.data)) {
           setComments(response.data.data);
@@ -51,10 +50,7 @@ const Comments = ({ postId }) => {
           },
         }
       );
-      console.log(response.data);
-
       if (response.data.status === "success") {
-        console.log("Comment response data:", response.data.data);
         if (response.data.data.comment_id) {
           toast.success("Comment added!");
           setComments((prevComments) => [
@@ -63,7 +59,7 @@ const Comments = ({ postId }) => {
               comment_id: response.data.data.comment_id,
               content: newComment,
               createdTimestamp: new Date().toISOString(),
-              name: "Anonymous", // Placeholder name
+              fullname: "Anonymous", // Placeholder name
             },
           ]);
           setNewComment(""); // Clear the comment input
@@ -71,7 +67,6 @@ const Comments = ({ postId }) => {
           toast.error("Invalid response structure");
         }
       } else {
-        console.error("Error response data:", response.data);
         toast.error("Error adding comment");
       }
     } catch (error) {
@@ -81,41 +76,41 @@ const Comments = ({ postId }) => {
   };
 
   return (
-    <div className="p-4 max-w-2xl mx-auto">
-      <h2 className="text-3xl font-semibold mb-6 border-b pb-2">Comments</h2>
-      <form onSubmit={handleCommentSubmit} className="mb-6">
+    <div className="container">
+      <h2 className="heading">Comments</h2>
+      <form onSubmit={handleCommentSubmit} className="form">
         <textarea
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
-          className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="Add a comment"
-          rows="4"
+          placeholder="Add a comment..."
+          className="textarea"
+          style={{ border: "1px solid black" }} // Temporary inline style
         />
-        <button
-          type="submit"
-          className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-md shadow hover:bg-blue-700 transition"
-        >
+
+        <button type="submit" className="button">
           Submit
         </button>
       </form>
-      {comments.length > 0 ? (
-        comments.map((comment) => (
-          <div
-            key={comment.comment_id}
-            className="mb-4 p-4 border border-gray-200 rounded-md shadow-sm"
-          >
-            <p className="text-lg font-medium mb-2 text-left">
-              {comment.content}
-            </p>
-            <div className="text-gray-500 text-sm flex justify-between items-end">
-              <span className="capitalize">{comment.fullname}</span>
-              <span>{new Date(comment.createdTimestamp).toLocaleString()}</span>
-            </div>
-          </div>
-        ))
-      ) : (
-        <p className="text-gray-500">No comments yet.</p>
-      )}
+
+      <div className="mt-4">
+        {comments.length > 0 ? (
+          <ul className="list">
+            {comments.map((comment) => (
+              <li key={comment.comment_id} className="listItem">
+                <p className="text">{comment.content}</p>
+                <div className="meta">
+                  <p className="capitalize">
+                    {comment.fullname},{" "}
+                    {new Date(comment.createdTimestamp).toLocaleString()}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-gray-500">No comments yet.</p>
+        )}
+      </div>
     </div>
   );
 };

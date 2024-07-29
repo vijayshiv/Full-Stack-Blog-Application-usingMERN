@@ -20,10 +20,8 @@ const Post = () => {
     const fetchPost = async () => {
       try {
         const response = await api.get(`/posts/post/${id}`);
-        console.log("Response from server:", response.data);
         if (response.data.status === "success") {
           const fetchedPost = response.data.data[0];
-          console.log("Fetched post:", fetchedPost);
           setPost(fetchedPost);
           fetchSuggestions(fetchedPost.category, fetchedPost.post_id);
         } else {
@@ -61,11 +59,17 @@ const Post = () => {
   };
 
   if (error) {
-    return <div>Error: {error}</div>;
+    return (
+      <div className="container mx-auto px-4 py-6 text-center text-red-500">
+        Error: {error}
+      </div>
+    );
   }
 
   if (!post) {
-    return <div>Loading...</div>;
+    return (
+      <div className="container mx-auto px-4 py-6 text-center">Loading...</div>
+    );
   }
 
   return (
@@ -195,14 +199,15 @@ const Post = () => {
                 }}
               />
             </div>
-            <div className="flex justify-between text-lg lg:text-xl mt-16">
-              <p></p>
-              <p className="text-xl sm:text-2xl capitalize">
-                <span className="uppercase font-bold">Category : </span>
+            <div className="flex justify-between items-center text-lg lg:text-xl mt-16">
+              <LikeButton postId={id} />
+              <p className="md:text-xl sm:text-sm capitalize">
+                <span className="capitalize font-bold md:text-xl sm:text-sm">
+                  Category:{" "}
+                </span>
                 {post.category}
               </p>
             </div>
-            <LikeButton postId={id} />
             <Comments postId={id} />
           </div>
           <div className="lg:w-1/4 lg:ml-12 mt-8 lg:mt-0">
