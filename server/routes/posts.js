@@ -34,10 +34,21 @@ router.post("/add-post", upload.single("image"), async (req, res) => {
   }
 });
 
-// Get a single post
+// Get a single post with the user's name
 router.get("/post/:id", async (req, res) => {
   const { id } = req.params;
-  const query = `SELECT title, content, img, category, user_id FROM posts WHERE post_id = ?;`;
+  const query = `
+    SELECT 
+      posts.title, 
+      posts.content, 
+      posts.img, 
+      posts.category, 
+      posts.user_id, 
+      users.fullname AS user_name 
+    FROM posts 
+    JOIN users ON posts.user_id = users.id 
+    WHERE posts.post_id = ?;
+  `;
   try {
     const [rows] = await pool.query(query, [id]);
     res.send(util.successMessage(rows));
