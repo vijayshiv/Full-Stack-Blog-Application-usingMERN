@@ -35,16 +35,15 @@ CREATE TABLE post_likes (
 -- Create comments table
 CREATE TABLE comments (
     comment_id INT PRIMARY KEY AUTO_INCREMENT,
-    post_id INT REFERENCES posts(post_id),
-    user_id INT REFERENCES users(id),
-    content TEXT,
-    createdTimestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+    post_id INT NOT NULL,
+    user_id INT NOT NULL,
+    content TEXT NOT NULL,
+    createdTimestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (post_id) REFERENCES posts(post_id),
+    FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
 SELECT * FROM users;
 SELECT * FROM posts;
 SELECT * FROM comments;
 SELECT * FROM post_likes;
-
-
-
