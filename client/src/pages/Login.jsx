@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -9,6 +9,14 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check if user is already authenticated
+    const token = sessionStorage.getItem("token");
+    if (token) {
+      navigate("/"); // Redirect to home page or any other page if already logged in
+    }
+  }, [navigate]);
 
   const onLogin = async () => {
     if (!email || !password) {
