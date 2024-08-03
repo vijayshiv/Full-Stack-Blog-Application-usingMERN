@@ -109,7 +109,6 @@ const Comments = ({ postId }) => {
         );
         setEditCommentId(null);
         setEditCommentContent("");
-        toast.success("Comment updated successfully");
       } else {
         toast.error("Error updating comment");
       }
@@ -124,7 +123,7 @@ const Comments = ({ postId }) => {
     setEditCommentContent("");
   };
 
-  const handleDeleteComment = async (commentId, toastId) => {
+  const handleDeleteComment = async (commentId) => {
     const token = sessionStorage.getItem("token");
     if (!token) {
       toast.error("User not authenticated");
@@ -133,120 +132,96 @@ const Comments = ({ postId }) => {
 
     try {
       const response = await api.delete(`/posts/comment/${commentId}`, {
-        headers: { token },
+        headers: {
+          token: token,
+        },
       });
       if (response.data.status === "success") {
         setComments((prevComments) =>
           prevComments.filter((comment) => comment.comment_id !== commentId)
         );
-        toast.success("Comment deleted successfully");
-        toast.dismiss(toastId); // Dismiss the toast after deletion
       } else {
-        toast.error("Failed to delete comment");
-        toast.dismiss(toastId); // Dismiss the toast on failure
+        toast.error("Error deleting comment");
       }
     } catch (error) {
-      console.error("Error deleting comment:", error.message);
-      toast.error("An error occurred while deleting comment");
-      toast.dismiss(toastId); // Dismiss the toast on error
+      console.error("Error deleting comment:", error);
+      toast.error("Error deleting comment");
     }
   };
 
-  const confirmDelete = (commentId) => {
-    const toastId = toast.dark(
-      <>
-        Are you sure you want to delete this comment?
-        <button
-          onClick={() => handleDeleteComment(commentId, toastId)}
-          className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded ml-4"
-        >
-          Yes
-        </button>
-        <button
-          onClick={() => toast.dismiss(toastId)}
-          className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded ml-4"
-        >
-          No
-        </button>
-      </>,
-      {
-        position: "top-center",
-        hideProgressBar: true,
-        closeOnClick: false,
-        draggable: false,
-        pauseOnHover: true,
-        autoClose: false,
-      }
-    );
-  };
-
   return (
-    <div className="container">
-      <h2 className="heading">Comments</h2>
-      <form onSubmit={handleCommentSubmit} className="form">
+    <div className="mt-8 p-2 bg-gray-100 rounded-lg comments-container">
+      <h2 className="text-2xl font-semibold mb-4">Comments</h2>
+      <form onSubmit={handleCommentSubmit} className="mb-4 flex items-center">
         <textarea
+          className="flex-grow px-4 py-2 border rounded-l-md"
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
           placeholder="Add a comment..."
-          className="textarea border-black"
         />
-
-        <button type="submit" className="button">
+        <button
+          type="submit"
+          className="px-2 py-1 bg-blue-500 text-white rounded-md mb-8 ml-2"
+        >
           Submit
         </button>
       </form>
-
-      <div className="mt-4">
-        {comments.length > 0 ? (
-          <ul className="list">
-            {comments.map((comment) => (
-              <li key={comment.comment_id} className="listItem">
-                {editCommentId === comment.comment_id ? (
-                  <div>
-                    <textarea
-                      value={editCommentContent}
-                      onChange={(e) => setEditCommentContent(e.target.value)}
-                      className="textarea edit-textarea md:w-[80%] sm:w-[50%]"
-                    />
-                    <div className="icons save-cancel-icons">
-                      <button
-                        onClick={() => handleSaveEdit(comment.comment_id)}
-                      >
-                        <FaSave />
-                      </button>
-                      <button onClick={handleCancelEdit}>
-                        <FaTimes />
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="comment-content">
-                    <div className="icons">
-                      <FaEdit
-                        onClick={() =>
-                          handleEditComment(comment.comment_id, comment.content)
-                        }
-                      />
-                      <FaTrash
-                        onClick={() => confirmDelete(comment.comment_id)}
-                      />
-                    </div>
-                    <p className="text">{comment.content}</p>
-                    <div className="meta">
-                      <p className="capitalize md:text-right">
-                        {comment.fullname},{" "}
-                        {new Date(comment.createdTimestamp).toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-gray-500">No comments yet.</p>
-        )}
-      </div>
+      {comments.map((comment) => (
+        <div
+          key={comment.comment_id}
+          className="bg-white rounded-lg shadow-md p-4 mb-4"
+        >
+          {editCommentId === comment.comment_id ? (
+            <div className="flex flex-col">
+              <textarea
+                className="mb-2 p-2 border rounded-md"
+                value={editCommentContent}
+                onChange={(e) => setEditCommentContent(e.target.value)}
+              />
+              <div className="flex justify-end">
+                <button
+                  onClick={() => handleSaveEdit(comment.comment_id)}
+                  className="mr-2 px-4 py-2 bg-green-500 text-white rounded-md flex items-center"
+                >
+                  <FaSave className="mr-1" />
+                  Save
+                </button>
+                <button
+                  onClick={handleCancelEdit}
+                  className="px-4 py-2 bg-red-500 text-white rounded-md flex items-center"
+                >
+                  <FaTimes className="mr-1" />
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex justify-between items-start">
+              <p className="text-gray-700">{comment.content}</p>
+              <div className="flex items-center ml-4">
+                <button
+                  onClick={() =>
+                    handleEditComment(comment.comment_id, comment.content)
+                  }
+                  className="mr-2 text-blue-500"
+                >
+                  <FaEdit />
+                </button>
+                <button
+                  onClick={() => handleDeleteComment(comment.comment_id)}
+                  className="text-red-500"
+                >
+                  <FaTrash />
+                </button>
+              </div>
+            </div>
+          )}
+          <div className="text-sm text-gray-500 mt-2 text-right">
+            Posted by: {comment.fullname} on{" "}
+            {new Date(comment.createdTimestamp).toLocaleString()}
+          </div>
+        </div>
+      ))}
     </div>
   );
 };
