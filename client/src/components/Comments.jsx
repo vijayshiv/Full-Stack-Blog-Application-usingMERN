@@ -1,17 +1,21 @@
 import React, { useState, useEffect } from "react";
-import api from "../config/api";
+import api from "../config/api"; // Adjust path if necessary
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./Comments.css";
-import { FaEdit, FaTrash, FaSave, FaTimes } from "react-icons/fa"; // Import icons
+import { FaEdit, FaTrash, FaSave, FaTimes } from "react-icons/fa";
 
 const Comments = ({ postId }) => {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [editCommentId, setEditCommentId] = useState(null);
   const [editCommentContent, setEditCommentContent] = useState("");
+  const [userId, setUserId] = useState(null);
 
   useEffect(() => {
+    const token = sessionStorage.getItem("token");
+    const storedUserId = sessionStorage.getItem("id");
+    setUserId(storedUserId);
     fetchComments();
   }, [postId]);
 
@@ -22,24 +26,24 @@ const Comments = ({ postId }) => {
         if (Array.isArray(response.data.data)) {
           setComments(response.data.data);
         } else {
-          console.error("Invalid data format:", response.data.data);
           toast.error("Failed to fetch comments");
         }
       } else {
         toast.error("Failed to fetch comments");
       }
     } catch (error) {
-      console.error("Error fetching comments:", error.message);
       toast.error("Failed to fetch comments");
     }
   };
 
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
-
     const token = sessionStorage.getItem("token");
-    if (!token) {
-      toast.error("User not authenticated");
+    const storedUserId = sessionStorage.getItem("id");
+    const storedName = sessionStorage.getItem("name");
+
+    if (!token || !storedName) {
+      toast.error("User not authenticated or name not found");
       return;
     }
 
@@ -61,7 +65,8 @@ const Comments = ({ postId }) => {
               comment_id: response.data.data.comment_id,
               content: newComment,
               createdTimestamp: new Date().toISOString(),
-              fullname: "Anonymous", // Placeholder name
+              fullname: storedName, // Use the actual name
+              user_id: userId,
             },
           ]);
           setNewComment("");
@@ -72,7 +77,6 @@ const Comments = ({ postId }) => {
         toast.error("Error adding comment");
       }
     } catch (error) {
-      console.error("Error adding comment:", error);
       toast.error("Error adding comment");
     }
   };
@@ -113,7 +117,6 @@ const Comments = ({ postId }) => {
         toast.error("Error updating comment");
       }
     } catch (error) {
-      console.error("Error updating comment:", error);
       toast.error("Error updating comment");
     }
   };
@@ -144,7 +147,6 @@ const Comments = ({ postId }) => {
         toast.error("Error deleting comment");
       }
     } catch (error) {
-      console.error("Error deleting comment:", error);
       toast.error("Error deleting comment");
     }
   };
@@ -183,15 +185,13 @@ const Comments = ({ postId }) => {
                   onClick={() => handleSaveEdit(comment.comment_id)}
                   className="mr-2 px-4 py-2 bg-green-500 text-white rounded-md flex items-center"
                 >
-                  <FaSave className="mr-1" />
-                  Save
+                  <FaSave className="mr-1" size={20} /> Save
                 </button>
                 <button
                   onClick={handleCancelEdit}
                   className="px-4 py-2 bg-red-500 text-white rounded-md flex items-center"
                 >
-                  <FaTimes className="mr-1" />
-                  Cancel
+                  <FaTimes className="mr-1" size={20} /> Cancel
                 </button>
               </div>
             </div>
@@ -199,24 +199,28 @@ const Comments = ({ postId }) => {
             <div className="flex justify-between items-start">
               <p className="text-gray-700">{comment.content}</p>
               <div className="flex items-center ml-4">
-                <button
-                  onClick={() =>
-                    handleEditComment(comment.comment_id, comment.content)
-                  }
-                  className="mr-2 text-blue-500"
-                >
-                  <FaEdit />
-                </button>
-                <button
-                  onClick={() => handleDeleteComment(comment.comment_id)}
-                  className="text-red-500"
-                >
-                  <FaTrash />
-                </button>
+                {userId == comment.id && (
+                  <>
+                    <button
+                      onClick={() =>
+                        handleEditComment(comment.comment_id, comment.content)
+                      }
+                      className="mr-2 text-blue-500"
+                    >
+                      <FaEdit size={20} />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteComment(comment.comment_id)}
+                      className="text-red-500"
+                    >
+                      <FaTrash size={20} />
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           )}
-          <div className="text-sm text-gray-500 mt-2 text-right">
+          <div className="text-sm text-gray-500 mt-2 text-right capitalize">
             Posted by: {comment.fullname} on{" "}
             {new Date(comment.createdTimestamp).toLocaleString()}
           </div>

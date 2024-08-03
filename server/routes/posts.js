@@ -227,8 +227,15 @@ router.post("/like/:postId", async (req, res) => {
 });
 
 // Fetch comments for a post (public)
+// Assuming you are using Express and have a pool object for MySQL
+
 router.get("/comments/:postId", async (req, res) => {
   const postId = req.params.postId;
+
+  // Validate postId
+  if (!postId || isNaN(postId)) {
+    return res.status(400).json({ status: "error", message: "Invalid postId" });
+  }
 
   try {
     const query = `
@@ -236,7 +243,8 @@ router.get("/comments/:postId", async (req, res) => {
         comments.comment_id, 
         comments.content, 
         comments.createdTimestamp, 
-        users.fullname 
+        users.fullname,
+        users.id
       FROM comments 
       JOIN users ON comments.user_id = users.id 
       WHERE comments.post_id = ?
@@ -249,6 +257,8 @@ router.get("/comments/:postId", async (req, res) => {
     res.status(500).json({ status: "error", message: "Internal server error" });
   }
 });
+
+// Additional routes for posting, updating, and deleting comments should be defined here
 
 // Add a comment to a post (authentication required)
 router.post("/comment/:postId", async (req, res) => {
