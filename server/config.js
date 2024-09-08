@@ -1,7 +1,7 @@
 secretKey = "nRtdxIt1QgT9VHjftlSvfbFYl55EZit1";
 dbHost = "localhost";
-dbUser = "vijayshiv";
-dbPassword = "Shiva123@";
+dbUser = "root";
+dbPassword = "root";
 dbName = "blogapp";
 emailUser = "riprogressmedia@gmail.com";
 emailPass = "vkkf wfhn mmsw qylh";
