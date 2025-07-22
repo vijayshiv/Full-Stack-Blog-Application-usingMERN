@@ -1,31 +1,354 @@
 const express = require("express");
 const { UserController } = require("../controllers");
+const { ValidationMiddleware, ErrorHandler, RateLimiter } = require("../middleware");
 
 const router = express.Router();
+const rateLimiter = new RateLimiter();
 
-// Register route
-router.post("/register", UserController.register);
+/**
+ * @swagger
+ * tags:
+ *   name: Users
+ *   description: User management and authentication
+ */
 
-// Check email route  
-router.post("/check-email", UserController.checkEmail);
+/**
+ * @swagger
+ * /user/register:
+ *   post:
+ *     summary: Register a new user
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - fullname
+ *               - email
+ *               - password
+ *             properties:
+ *               fullname:
+ *                 type: string
+ *                 minLength: 2
+ *                 maxLength: 100
+ *                 example: "John Doe"
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: "john.doe@example.com"
+ *               password:
+ *                 type: string
+ *                 minLength: 6
+ *                 maxLength: 128
+ *                 example: "password123"
+ *     responses:
+ *       200:
+ *         description: User registered successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: "success"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     message:
+ *                       type: string
+ *                       example: "User registered successfully"
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ *       429:
+ *         $ref: '#/components/responses/RateLimitError'
+ */
+router.post("/register", 
+  rateLimiter.authRateLimit(),
+  ValidationMiddleware.validateUserRegistration,
+  ErrorHandler.asyncErrorHandler(UserController.register)
+);
 
-// Login route
-router.post("/login", UserController.login);
+/**
+ * @swagger
+ * /user/check-email:
+ *   post:
+ *     summary: Check if email exists
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: "john.doe@example.com"
+ *     responses:
+ *       200:
+ *         description: Email check result
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: "success"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     exists:
+ *                       type: boolean
+ *                       example: true
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ *       429:
+ *         $ref: '#/components/responses/RateLimitError'
+ */
+router.post("/check-email", 
+  rateLimiter.authRateLimit(),
+  ValidationMiddleware.validateEmail,
+  ErrorHandler.asyncErrorHandler(UserController.checkEmail)
+);
 
-// Get user details route
-router.get("/details", UserController.getDetails);
+/**
+ * @swagger
+ * /user/login:
+ *   post:
+ *     summary: User login
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: "john.doe@example.com"
+ *               password:
+ *                 type: string
+ *                 example: "password123"
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: "success"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     token:
+ *                       type: string
+ *                       example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+ *                     user:
+ *                       $ref: '#/components/schemas/User'
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ *       401:
+ *         description: Invalid credentials
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: "error"
+ *                 error:
+ *                   type: string
+ *                   example: "Invalid credentials"
+ *       429:
+ *         $ref: '#/components/responses/RateLimitError'
+ */
+router.post("/login", 
+  rateLimiter.authRateLimit(),
+  ValidationMiddleware.validateUserLogin,
+  ErrorHandler.asyncErrorHandler(UserController.login)
+);
 
-// Update user route
-router.put("/update", UserController.update);
+/**
+ * @swagger
+ * /user/details:
+ *   get:
+ *     summary: Get user details
+ *     tags: [Users]
+ *     security:
+ *       - tokenAuth: []
+ *     responses:
+ *       200:
+ *         description: User details retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: "success"
+ *                 data:
+ *                   $ref: '#/components/schemas/User'
+ *       401:
+ *         $ref: '#/components/responses/AuthError'
+ */
+router.get("/details", 
+  ErrorHandler.asyncErrorHandler(UserController.getDetails)
+);
 
-// Delete user route
-router.post("/delete", UserController.delete);
+/**
+ * @swagger
+ * /user/update:
+ *   put:
+ *     summary: Update user details
+ *     tags: [Users]
+ *     security:
+ *       - tokenAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               fullname:
+ *                 type: string
+ *                 minLength: 2
+ *                 maxLength: 100
+ *                 example: "John Doe Updated"
+ *     responses:
+ *       200:
+ *         description: User updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiResponse'
+ *       401:
+ *         $ref: '#/components/responses/AuthError'
+ */
+router.put("/update", 
+  ErrorHandler.asyncErrorHandler(UserController.update)
+);
 
-// Forgot password route
-router.post("/forgot-password", UserController.forgotPassword);
+/**
+ * @swagger
+ * /user/delete:
+ *   post:
+ *     summary: Delete user account
+ *     tags: [Users]
+ *     security:
+ *       - tokenAuth: []
+ *     responses:
+ *       200:
+ *         description: User deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiResponse'
+ *       401:
+ *         $ref: '#/components/responses/AuthError'
+ */
+router.post("/delete", 
+  ErrorHandler.asyncErrorHandler(UserController.delete)
+);
 
-// Reset password route
-router.post("/reset-password", UserController.resetPassword);
+/**
+ * @swagger
+ * /user/forgot-password:
+ *   post:
+ *     summary: Request password reset
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: "john.doe@example.com"
+ *     responses:
+ *       200:
+ *         description: Password reset email sent
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiResponse'
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ *       429:
+ *         $ref: '#/components/responses/RateLimitError'
+ */
+router.post("/forgot-password", 
+  rateLimiter.passwordResetRateLimit(),
+  ValidationMiddleware.validateEmail,
+  ErrorHandler.asyncErrorHandler(UserController.forgotPassword)
+);
+
+/**
+ * @swagger
+ * /user/reset-password:
+ *   post:
+ *     summary: Reset password
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - token
+ *               - newPassword
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: "john.doe@example.com"
+ *               token:
+ *                 type: string
+ *                 example: "reset-token-123"
+ *               newPassword:
+ *                 type: string
+ *                 minLength: 6
+ *                 example: "newpassword123"
+ *     responses:
+ *       200:
+ *         description: Password reset successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiResponse'
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ *       429:
+ *         $ref: '#/components/responses/RateLimitError'
+ */
+router.post("/reset-password", 
+  rateLimiter.passwordResetRateLimit(),
+  ErrorHandler.asyncErrorHandler(UserController.resetPassword)
+);
 
 module.exports = router;
 module.exports = router;
