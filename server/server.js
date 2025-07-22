@@ -2,12 +2,12 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const morgan = require("morgan");
-const config = require("./config");
+const config = require("./config/index");
 const jwt = require("jsonwebtoken");
 const path = require("path");
 const utils = require("./utils");
 
-const PORT = 4000;
+const PORT = config.server.port;
 
 app.use(cors("*"));
 app.use(morgan("tiny"));

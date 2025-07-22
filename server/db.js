@@ -1,15 +1,15 @@
 const mysql = require("mysql2/promise");
-const config = require("./config");
+const config = require("./config/index");
 
 // Create a pool with promise support
 const pool = mysql.createPool({
-  host: config.dbHost,
-  user: config.dbUser,
-  password: config.dbPassword,
-  database: config.dbName,
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
+  host: config.database.host,
+  user: config.database.user,
+  password: config.database.password,
+  database: config.database.database,
+  waitForConnections: config.database.waitForConnections,
+  connectionLimit: config.database.connectionLimit,
+  queueLimit: config.database.queueLimit,
 });
 
 module.exports = { pool };

@@ -1,75 +1,34 @@
 const express = require("express");
-const db = require("../db");
-const util = require("../utils");
-const encrypt = require("crypto-js");
-const crypto = require("crypto");
-const jwt = require("jsonwebtoken");
-const config = require("../config");
-const nodemailer = require("nodemailer"); // Use a package to send emails
+const { UserController } = require("../controllers");
 
 const router = express.Router();
 
 // Register route
-router.post("/register", async (req, res) => {
-  const { fullname, email, password } = req.body;
-  const encryptedPassword = String(encrypt.SHA256(password));
-  const query = "INSERT INTO users(fullname, email, password) VALUES(?,?,?)";
+router.post("/register", UserController.register);
 
-  try {
-    const [result] = await db.pool.execute(query, [
-      fullname,
-      email,
-      encryptedPassword,
-    ]);
-    res.send(util.successMessage(result));
-  } catch (error) {
-    console.error("Error during registration:", error);
-    res.send(util.errorMessage("Error during registration"));
-  }
-});
-
-// Check email route
-router.post("/check-email", async (req, res) => {
-  const { email } = req.body;
-  const query = "SELECT COUNT(*) as count FROM users WHERE email = ?";
-
-  try {
-    const [results] = await db.pool.execute(query, [email]);
-    const count = results[0].count;
-    res.send({ isUnique: count === 0 });
-  } catch (error) {
-    console.error("Database query error:", error);
-    res.send(util.errorMessage("Database query error"));
-  }
-});
+// Check email route  
+router.post("/check-email", UserController.checkEmail);
 
 // Login route
-router.post("/login", async (req, res) => {
-  const { email, password } = req.body;
-  const encryptedPassword = String(encrypt.SHA256(password));
-  const query =
-    "SELECT id, fullname, email, password, isDeleted FROM users WHERE email = ? AND password = ? AND isDeleted = 0";
+router.post("/login", UserController.login);
 
-  try {
-    const [users] = await db.pool.execute(query, [email, encryptedPassword]);
-    if (users.length === 0) {
-      return res.send(util.errorMessage("No user found"));
-    }
+// Get user details route
+router.get("/details", UserController.getDetails);
 
-    const user = users[0];
-    if (user.isDeleted) {
-      return res.send(util.errorMessage("Account is deleted"));
-    }
+// Update user route
+router.put("/update", UserController.update);
 
-    const payload = { id: user.id, name: user.fullname };
-    const token = jwt.sign(payload, config.secretKey);
-    const userData = { token, id: user.id, name: user.fullname };
-    res.send(util.successMessage(userData));
-  } catch (error) {
-    console.error("Error during login:", error);
-    res.send(util.errorMessage("Error during login"));
-  }
-});
+// Delete user route
+router.post("/delete", UserController.delete);
+
+// Forgot password route
+router.post("/forgot-password", UserController.forgotPassword);
+
+// Reset password route
+router.post("/reset-password", UserController.resetPassword);
+
+module.exports = router;
+module.exports = router;
 
 // Get user details route
 router.get("/details", async (req, res) => {
