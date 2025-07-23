@@ -12,6 +12,7 @@ const EditPost = () => {
   const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [category, setCategory] = useState("");
   const [charCount, setCharCount] = useState(0);
   const [img, setImg] = useState("");
   const [previewImg, setPreviewImg] = useState("");
@@ -24,6 +25,7 @@ const EditPost = () => {
           const fetchedPost = response.data.data[0];
           setTitle(fetchedPost.title);
           setContent(fetchedPost.content);
+          setCategory(fetchedPost.category);
           setCharCount(fetchedPost.content.length); // Set initial character count
           setImg(fetchedPost.img);
           setPreviewImg(`${baseURL}/images/${fetchedPost.img}`); // Set preview image URL
@@ -45,6 +47,7 @@ const EditPost = () => {
       const formData = new FormData();
       formData.append("title", title);
       formData.append("content", content);
+      formData.append("category", category);
       formData.append("img", img);
       const response = await axios.put(
         `${baseURL}/posts/update-post/${id}`,
@@ -106,6 +109,20 @@ const EditPost = () => {
             onChange={(e) => setTitle(e.target.value)}
             className="w-full p-2 border border-gray-700 rounded"
             placeholder="Post Title"
+          />
+          <label
+            htmlFor="category"
+            className="block mt-2 mb-1 font-bold text-left"
+          >
+            Category :
+          </label>
+          <input
+            type="text"
+            id="category"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="w-full p-2 border border-gray-700 rounded"
+            placeholder="Post Category"
           />
           <label
             htmlFor="content"

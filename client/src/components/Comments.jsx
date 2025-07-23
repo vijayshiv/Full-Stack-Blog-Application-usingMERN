@@ -67,6 +67,7 @@ const Comments = ({ postId }) => {
               createdTimestamp: new Date().toISOString(),
               fullname: storedName, // Use the actual name
               user_id: userId,
+              id: userId, // Add this field to match the condition for edit/delete buttons
             },
           ]);
           setNewComment("");
@@ -199,7 +200,7 @@ const Comments = ({ postId }) => {
             <div className="flex justify-between items-start">
               <p className="text-gray-700">{comment.content}</p>
               <div className="flex items-center ml-4">
-                {userId == comment.id && (
+                {parseInt(userId) === parseInt(comment.id) && (
                   <>
                     <button
                       onClick={() =>

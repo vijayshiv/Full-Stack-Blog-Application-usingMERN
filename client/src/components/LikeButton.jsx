@@ -8,11 +8,10 @@ const LikeButton = ({ postId }) => {
   const [liked, setLiked] = useState(false);
 
   useEffect(() => {
-    fetchLikes();
-    checkIfLiked();
+    fetchLikeInfo();
   }, [postId]);
 
-  const fetchLikes = async () => {
+  const fetchLikeInfo = async () => {
     try {
       const response = await api.get(`/posts/likes/${postId}`, {
         headers: {
@@ -21,31 +20,12 @@ const LikeButton = ({ postId }) => {
       });
       if (response.data.status === "success") {
         setLikes(response.data.data.likes);
+        setLiked(response.data.data.userLiked);
       } else {
-        console.error("Error fetching likes:", response.data.message);
+        console.error("Error fetching like info:", response.data.message);
       }
     } catch (error) {
-      toast.error("Error fetching likes:", error);
-    }
-  };
-
-  const checkIfLiked = async () => {
-    const token = sessionStorage.getItem("token");
-    if (!token) return;
-
-    try {
-      const response = await api.get(`/posts/is-liked/${postId}`, {
-        headers: {
-          token: token,
-        },
-      });
-      if (response.data.status === "success") {
-        setLiked(response.data.data.liked);
-      } else {
-        console.error("Error checking if liked:", response.data.message);
-      }
-    } catch (error) {
-      console.error("Error checking if liked:", error);
+      toast.error("Error fetching like info:", error);
     }
   };
 
@@ -64,8 +44,9 @@ const LikeButton = ({ postId }) => {
         }
       );
       if (response.data.status === "success") {
-        fetchLikes();
-        setLiked(!liked);
+        // Use the data returned from backend instead of manually toggling
+        setLiked(response.data.data.liked);
+        setLikes(response.data.data.likes);
       } else {
         console.error("Error liking post:", response.data.message);
       }

@@ -9,4 +9,4 @@ logs/
 .env
 
 # Ignore the images folder
-server/images/
+server/src/images
