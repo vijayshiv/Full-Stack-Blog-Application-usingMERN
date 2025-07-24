@@ -1,9 +1,54 @@
 import { RowDataPacket, ResultSetHeader } from "mysql2";
 import { pool } from "../db";
-import { Comment, CommentWithUser, DatabaseResult } from "../types";
+import {
+  Comment,
+  CommentWithUser,
+  CommentThreadWithUser,
+  DatabaseResult,
+} from "../types";
+
 export class CommentRepository {
-  /**   * Get all comments for a specific post   */ static async findByPostId(
+  /**
+   * Get all comments for a specific post with threading support
+   */
+  static async findByPostId(postId: number): Promise<CommentWithUser[]> {
+    const query = `
+      SELECT 
+        comments.comment_id,
+        comments.content,
+        comments.user_id,
+        comments.post_id,
+        comments.createdTimestamp,
+        comments.parent_comment_id,
+        comments.reply_count,
+        users.fullname,
+        users.id
+      FROM comments
+      JOIN users ON comments.user_id = users.id
+      WHERE comments.post_id = ? AND users.isDeleted = 0
+      ORDER BY 
+        COALESCE(comments.parent_comment_id, comments.comment_id),
+        comments.createdTimestamp ASC
+    `;
+    const [rows] = await pool.query<RowDataPacket[]>(query, [postId]);
+    return rows as CommentWithUser[];
+  }
+
+  /**
+   * Get comments organized as threads for a specific post
+   */
+  static async findThreadsByPostId(
     postId: number
+  ): Promise<CommentThreadWithUser[]> {
+    const comments = await this.findByPostId(postId);
+    return this.organizeCommentsIntoThreads(comments);
+  }
+
+  /**
+   * Get replies for a specific comment
+   */
+  static async findRepliesByCommentId(
+    commentId: number
   ): Promise<CommentWithUser[]> {
     const query = `
       SELECT 
@@ -12,15 +57,56 @@ export class CommentRepository {
         comments.user_id,
         comments.post_id,
         comments.createdTimestamp,
+        comments.parent_comment_id,
+        comments.reply_count,
         users.fullname,
         users.id
       FROM comments
       JOIN users ON comments.user_id = users.id
-      WHERE comments.post_id = ?
-      ORDER BY comments.createdTimestamp DESC
+      WHERE comments.parent_comment_id = ? AND users.isDeleted = 0
+      ORDER BY comments.createdTimestamp ASC
     `;
-    const [rows] = await pool.query<RowDataPacket[]>(query, [postId]);
+    const [rows] = await pool.query<RowDataPacket[]>(query, [commentId]);
     return rows as CommentWithUser[];
+  }
+
+  /**
+   * Organize flat comments into threaded structure
+   */
+  static organizeCommentsIntoThreads(
+    comments: CommentWithUser[]
+  ): CommentThreadWithUser[] {
+    const commentMap = new Map<number, CommentThreadWithUser>();
+    const rootComments: CommentThreadWithUser[] = [];
+
+    // First pass: create comment objects and map them
+    comments.forEach((comment) => {
+      const threadComment: CommentThreadWithUser = {
+        ...comment,
+        replies: [],
+        depth_level: comment.parent_comment_id ? 1 : 0,
+      };
+      commentMap.set(comment.comment_id, threadComment);
+    });
+
+    // Second pass: organize into threads
+    comments.forEach((comment) => {
+      const threadComment = commentMap.get(comment.comment_id)!;
+
+      if (comment.parent_comment_id) {
+        // This is a reply
+        const parentComment = commentMap.get(comment.parent_comment_id);
+        if (parentComment) {
+          parentComment.replies!.push(threadComment);
+          threadComment.depth_level = (parentComment.depth_level || 0) + 1;
+        }
+      } else {
+        // This is a root comment
+        rootComments.push(threadComment);
+      }
+    });
+
+    return rootComments;
   }
   /**   * Get all comments by a specific user   */ static async findByUserId(
     userId: number
@@ -61,19 +147,59 @@ export class CommentRepository {
     const [rows] = await pool.query<RowDataPacket[]>(query, [commentId]);
     return rows.length > 0 ? (rows[0] as CommentWithUser) : null;
   }
-  /**   * Create a new comment   */ static async create(
+  /**
+   * Create a new comment or reply
+   */
+  static async create(
     commentText: string,
     userId: number,
-    postId: number
+    postId: number,
+    parentCommentId?: number
   ): Promise<DatabaseResult> {
-    const query =
-      "INSERT INTO comments (content, user_id, post_id) VALUES (?, ?, ?)";
-    const [result] = await pool.execute<ResultSetHeader>(query, [
-      commentText,
-      userId,
-      postId,
-    ]);
-    return { insertId: result.insertId, affectedRows: result.affectedRows };
+    const connection = await pool.getConnection();
+
+    try {
+      await connection.beginTransaction();
+
+      // Insert the comment
+      const query = parentCommentId
+        ? "INSERT INTO comments (content, user_id, post_id, parent_comment_id) VALUES (?, ?, ?, ?)"
+        : "INSERT INTO comments (content, user_id, post_id) VALUES (?, ?, ?)";
+
+      const params = parentCommentId
+        ? [commentText, userId, postId, parentCommentId]
+        : [commentText, userId, postId];
+
+      const [result] = await connection.execute<ResultSetHeader>(query, params);
+
+      // If this is a reply, increment the parent's reply count
+      if (parentCommentId) {
+        await connection.execute(
+          "UPDATE comments SET reply_count = reply_count + 1 WHERE comment_id = ?",
+          [parentCommentId]
+        );
+      }
+
+      await connection.commit();
+      return { insertId: result.insertId, affectedRows: result.affectedRows };
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
+  }
+
+  /**
+   * Create a reply to a comment
+   */
+  static async createReply(
+    commentText: string,
+    userId: number,
+    postId: number,
+    parentCommentId: number
+  ): Promise<DatabaseResult> {
+    return this.create(commentText, userId, postId, parentCommentId);
   }
   /**   * Update a comment   */ static async update(
     commentId: number,
@@ -110,7 +236,10 @@ export class CommentRepository {
     const [result] = await pool.execute<ResultSetHeader>(query, [postId]);
     return { affectedRows: result.affectedRows };
   }
-  /**   * Check if comment exists and belongs to user   */ static async checkOwnership(
+  /**
+   * Check if comment exists and belongs to user
+   */
+  static async checkOwnership(
     commentId: number,
     userId: number
   ): Promise<boolean> {
@@ -121,6 +250,40 @@ export class CommentRepository {
       userId,
     ]);
     return (rows[0] as { count: number }).count > 0;
+  }
+
+  /**
+   * Check if comment exists (for reply validation)
+   */
+  static async commentExists(commentId: number): Promise<boolean> {
+    const query = "SELECT COUNT(*) as count FROM comments WHERE comment_id = ?";
+    const [rows] = await pool.query<RowDataPacket[]>(query, [commentId]);
+    return (rows[0] as { count: number }).count > 0;
+  }
+
+  /**
+   * Get comment details by ID
+   */
+  static async getCommentDetails(
+    commentId: number
+  ): Promise<CommentWithUser | null> {
+    const query = `
+      SELECT 
+        comments.comment_id,
+        comments.content,
+        comments.user_id,
+        comments.post_id,
+        comments.createdTimestamp,
+        comments.parent_comment_id,
+        comments.reply_count,
+        users.fullname,
+        users.id
+      FROM comments
+      JOIN users ON comments.user_id = users.id
+      WHERE comments.comment_id = ? AND users.isDeleted = 0
+    `;
+    const [rows] = await pool.query<RowDataPacket[]>(query, [commentId]);
+    return rows.length > 0 ? (rows[0] as CommentWithUser) : null;
   }
   /**   * Get comment count for a specific post   */ static async getCommentCountByPostId(
     postId: number

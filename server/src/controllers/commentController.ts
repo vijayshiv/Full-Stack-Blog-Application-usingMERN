@@ -5,7 +5,7 @@ import { CommentRequest, JWTPayload } from "../types";
 
 export class CommentController {
   /**
-   * Get comments for a specific post
+   * Get comments for a specific post (flat list)
    */
   static async getCommentsByPostId(req: Request, res: Response): Promise<void> {
     try {
@@ -22,6 +22,118 @@ export class CommentController {
       console.error("Error getting comments:", error);
       const message =
         error instanceof Error ? error.message : "Error retrieving comments";
+      res.json(errorMessage(message));
+    }
+  }
+
+  /**
+   * Get comments organized as threads for a specific post
+   */
+  static async getCommentThreadsByPostId(
+    req: Request,
+    res: Response
+  ): Promise<void> {
+    try {
+      const postId = parseInt(req.params.postId);
+
+      if (isNaN(postId) || postId <= 0) {
+        res.json(errorMessage("Valid post ID is required"));
+        return;
+      }
+
+      const threads = await CommentService.getCommentThreadsByPostId(postId);
+      res.json(successMessage(threads));
+    } catch (error) {
+      console.error("Error getting comment threads:", error);
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Error retrieving comment threads";
+      res.json(errorMessage(message));
+    }
+  }
+
+  /**
+   * Add a new comment to a post
+   */
+  static async addComment(req: Request, res: Response): Promise<void> {
+    try {
+      const postId = parseInt(req.params.postId);
+      const { content, parentCommentId } = req.body as CommentRequest;
+      const user = req.user as JWTPayload;
+
+      if (isNaN(postId) || postId <= 0) {
+        res.json(errorMessage("Valid post ID is required"));
+        return;
+      }
+
+      if (!content || content.trim().length === 0) {
+        res.json(errorMessage("Comment content is required"));
+        return;
+      }
+
+      // If parentCommentId is provided, this is a reply
+      if (parentCommentId && parentCommentId > 0) {
+        const result = await CommentService.addReply(
+          content,
+          user.id,
+          postId,
+          parentCommentId
+        );
+        res.json(successMessage(result));
+      } else {
+        // This is a regular comment
+        const result = await CommentService.addComment(
+          content,
+          user.id,
+          postId
+        );
+        res.json(successMessage(result));
+      }
+    } catch (error) {
+      console.error("Error adding comment:", error);
+      const message =
+        error instanceof Error ? error.message : "Error adding comment";
+      res.json(errorMessage(message));
+    }
+  }
+
+  /**
+   * Add a reply to a comment
+   */
+  static async addReply(req: Request, res: Response): Promise<void> {
+    try {
+      const postId = parseInt(req.params.postId);
+      const parentCommentId = parseInt(req.params.commentId);
+      const { content } = req.body as CommentRequest;
+      const user = req.user as JWTPayload;
+
+      if (isNaN(postId) || postId <= 0) {
+        res.json(errorMessage("Valid post ID is required"));
+        return;
+      }
+
+      if (isNaN(parentCommentId) || parentCommentId <= 0) {
+        res.json(errorMessage("Valid comment ID is required"));
+        return;
+      }
+
+      if (!content || content.trim().length === 0) {
+        res.json(errorMessage("Reply content is required"));
+        return;
+      }
+
+      const result = await CommentService.addReply(
+        content,
+        user.id,
+        postId,
+        parentCommentId
+      );
+      res.json(successMessage(result));
+    } catch (error) {
+      console.error("Error adding reply:", error);
+      const message =
+        error instanceof Error ? error.message : "Error adding reply";
       res.json(errorMessage(message));
     }
   }
@@ -53,47 +165,6 @@ export class CommentController {
       console.error("Error getting comments with pagination:", error);
       const message =
         error instanceof Error ? error.message : "Error retrieving comments";
-      res.json(errorMessage(message));
-    }
-  }
-
-  /**
-   * Add a new comment to a post
-   */
-  static async addComment(req: Request, res: Response): Promise<void> {
-    try {
-      const postId = parseInt(req.params.postId);
-      const userId = req.user!.id;
-
-      // Match JavaScript backend exactly: expect req.body.comment
-      const comment = req.body.comment || req.body.content;
-
-      if (isNaN(postId) || postId <= 0) {
-        res.json(errorMessage("Valid post ID is required"));
-        return;
-      }
-
-      if (!comment) {
-        res.json(errorMessage("Comment content is required"));
-        return;
-      }
-
-      // Validate comment content
-      CommentService.validateCommentContent(comment);
-
-      // Check if user can comment on this post
-      const canComment = await CommentService.canUserComment(userId, postId);
-      if (!canComment) {
-        res.json(errorMessage("You cannot comment on this post"));
-        return;
-      }
-
-      const result = await CommentService.addComment(comment, userId, postId);
-      res.json(successMessage(result));
-    } catch (error) {
-      console.error("Error adding comment:", error);
-      const message =
-        error instanceof Error ? error.message : "Error adding comment";
       res.json(errorMessage(message));
     }
   }

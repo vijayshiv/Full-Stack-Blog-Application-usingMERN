@@ -2,6 +2,7 @@ import express, { Express, Request, Response, NextFunction } from "express";
 import cors from "cors";
 import morgan from "morgan";
 import path from "path";
+import { createServer } from "http";
 import config from "./config";
 import { successMessage, errorMessage } from "./utils";
 import {
@@ -11,12 +12,15 @@ import {
   RateLimiter,
 } from "./middleware";
 import { swaggerSpec, swaggerUi, swaggerUiOptions } from "./config/swagger";
+import { socketService } from "./services/socketService";
+import { redisService } from "./config/redis";
 
 // Import routes
 import userRoutes from "./routes/users";
 import postRoutes from "./routes/posts";
 
 const app: Express = express();
+const httpServer = createServer(app);
 const PORT = config.server.port;
 
 // Initialize middleware instances
@@ -130,7 +134,7 @@ app.use(ErrorHandler.notFoundHandler);
 ErrorHandler.handleUncaughtExceptions();
 
 // Graceful shutdown handling
-const gracefulShutdown = (signal: string) => {
+const gracefulShutdown = async (signal: string) => {
   console.log(`Received ${signal}. Graceful shutdown...`);
 
   // Cleanup rate limiter
@@ -139,18 +143,46 @@ const gracefulShutdown = (signal: string) => {
   // Clean up old logs
   RequestLogger.cleanupOldLogs(30);
 
+  // Disconnect Redis
+  try {
+    await redisService.disconnect();
+    console.log("Redis disconnected");
+  } catch (error) {
+    console.error("Error disconnecting Redis:", error);
+  }
+
   process.exit(0);
 };
 
 process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
 process.on("SIGINT", () => gracefulShutdown("SIGINT"));
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Server is running on port ${PORT}`);
-  console.log(`📊 Environment: ${process.env.NODE_ENV || "development"}`);
-  console.log(`📝 API Documentation: http://localhost:${PORT}/api-docs`);
-  console.log(`🏥 Health Check: http://localhost:${PORT}/health`);
-});
+// Initialize services and start server
+async function startServer() {
+  try {
+    // Initialize Redis
+    await redisService.connect();
+    console.log("✅ Redis connected successfully");
+
+    // Initialize Socket.io
+    socketService.initialize(httpServer);
+    console.log("✅ Socket.io initialized successfully");
+
+    // Start server
+    httpServer.listen(PORT, () => {
+      console.log(`🚀 Server is running on port ${PORT}`);
+      console.log(`📊 Environment: ${process.env.NODE_ENV || "development"}`);
+      console.log(`📝 API Documentation: http://localhost:${PORT}/api-docs`);
+      console.log(`🏥 Health Check: http://localhost:${PORT}/health`);
+      console.log(`🔌 Socket.io ready for connections`);
+    });
+  } catch (error) {
+    console.error("Failed to start server:", error);
+    process.exit(1);
+  }
+}
+
+// Start the server
+startServer();
 
 export default app;

@@ -1,6 +1,11 @@
 import express, { Router } from "express";
 import { PostController, CommentController } from "../controllers";
-import { ValidationMiddleware, ErrorHandler, RateLimiter } from "../middleware";
+import {
+  ValidationMiddleware,
+  ErrorHandler,
+  RateLimiter,
+  AuthMiddleware,
+} from "../middleware";
 import multer from "multer";
 import path from "path";
 
@@ -151,6 +156,7 @@ router.get(
 router.post(
   "/add-post",
   rateLimiter.postRateLimit(),
+  AuthMiddleware.verifyToken,
   upload.single("image"),
   ValidationMiddleware.validatePostCreation,
   ErrorHandler.asyncHandler(PostController.createPost)
@@ -289,6 +295,7 @@ router.get(
 router.put(
   "/update/:id",
   rateLimiter.postRateLimit(),
+  AuthMiddleware.verifyToken,
   upload.single("image"),
   ValidationMiddleware.validatePostId,
   ValidationMiddleware.validatePostUpdate,
@@ -299,6 +306,7 @@ router.put(
 router.put(
   "/update-post/:postId",
   rateLimiter.postRateLimit(),
+  AuthMiddleware.verifyToken,
   upload.single("img"),
   ValidationMiddleware.validatePostId,
   ValidationMiddleware.validatePostUpdate,
@@ -361,6 +369,7 @@ router.put(
  */
 router.delete(
   "/delete/:id",
+  AuthMiddleware.verifyToken,
   ValidationMiddleware.validatePostId,
   ErrorHandler.asyncHandler(PostController.deletePost)
 );
@@ -368,6 +377,7 @@ router.delete(
 // Add compatibility route for frontend
 router.delete(
   "/delete-post/:postId",
+  AuthMiddleware.verifyToken,
   ValidationMiddleware.validatePostId,
   ErrorHandler.asyncHandler(PostController.deletePost)
 );
@@ -609,6 +619,7 @@ router.get(
  */
 router.post(
   "/likes/:postId",
+  AuthMiddleware.verifyToken,
   ValidationMiddleware.validatePostId,
   ErrorHandler.asyncHandler(PostController.toggleLike)
 );
@@ -668,6 +679,7 @@ router.get(
 // Add route for frontend compatibility (frontend expects /posts/like/:postId)
 router.post(
   "/like/:postId",
+  AuthMiddleware.requireAuth,
   ValidationMiddleware.validatePostId,
   ErrorHandler.asyncHandler(PostController.toggleLike)
 );
@@ -874,6 +886,7 @@ router.get(
 router.post(
   "/comments/:postId",
   rateLimiter.commentRateLimit(),
+  AuthMiddleware.verifyToken,
   ValidationMiddleware.validatePostId,
   ValidationMiddleware.validateCommentCreation,
   ErrorHandler.asyncHandler(CommentController.createComment)
@@ -883,9 +896,107 @@ router.post(
 router.post(
   "/comment/:postId",
   rateLimiter.commentRateLimit(),
+  AuthMiddleware.verifyToken,
   ValidationMiddleware.validatePostId,
   ValidationMiddleware.validateCommentCreation,
   ErrorHandler.asyncHandler(CommentController.createComment)
+);
+
+/**
+ * @swagger
+ * /posts/comments/threads/{postId}:
+ *   get:
+ *     summary: Get comment threads for a post
+ *     tags: [Comments]
+ *     parameters:
+ *       - in: path
+ *         name: postId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Post ID
+ *     responses:
+ *       200:
+ *         description: Comment threads retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/CommentThread'
+ */
+router.get(
+  "/comments/threads/:postId",
+  ValidationMiddleware.validatePostId,
+  ErrorHandler.asyncHandler(CommentController.getCommentThreadsByPostId)
+);
+
+/**
+ * @swagger
+ * /posts/comments/{postId}/reply/{commentId}:
+ *   post:
+ *     summary: Add a reply to a comment
+ *     tags: [Comments]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: postId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Post ID
+ *       - in: path
+ *         name: commentId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Parent comment ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - content
+ *             properties:
+ *               content:
+ *                 type: string
+ *                 minLength: 1
+ *                 maxLength: 1000
+ *                 example: "This is a reply to your comment!"
+ *     responses:
+ *       200:
+ *         description: Reply added successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Reply added successfully"
+ *                 data:
+ *                   $ref: '#/components/schemas/Comment'
+ */
+router.post(
+  "/comments/:postId/reply/:commentId",
+  rateLimiter.commentRateLimit(),
+  AuthMiddleware.verifyToken,
+  ValidationMiddleware.validatePostId,
+  ValidationMiddleware.validateCommentId,
+  ValidationMiddleware.validateCommentCreation,
+  ErrorHandler.asyncHandler(CommentController.addReply)
 );
 
 /**
@@ -966,6 +1077,7 @@ router.post(
  */
 router.put(
   "/comments/update/:commentId",
+  AuthMiddleware.verifyToken,
   ValidationMiddleware.validateCommentId,
   ValidationMiddleware.validateCommentUpdate,
   ErrorHandler.asyncHandler(CommentController.updateComment)
@@ -974,6 +1086,7 @@ router.put(
 // Add compatibility route for frontend
 router.put(
   "/comment/:commentId",
+  AuthMiddleware.verifyToken,
   ValidationMiddleware.validateCommentId,
   ValidationMiddleware.validateCommentUpdate,
   ErrorHandler.asyncHandler(CommentController.updateComment)
@@ -1035,6 +1148,7 @@ router.put(
  */
 router.delete(
   "/comments/delete/:commentId",
+  AuthMiddleware.verifyToken,
   ValidationMiddleware.validateCommentId,
   ErrorHandler.asyncHandler(CommentController.deleteComment)
 );
@@ -1042,6 +1156,7 @@ router.delete(
 // Add compatibility route for frontend
 router.delete(
   "/comment/:commentId",
+  AuthMiddleware.verifyToken,
   ValidationMiddleware.validateCommentId,
   ErrorHandler.asyncHandler(CommentController.deleteComment)
 );

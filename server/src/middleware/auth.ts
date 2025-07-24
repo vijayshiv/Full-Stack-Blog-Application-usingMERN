@@ -18,7 +18,16 @@ export class AuthMiddleware {
    * Verify JWT token and add user to request
    */
   static verifyToken(req: Request, res: Response, next: NextFunction): void {
-    const token = req.headers["token"] as string;
+    // Check for token in multiple header formats
+    let token = req.headers["token"] as string;
+
+    // Also check for Bearer token in Authorization header
+    if (!token) {
+      const authHeader = req.headers["authorization"] as string;
+      if (authHeader && authHeader.startsWith("Bearer ")) {
+        token = authHeader.substring(7); // Remove "Bearer " prefix
+      }
+    }
 
     if (!token || token.length === 0) {
       res.status(401).json(errorMessage("Missing Token"));
@@ -39,7 +48,16 @@ export class AuthMiddleware {
    * Optional authentication - adds user to request if token is present
    */
   static optionalAuth(req: Request, res: Response, next: NextFunction): void {
-    const token = req.headers["token"] as string;
+    // Check for token in multiple header formats
+    let token = req.headers["token"] as string;
+
+    // Also check for Bearer token in Authorization header
+    if (!token) {
+      const authHeader = req.headers["authorization"] as string;
+      if (authHeader && authHeader.startsWith("Bearer ")) {
+        token = authHeader.substring(7); // Remove "Bearer " prefix
+      }
+    }
 
     if (token && token.length > 0) {
       try {

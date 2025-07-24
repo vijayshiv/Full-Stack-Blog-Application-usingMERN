@@ -39,6 +39,22 @@ export interface Comment {
   createdTimestamp: Date;
   fullname?: string; // From JOIN with users table
   id?: number; // User ID alias from JOIN
+  parent_comment_id?: number; // For threading
+  reply_count?: number; // Number of replies
+}
+
+export interface CommentThread extends Comment {
+  replies?: CommentThread[];
+  depth_level?: number;
+}
+
+export interface CommentWithUser extends Comment {
+  fullname: string;
+}
+
+export interface CommentThreadWithUser extends CommentWithUser {
+  replies?: CommentThreadWithUser[];
+  depth_level?: number;
 }
 
 export interface PostLike {
@@ -76,6 +92,7 @@ export interface PostUpdateRequest {
 
 export interface CommentRequest {
   content: string;
+  parentCommentId?: number;
 }
 
 export interface EmailCheckRequest {
@@ -178,11 +195,19 @@ export interface ServerConfig {
   nodeEnv: string;
 }
 
+export interface RedisConfig {
+  url: string;
+  host: string;
+  port: number;
+  password?: string;
+}
+
 export interface AppConfig {
   database: DatabaseConfig;
   auth: AuthConfig;
   email: EmailConfig;
   server: ServerConfig;
+  redis: RedisConfig;
   // Legacy properties for backward compatibility
   dbHost: string;
   dbUser: string;

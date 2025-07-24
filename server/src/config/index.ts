@@ -4,6 +4,7 @@ import {
   AuthConfig,
   EmailConfig,
   ServerConfig,
+  RedisConfig,
 } from "../types";
 
 // Database configuration
@@ -37,12 +38,21 @@ const serverConfig: ServerConfig = {
   nodeEnv: process.env.NODE_ENV || "development",
 };
 
+// Redis configuration
+const redisConfig: RedisConfig = {
+  url: process.env.REDIS_URL || "redis://localhost:6379",
+  host: process.env.REDIS_HOST || "localhost",
+  port: parseInt(process.env.REDIS_PORT || "6379", 10),
+  password: process.env.REDIS_PASSWORD,
+};
+
 // Main configuration object with backward compatibility
 const config: AppConfig = {
   database: databaseConfig,
   auth: authConfig,
   email: emailConfig,
   server: serverConfig,
+  redis: redisConfig,
 
   // Legacy properties for backward compatibility
   dbHost: databaseConfig.host,
@@ -55,4 +65,4 @@ const config: AppConfig = {
 };
 
 export default config;
-export { databaseConfig, authConfig, emailConfig, serverConfig };
+export { databaseConfig, authConfig, emailConfig, serverConfig, redisConfig };
