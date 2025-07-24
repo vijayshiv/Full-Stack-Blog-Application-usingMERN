@@ -182,8 +182,8 @@ export default function Home() {
       return (
         <div
           key={post.post_id}
-          className={`flex flex-col md:flex-row text-xl font-sans list-disc my-4 ${
-            isMobile ? "flex-col" : ""
+          className={`flex flex-col md:flex-row text-xl font-sans list-disc ${
+            isMobile ? "flex-col my-8" : "my-4"
           }`}
           style={{ flexDirection: flexDirection }}
         >
@@ -201,11 +201,11 @@ export default function Home() {
           <div
             className={`${
               isMobile
-                ? "text-center"
+                ? "text-center px-4 py-4"
                 : "flex flex-col justify-between flex-grow"
             } ${
               isMobile
-                ? "px-4 text-sm"
+                ? "text-sm"
                 : "px-10 text-xs md:text-lg lg:text-xl text-justify flex-grow"
             }`}
           >
@@ -213,7 +213,7 @@ export default function Home() {
               <h1
                 className={`${
                   isMobile
-                    ? "text-xl font-bold mt-4 mb-2 text-left"
+                    ? "text-xl font-bold mt-4 mb-4 text-center"
                     : "text-xl md:text-2xl font-bold lg:text-4xl mt-4 py-10 px-14"
                 }`}
               >
@@ -233,7 +233,7 @@ export default function Home() {
             <div
               className={`${
                 isMobile
-                  ? "flex justify-center mt-2 mb-4"
+                  ? "flex justify-center mt-4 mb-6"
                   : `flex ${buttonAlignment} mr-10 mb-10 px-14`
               }`}
             >
