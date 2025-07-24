@@ -763,15 +763,15 @@ export class ValidationMiddleware {
     res: Response,
     next: NextFunction
   ): void {
-    const { id } = req.params;
+    const { notificationId } = req.params;
     const errors: string[] = [];
 
     // ID validation
-    if (!id) {
+    if (!notificationId) {
       errors.push("Notification ID is required");
-    } else if (isNaN(Number(id))) {
+    } else if (isNaN(Number(notificationId))) {
       errors.push("Notification ID must be a valid number");
-    } else if (Number(id) <= 0) {
+    } else if (Number(notificationId) <= 0) {
       errors.push("Notification ID must be a positive number");
     }
 

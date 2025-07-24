@@ -82,12 +82,14 @@ export class CommentController {
           parentCommentId
         );
 
-        // Create and send notification for reply
+        // Create and send notification for reply to comment author
         try {
-          const notification = await NotificationService.notifyPostAuthor(
-            postId,
+          const notification = await NotificationService.notifyCommentAuthor(
+            parentCommentId,
             user.fullname || "Someone",
-            content
+            content,
+            postId,
+            user.id
           );
 
           if (notification) {
@@ -114,7 +116,8 @@ export class CommentController {
           const notification = await NotificationService.notifyPostAuthor(
             postId,
             user.fullname || "Someone",
-            content
+            content,
+            user.id
           );
 
           if (notification) {

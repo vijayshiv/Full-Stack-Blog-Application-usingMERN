@@ -68,6 +68,15 @@ class SocketService {
 
     console.log(`User ${socket.userId} connected with socket ${socket.id}`);
 
+    // Handle test message (for debugging)
+    socket.on("test_message", (data) => {
+      console.log(`📧 Test message from user ${socket.userId}:`, data);
+      socket.emit("test_response", {
+        message: "Server received your test!",
+        userId: socket.userId,
+      });
+    });
+
     // Handle comment events
     socket.on("join_post", (postId: number) => {
       socket.join(`post_${postId}`);

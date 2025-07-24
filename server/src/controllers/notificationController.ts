@@ -13,21 +13,33 @@ export class NotificationController {
   ): Promise<void> {
     try {
       const user = req.user as JWTPayload;
-      const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 20;
+      const page = Math.max(1, parseInt(req.query.page as string) || 1);
+      const limit = Math.min(
+        100,
+        Math.max(1, parseInt(req.query.limit as string) || 20)
+      );
+
+      console.log(
+        `📧 Getting notifications for user ${user.id}, page ${page}, limit ${limit}`
+      );
+      console.log(`📧 User object:`, user);
 
       const notifications = await NotificationService.getUserNotifications(
-        user.id,
-        page,
-        limit
+        Number(user.id),
+        Number(page),
+        Number(limit)
+      );
+
+      console.log(
+        `📧 Found ${notifications.length} notifications for user ${user.id}`
       );
       res.json(successMessage(notifications));
     } catch (error) {
-      console.error("Error getting user notifications:", error);
+      console.error("❌ Error getting user notifications:", error);
       const message =
         error instanceof Error
           ? error.message
-          : "Error retrieving notifications";
+          : "Failed to retrieve notifications";
       res.json(errorMessage(message));
     }
   }

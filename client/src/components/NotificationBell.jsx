@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import { FaBell } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import api from "../config/api";
 
 const NotificationBell = ({ socket }) => {
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -64,17 +66,28 @@ const NotificationBell = ({ socket }) => {
       const token = sessionStorage.getItem("token");
       if (!token) return;
 
+      console.log("🔔 Fetching notifications...");
+      
       const response = await api.get('/notifications', {
-        headers: { token }
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
+
+      console.log("🔔 Notifications response:", response.data);
 
       if (response.data.status === "success") {
         setNotifications(response.data.data);
         const unread = response.data.data.filter(notif => !notif.read).length;
         setUnreadCount(unread);
+        console.log(`🔔 Loaded ${response.data.data.length} notifications, ${unread} unread`);
+      } else {
+        console.error("🔔 Failed to fetch notifications:", response.data);
       }
     } catch (error) {
-      console.error("Error fetching notifications:", error);
+      console.error("🔔 Error fetching notifications:", error);
+      toast.error("Failed to load notifications");
     } finally {
       setIsLoading(false);
     }
@@ -85,8 +98,13 @@ const NotificationBell = ({ socket }) => {
       const token = sessionStorage.getItem("token");
       if (!token) return;
 
+      console.log(`🔔 Marking notification ${notificationId} as read`);
+
       await api.put(`/notifications/${notificationId}/read`, {}, {
-        headers: { token }
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
 
       setNotifications(prev => 
@@ -97,8 +115,66 @@ const NotificationBell = ({ socket }) => {
         )
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
+      console.log(`🔔 Notification ${notificationId} marked as read`);
     } catch (error) {
-      console.error("Error marking notification as read:", error);
+      console.error("🔔 Error marking notification as read:", error);
+      toast.error("Failed to mark notification as read");
+    }
+  };
+
+  const deleteNotification = async (notificationId) => {
+    try {
+      const token = sessionStorage.getItem("token");
+      if (!token) return;
+
+      console.log(`🔔 Deleting notification ${notificationId}`);
+
+      await api.delete(`/notifications/${notificationId}`, {
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      // Remove from local state
+      setNotifications(prev => {
+        const updatedNotifications = prev.filter(notif => notif.id !== notificationId);
+        const deletedNotification = prev.find(notif => notif.id === notificationId);
+        
+        // Update unread count if the deleted notification was unread
+        if (deletedNotification && !deletedNotification.read) {
+          setUnreadCount(prevCount => Math.max(0, prevCount - 1));
+        }
+        
+        return updatedNotifications;
+      });
+      
+      toast.success("Notification deleted");
+      console.log(`🔔 Notification ${notificationId} deleted successfully`);
+    } catch (error) {
+      console.error(`🔔 Error deleting notification ${notificationId}:`, error);
+      toast.error("Failed to delete notification");
+    }
+  };
+
+  const handleNotificationClick = (notification) => {
+    console.log("🔔 Notification clicked:", notification);
+    console.log("🔔 Post ID:", notification.post_id);
+    
+    // Mark as read when clicked
+    if (!notification.read) {
+      markAsRead(notification.id);
+    }
+    
+    // Navigate to the post
+    if (notification.post_id) {
+      // Close dropdown
+      setIsDropdownOpen(false);
+      console.log(`🔔 Navigating to post: /post/${notification.post_id}`);
+      // Navigate to post using React Router
+      navigate(`/post/${notification.post_id}`);
+    } else {
+      console.log("🔔 No post_id found, cannot navigate");
     }
   };
 
@@ -107,8 +183,13 @@ const NotificationBell = ({ socket }) => {
       const token = sessionStorage.getItem("token");
       if (!token) return;
 
+      console.log("🔔 Marking all notifications as read");
+
       await api.put('/notifications/mark-all-read', {}, {
-        headers: { token }
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
 
       setNotifications(prev => 
@@ -116,8 +197,9 @@ const NotificationBell = ({ socket }) => {
       );
       setUnreadCount(0);
       toast.success("All notifications marked as read");
+      console.log("🔔 All notifications marked as read");
     } catch (error) {
-      console.error("Error marking all notifications as read:", error);
+      console.error("🔔 Error marking all notifications as read:", error);
       toast.error("Failed to mark notifications as read");
     }
   };
@@ -127,15 +209,21 @@ const NotificationBell = ({ socket }) => {
       const token = sessionStorage.getItem("token");
       if (!token) return;
 
+      console.log("🔔 Clearing all notifications");
+
       await api.delete('/notifications/clear-all', {
-        headers: { token }
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
 
       setNotifications([]);
       setUnreadCount(0);
       toast.success("All notifications cleared");
+      console.log("🔔 All notifications cleared successfully");
     } catch (error) {
-      console.error("Error clearing notifications:", error);
+      console.error("🔔 Error clearing notifications:", error);
       toast.error("Failed to clear notifications");
     }
   };
@@ -223,12 +311,14 @@ const NotificationBell = ({ socket }) => {
               notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`p-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors duration-200 ${
+                  className={`p-3 border-b border-gray-100 transition-colors duration-200 ${
                     !notification.read ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
                   }`}
-                  onClick={() => !notification.read && markAsRead(notification.id)}
                 >
-                  <div className="flex justify-between items-start">
+                  <div 
+                    className="flex justify-between items-start cursor-pointer hover:bg-gray-50 -m-3 p-3 rounded"
+                    onClick={() => handleNotificationClick(notification)}
+                  >
                     <div className="flex-1">
                       <p className={`text-sm ${!notification.read ? 'font-semibold text-gray-900' : 'text-gray-700'}`}>
                         {notification.message}
@@ -245,6 +335,32 @@ const NotificationBell = ({ socket }) => {
                     {!notification.read && (
                       <div className="w-2 h-2 bg-blue-500 rounded-full ml-2 mt-1 flex-shrink-0"></div>
                     )}
+                  </div>
+                  
+                  {/* Action buttons */}
+                  <div className="flex justify-end gap-2 mt-2 pt-2 border-t border-gray-100">
+                    {!notification.read && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          markAsRead(notification.id);
+                        }}
+                        className="text-xs text-blue-600 hover:text-blue-800 font-medium px-2 py-1 rounded hover:bg-blue-100"
+                        title="Mark as read"
+                      >
+                        Mark as read
+                      </button>
+                    )}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteNotification(notification.id);
+                      }}
+                      className="text-xs text-red-600 hover:text-red-800 font-medium px-2 py-1 rounded hover:bg-red-100"
+                      title="Delete notification"
+                    >
+                      Delete
+                    </button>
                   </div>
                 </div>
               ))

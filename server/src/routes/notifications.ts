@@ -7,6 +7,13 @@ const router = express.Router();
 
 /**
  * @swagger
+ * tags:
+ *   name: Notifications
+ *   description: Notification Management
+ */
+
+/**
+ * @swagger
  * /notifications:
  *   get:
  *     summary: Get user notifications
@@ -82,32 +89,6 @@ router.put(
 
 /**
  * @swagger
- * /notifications/{notificationId}:
- *   delete:
- *     summary: Delete a notification
- *     tags: [Notifications]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: notificationId
- *         required: true
- *         schema:
- *           type: integer
- *         description: Notification ID
- *     responses:
- *       200:
- *         description: Notification deleted
- */
-router.delete(
-  "/:notificationId",
-  AuthMiddleware.verifyToken,
-  ValidationMiddleware.validateNotificationId,
-  ErrorHandler.asyncHandler(NotificationController.deleteNotification)
-);
-
-/**
- * @swagger
  * /notifications/clear-all:
  *   delete:
  *     summary: Clear all notifications
@@ -140,6 +121,32 @@ router.get(
   "/unread-count",
   AuthMiddleware.verifyToken,
   ErrorHandler.asyncHandler(NotificationController.getUnreadCount)
+);
+
+/**
+ * @swagger
+ * /notifications/{notificationId}:
+ *   delete:
+ *     summary: Delete a notification
+ *     tags: [Notifications]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: notificationId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Notification ID
+ *     responses:
+ *       200:
+ *         description: Notification deleted
+ */
+router.delete(
+  "/:notificationId",
+  AuthMiddleware.verifyToken,
+  ValidationMiddleware.validateNotificationId,
+  ErrorHandler.asyncHandler(NotificationController.deleteNotification)
 );
 
 export default router;

@@ -22,27 +22,39 @@ export const SocketProvider = ({ children }) => {
 
     if (token && userId) {
       // Create socket connection
-      const newSocket = io("http://localhost:5000", {
+      const newSocket = io("http://localhost:4000", {
         auth: {
           token: token,
           userId: userId
         },
-        transports: ["websocket", "polling"]
+        transports: ["websocket", "polling"],
+        timeout: 20000,
+        forceNew: true
       });
 
       newSocket.on("connect", () => {
-        console.log("Connected to server");
+        console.log("✅ Connected to server");
+        console.log("Socket ID:", newSocket.id);
         setIsConnected(true);
       });
 
-      newSocket.on("disconnect", () => {
-        console.log("Disconnected from server");
+      newSocket.on("disconnect", (reason) => {
+        console.log("❌ Disconnected from server:", reason);
         setIsConnected(false);
       });
 
       newSocket.on("connect_error", (error) => {
-        console.error("Socket connection error:", error);
+        console.error("🔌 Socket connection error:", error.message);
+        console.error("Error details:", error);
         setIsConnected(false);
+      });
+
+      newSocket.on("notification", (notification) => {
+        console.log("🔔 New notification received:", notification);
+      });
+
+      newSocket.on("test_response", (data) => {
+        console.log("✅ Test response from server:", data);
       });
 
       setSocket(newSocket);

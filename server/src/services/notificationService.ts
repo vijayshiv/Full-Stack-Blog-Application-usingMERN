@@ -18,31 +18,33 @@ export class NotificationService {
     `;
 
     try {
-      const result = await db.execute(query, [
+      // Ensure null values instead of undefined
+      const params = [
         userId,
         type,
         message,
-        relatedPostId || null,
-        relatedCommentId || null,
-      ]);
+        relatedPostId ?? null,
+        relatedCommentId ?? null,
+      ];
 
+      console.log(`🔍 Creating notification with params:`, params);
+
+      const result = await db.execute(query, params);
       const insertId = (result as any).insertId;
 
-      // Fetch the created notification
+      // Fetch the created notification with a simple query
       const fetchQuery = `
         SELECT 
-          n.id,
-          n.user_id,
-          n.type,
-          n.message,
-          n.related_post_id,
-          n.related_comment_id,
-          n.read_status as read,
-          n.created_at as createdAt,
-          p.title as postTitle
-        FROM notifications n
-        LEFT JOIN posts p ON n.related_post_id = p.id
-        WHERE n.id = ?
+          id,
+          user_id,
+          type,
+          message,
+          related_post_id as post_id,
+          related_comment_id,
+          read_status as \`read\`,
+          created_at as createdAt
+        FROM notifications
+        WHERE id = ?
       `;
 
       const [rows] = await db.execute(fetchQuery, [insertId]);
@@ -63,26 +65,39 @@ export class NotificationService {
   ): Promise<NotificationData[]> {
     const offset = (page - 1) * limit;
 
+    console.log(
+      `🔍 Query params: userId=${userId}, limit=${limit}, offset=${offset}`
+    );
+
+    // Simplified query without JOIN first to test
     const query = `
       SELECT 
-        n.id,
-        n.user_id,
-        n.type,
-        n.message,
-        n.related_post_id,
-        n.related_comment_id,
-        n.read_status as read,
-        n.created_at as createdAt,
-        p.title as postTitle
-      FROM notifications n
-      LEFT JOIN posts p ON n.related_post_id = p.id
-      WHERE n.user_id = ?
-      ORDER BY n.created_at DESC
-      LIMIT ? OFFSET ?
+        id,
+        user_id,
+        type,
+        message,
+        related_post_id as post_id,
+        related_comment_id,
+        read_status as \`read\`,
+        created_at as createdAt
+      FROM notifications
+      WHERE user_id = ?
+      ORDER BY created_at DESC
+      LIMIT ${limit} OFFSET ${offset}
     `;
 
     try {
-      const [rows] = await db.execute(query, [userId, limit, offset]);
+      // First, try a simple query to test
+      const simpleQuery = `SELECT COUNT(*) as count FROM notifications WHERE user_id = ?`;
+      const [countResult] = await db.execute(simpleQuery, [userId]);
+      console.log(`🔍 Total notifications for user ${userId}:`, countResult);
+
+      console.log(
+        `🔍 Executing query without prepared statement for LIMIT/OFFSET`
+      );
+
+      const [rows] = await db.execute(query, [userId]);
+      console.log(`🔍 Query result:`, rows);
       return rows as NotificationData[];
     } catch (error) {
       console.error("Error getting user notifications:", error);
@@ -191,7 +206,8 @@ export class NotificationService {
   static async notifyPostAuthor(
     postId: number,
     commenterName: string,
-    commentContent: string
+    commentContent: string,
+    commenterId: number
   ): Promise<NotificationData | null> {
     try {
       // Get post author
@@ -205,6 +221,14 @@ export class NotificationService {
       const post = (postRows as any)[0];
 
       if (post) {
+        // Don't notify if the commenter is the same as the post author
+        if (post.user_id === commenterId) {
+          console.log(
+            "🔔 Skipping notification - user commented on their own post"
+          );
+          return null;
+        }
+
         const message = `${commenterName} commented on your post: "${commentContent.substring(
           0,
           50
@@ -214,7 +238,8 @@ export class NotificationService {
           post.user_id,
           "comment",
           message,
-          postId
+          postId,
+          undefined // relatedCommentId - we don't have the comment ID here
         );
 
         return notification;
@@ -224,6 +249,64 @@ export class NotificationService {
     } catch (error) {
       console.error("Error notifying post author:", error);
       throw new Error("Failed to notify post author");
+    }
+  }
+
+  /**
+   * Notify comment author when someone replies to their comment
+   */
+  static async notifyCommentAuthor(
+    parentCommentId: number,
+    replierName: string,
+    replyContent: string,
+    postId: number,
+    replierId: number
+  ): Promise<any> {
+    try {
+      console.log(
+        `🔔 Notifying comment author for reply to comment ${parentCommentId}`
+      );
+
+      // Get the comment author info
+      const query = `
+        SELECT c.user_id, c.content, p.title as post_title
+        FROM comments c
+        JOIN posts p ON c.post_id = p.post_id
+        WHERE c.comment_id = ?
+      `;
+
+      const [commentRows] = await db.execute(query, [parentCommentId]);
+      const comment = (commentRows as any)[0];
+
+      if (comment) {
+        // Don't notify if the replier is the same as the comment author
+        if (comment.user_id === replierId) {
+          console.log(
+            "🔔 Skipping notification - user replied to their own comment"
+          );
+          return null;
+        }
+
+        const message = `${replierName} replied to your comment: "${replyContent.substring(
+          0,
+          50
+        )}${replyContent.length > 50 ? "..." : ""}"`;
+
+        const notification = await this.createNotification(
+          comment.user_id,
+          "reply",
+          message,
+          postId,
+          parentCommentId
+        );
+
+        return notification;
+      }
+
+      return null;
+    } catch (error) {
+      console.error("Error notifying comment author:", error);
+      throw new Error("Failed to notify comment author");
     }
   }
 }
