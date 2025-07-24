@@ -95,6 +95,18 @@ export interface CommentRequest {
   parentCommentId?: number;
 }
 
+export interface NotificationData {
+  id: number;
+  user_id: number;
+  type: string;
+  message: string;
+  related_post_id?: number;
+  related_comment_id?: number;
+  read: boolean;
+  createdAt: string;
+  postTitle?: string;
+}
+
 export interface EmailCheckRequest {
   email: string;
 }

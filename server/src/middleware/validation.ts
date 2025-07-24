@@ -754,6 +754,34 @@ export class ValidationMiddleware {
   ): void {
     return ValidationMiddleware.validateCommentCreation(req, res, next);
   }
+
+  /**
+   * Notification ID validation
+   */
+  static validateNotificationId(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): void {
+    const { id } = req.params;
+    const errors: string[] = [];
+
+    // ID validation
+    if (!id) {
+      errors.push("Notification ID is required");
+    } else if (isNaN(Number(id))) {
+      errors.push("Notification ID must be a valid number");
+    } else if (Number(id) <= 0) {
+      errors.push("Notification ID must be a positive number");
+    }
+
+    if (errors.length > 0) {
+      res.status(400).json(errorMessage(errors.join(", ")));
+      return;
+    }
+
+    next();
+  }
 }
 
 export default ValidationMiddleware;

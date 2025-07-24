@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 
 const CategoryDropdown = () => {
@@ -30,18 +30,17 @@ const CategoryDropdown = () => {
   return (
     <div
       ref={dropdownRef}
-      className="relative inline-block" // Change here
+      className="relative inline-block"
     >
       <button
         onClick={handleToggleDropdown}
         className={`block py-2 pr-4 pl-3 duration-200 ${
           isActive("/cat=?") ? "text-blue-700" : "text-gray-700"
-        } border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 hover:text-blue-700 lg:p-0 md:text-3xl`}
-        style={{ zIndex: 1 }}
+        } border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 hover:text-blue-700 lg:p-0 text-lg md:text-xl lg:text-2xl flex items-center`}
       >
         Category
         <svg
-          className={`w-4 h-4 inline-block ml-1 transition-transform transform ${
+          className={`w-4 h-4 ml-1 transition-transform transform ${
             isDropdownOpen ? "rotate-180" : ""
           }`}
           fill="currentColor"
@@ -58,15 +57,13 @@ const CategoryDropdown = () => {
 
       {isDropdownOpen && (
         <ul
-          className="absolute bg-white border border-gray-200 rounded-lg mt-2 py-1 w-28 md:w-36 z-50"
-          style={{ top: "3rem" }}
+          className="absolute bg-white border border-gray-200 rounded-lg mt-2 py-1 w-32 md:w-40 z-50 shadow-lg"
         >
-          {" "}
-          {/* Adjust top position here */}
           <li>
             <NavLink
               to="/?cat=art"
-              className="text-xs block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-blue-700 md:text-lg"
+              className="text-sm md:text-base block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-blue-700"
+              onClick={() => setIsDropdownOpen(false)}
             >
               Art
             </NavLink>
@@ -74,7 +71,8 @@ const CategoryDropdown = () => {
           <li>
             <NavLink
               to="/?cat=technology"
-              className="text-xs block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-blue-700 md:text-lg"
+              className="text-sm md:text-base block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-blue-700"
+              onClick={() => setIsDropdownOpen(false)}
             >
               Technology
             </NavLink>
@@ -82,7 +80,8 @@ const CategoryDropdown = () => {
           <li>
             <NavLink
               to="/?cat=science"
-              className="text-xs block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-blue-700 md:text-lg"
+              className="text-sm md:text-base block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-blue-700"
+              onClick={() => setIsDropdownOpen(false)}
             >
               Science
             </NavLink>
@@ -90,7 +89,8 @@ const CategoryDropdown = () => {
           <li>
             <NavLink
               to="/?cat=design"
-              className="text-xs block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-blue-700 md:text-lg"
+              className="text-sm md:text-base block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-blue-700"
+              onClick={() => setIsDropdownOpen(false)}
             >
               Design
             </NavLink>
@@ -98,7 +98,8 @@ const CategoryDropdown = () => {
           <li>
             <NavLink
               to="/?cat=food"
-              className="text-xs block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-blue-700 md:text-lg"
+              className="text-sm md:text-base block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-blue-700"
+              onClick={() => setIsDropdownOpen(false)}
             >
               Food
             </NavLink>
@@ -106,7 +107,8 @@ const CategoryDropdown = () => {
           <li>
             <NavLink
               to="/?cat=cinema"
-              className="text-xs px-2 py-0 block md:px-4 md:py-2 text-gray-700 hover:bg-gray-100 hover:text-blue-700 md:text-lg"
+              className="text-sm md:text-base block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-blue-700"
+              onClick={() => setIsDropdownOpen(false)}
             >
               Cinema
             </NavLink>

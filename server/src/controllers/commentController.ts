@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
-import { CommentService } from "../services";
+import { CommentService, NotificationService } from "../services";
 import { successMessage, errorMessage } from "../utils";
 import { CommentRequest, JWTPayload } from "../types";
+import { socketService } from "../services/socketService";
 
 export class CommentController {
   /**
@@ -80,6 +81,25 @@ export class CommentController {
           postId,
           parentCommentId
         );
+
+        // Create and send notification for reply
+        try {
+          const notification = await NotificationService.notifyPostAuthor(
+            postId,
+            user.fullname || "Someone",
+            content
+          );
+
+          if (notification) {
+            socketService.sendNotificationToUser(
+              notification.user_id,
+              notification
+            );
+          }
+        } catch (notifError) {
+          console.error("Error sending reply notification:", notifError);
+        }
+
         res.json(successMessage(result));
       } else {
         // This is a regular comment
@@ -88,6 +108,25 @@ export class CommentController {
           user.id,
           postId
         );
+
+        // Create and send notification for new comment
+        try {
+          const notification = await NotificationService.notifyPostAuthor(
+            postId,
+            user.fullname || "Someone",
+            content
+          );
+
+          if (notification) {
+            socketService.sendNotificationToUser(
+              notification.user_id,
+              notification
+            );
+          }
+        } catch (notifError) {
+          console.error("Error sending comment notification:", notifError);
+        }
+
         res.json(successMessage(result));
       }
     } catch (error) {

@@ -18,6 +18,7 @@ import { redisService } from "./config/redis";
 // Import routes
 import userRoutes from "./routes/users";
 import postRoutes from "./routes/posts";
+import notificationRoutes from "./routes/notifications";
 
 const app: Express = express();
 const httpServer = createServer(app);
@@ -114,6 +115,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 // API Routes
 app.use("/user", userRoutes);
 app.use("/posts", postRoutes);
+app.use("/notifications", notificationRoutes);
 
 // Swagger Documentation
 app.use("/api-docs", swaggerUi.serve);

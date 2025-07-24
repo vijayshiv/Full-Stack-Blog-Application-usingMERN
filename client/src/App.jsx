@@ -14,6 +14,7 @@ import MyPosts from "./pages/MyPost";
 import EditPost from "./pages/EditPost";
 import ForgotPassword from "./pages/ForgetPassword";
 import ResetPassword from "./pages/ResetPassword";
+import { SocketProvider } from "./context/SocketContext";
 
 const router = createBrowserRouter([
   {
@@ -41,10 +42,10 @@ const router = createBrowserRouter([
 
 function App() {
   return (
-    <>
+    <SocketProvider>
       <RouterProvider router={router} />
       <ToastContainer />
-    </>
+    </SocketProvider>
   );
 }
 

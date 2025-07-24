@@ -271,6 +271,47 @@ class SocketService {
   isUserOnline(userId: number): boolean {
     return this.userSockets.has(userId);
   }
+
+  /**
+   * Send notification to a specific user
+   */
+  sendNotificationToUser(userId: number, notification: any): void {
+    if (!this.io) return;
+
+    this.io.to(`user_${userId}`).emit("newNotification", notification);
+    console.log(`Notification sent to user ${userId}:`, notification.message);
+  }
+
+  /**
+   * Send notification to multiple users
+   */
+  sendNotificationToUsers(userIds: number[], notification: any): void {
+    if (!this.io) return;
+
+    userIds.forEach((userId) => {
+      this.io!.to(`user_${userId}`).emit("newNotification", notification);
+    });
+    console.log(
+      `Notification sent to users ${userIds.join(", ")}:`,
+      notification.message
+    );
+  }
+
+  /**
+   * Emit notification read event
+   */
+  emitNotificationRead(userId: number, notificationId: number): void {
+    if (!this.io) return;
+
+    this.io.to(`user_${userId}`).emit("notificationRead", notificationId);
+  }
+
+  /**
+   * Get online users count
+   */
+  getOnlineUsersCount(): number {
+    return this.userSockets.size;
+  }
 }
 
 export const socketService = new SocketService();
