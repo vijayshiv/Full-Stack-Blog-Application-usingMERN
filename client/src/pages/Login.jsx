@@ -1,5 +1,4 @@
-import axios from "axios";
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -75,7 +74,7 @@ export default function Login() {
               Sign in
             </button>
             <p className="text-center mt-2">
-              Don't have an account?{" "}
+              Don&apos;t have an account?{" "}
               <Link to="/register" className="underline ml-2">
                 Sign up
               </Link>

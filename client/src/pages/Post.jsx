@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -14,6 +14,24 @@ const Post = () => {
   const [post, setPost] = useState(null);
   const [suggestions, setSuggestions] = useState([]);
   const [error, setError] = useState(null);
+
+  const fetchSuggestions = useCallback(async (category, currentPostId) => {
+    currentPostId = parseInt(id);
+    try {
+      const response = await api.get(`/posts/by-category/${category}`);
+      if (response.data.status === "success") {
+        const filteredSuggestions = response.data.data.filter(
+          (item) => item.post_id !== currentPostId
+        );
+        setSuggestions(shuffleArray(filteredSuggestions).slice(0, 4));
+      } else {
+        toast.error("Failed to fetch suggestions");
+      }
+    } catch (error) {
+      console.error("Error fetching suggestions:", error);
+      toast.error("Failed to fetch suggestions");
+    }
+  }, [id]);
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -34,25 +52,7 @@ const Post = () => {
 
     fetchPost();
     window.scrollTo(0, 0);
-  }, [id]);
-
-  const fetchSuggestions = async (category, currentPostId) => {
-    currentPostId = parseInt(id);
-    try {
-      const response = await api.get(`/posts/by-category/${category}`);
-      if (response.data.status === "success") {
-        const filteredSuggestions = response.data.data.filter(
-          (item) => item.post_id !== currentPostId
-        );
-        setSuggestions(shuffleArray(filteredSuggestions).slice(0, 4));
-      } else {
-        toast.error("Failed to fetch suggestions");
-      }
-    } catch (error) {
-      console.error("Error fetching suggestions:", error);
-      toast.error("Failed to fetch suggestions");
-    }
-  };
+  }, [id, fetchSuggestions]);
 
   const shuffleArray = (array) => {
     return array.sort(() => Math.random() - 0.5);
@@ -180,7 +180,7 @@ const Post = () => {
         <div className="flex flex-col lg:flex-row">
           <div className="lg:w-3/4">
             <h1 className="font-bold text-3xl sm:text-3xl lg:text-5xl text-blue-900 mb-8 leading-tight font-serif">
-              "{post.title}"
+              &quot;{post.title}&quot;
             </h1>
             <div className="clearfix">
               <img
