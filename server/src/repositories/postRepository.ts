@@ -183,7 +183,7 @@ export class PostRepository {
   }
 
   /**
-   * Search posts by title or content
+   * Search posts by title, content, or category with relevance scoring
    */
   static async search(searchTerm: string): Promise<PostWithAuthor[]> {
     const query = `
@@ -195,18 +195,37 @@ export class PostRepository {
         posts.img, 
         posts.user_id, 
         posts.createdTimestamp,
-        users.fullname as author
+        posts.isDeleted,
+        users.fullname as author,
+        (
+          CASE 
+            WHEN posts.title LIKE ? THEN 3
+            WHEN posts.category LIKE ? THEN 2
+            WHEN posts.content LIKE ? THEN 1
+            ELSE 0
+          END
+        ) as relevance
       FROM posts 
       JOIN users ON posts.user_id = users.id 
-      WHERE posts.title LIKE ? OR posts.content LIKE ? OR posts.category LIKE ?
-      ORDER BY posts.createdTimestamp DESC
+      WHERE posts.isDeleted = 0 
+        AND (posts.title LIKE ? OR posts.content LIKE ? OR posts.category LIKE ?)
+      ORDER BY relevance DESC, posts.createdTimestamp DESC
     `;
+
     const searchPattern = `%${searchTerm}%`;
+    const exactTitlePattern = `%${searchTerm}%`;
+    const exactCategoryPattern = `%${searchTerm}%`;
+    const exactContentPattern = `%${searchTerm}%`;
+
     const [rows] = await pool.query<RowDataPacket[]>(query, [
-      searchPattern,
-      searchPattern,
-      searchPattern,
+      exactTitlePattern, // For relevance scoring - title match
+      exactCategoryPattern, // For relevance scoring - category match
+      exactContentPattern, // For relevance scoring - content match
+      searchPattern, // For WHERE clause - title
+      searchPattern, // For WHERE clause - content
+      searchPattern, // For WHERE clause - category
     ]);
+
     return rows as PostWithAuthor[];
   }
 

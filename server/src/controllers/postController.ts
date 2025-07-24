@@ -255,36 +255,39 @@ export class PostController {
         limit = 10,
       }: PostSearchQuery = req.query;
 
-      if (!searchTerm) {
+      if (!searchTerm || searchTerm.trim().length === 0) {
         res.json(successMessage([]));
         return;
       }
 
-      const posts = await PostService.searchPosts(searchTerm);
+      console.log(`🔍 Searching posts with term: "${searchTerm}"`);
+
+      const posts = await PostService.searchPosts(searchTerm.trim());
 
       // Filter by category if specified
       let filteredPosts = posts;
-      if (category) {
+      if (category && category.trim().length > 0) {
         filteredPosts = posts.filter(
           (post) => post.category.toLowerCase() === category.toLowerCase()
         );
       }
 
       // Apply pagination
-      const pageNum = parseInt(page.toString()) || 1;
-      const limitNum = parseInt(limit.toString()) || 10;
+      const pageNum = Math.max(1, parseInt(page.toString()) || 1);
+      const limitNum = Math.min(
+        100,
+        Math.max(1, parseInt(limit.toString()) || 10)
+      );
       const startIndex = (pageNum - 1) * limitNum;
       const endIndex = startIndex + limitNum;
       const paginatedPosts = filteredPosts.slice(startIndex, endIndex);
 
-      res.json(
-        successMessage({
-          posts: paginatedPosts,
-          totalPosts: filteredPosts.length,
-          totalPages: Math.ceil(filteredPosts.length / limitNum),
-          currentPage: pageNum,
-        })
+      console.log(
+        `🔍 Found ${filteredPosts.length} posts matching "${searchTerm}"`
       );
+
+      // Return the same format as getAllPosts for consistency
+      res.json(successMessage(paginatedPosts));
     } catch (error) {
       console.error("Error searching posts:", error);
       const message =

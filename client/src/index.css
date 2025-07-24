@@ -6,9 +6,9 @@
   content: "";
   position: absolute;
   top: 75px; /* Adjust as needed */
-  left: 80px; /* Adjust as needed */
-  height: 85%;
-  width: 79%;
+  left: 60px; /* Adjust as needed */
+  height: 350px;
+  width: 180px;
   background-color: #4f80ff; /* Replace with your desired color */
   z-index: -1;
 }

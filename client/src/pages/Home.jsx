@@ -1,13 +1,15 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { Link, useLocation } from "react-router-dom";
 import { useMediaQuery } from "react-responsive";
-import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { FaChevronLeft, FaChevronRight, FaSearch, FaTimes, FaSpinner } from "react-icons/fa";
 import baseURL from "../config/apiURL";
 
 export default function Home() {
   const [posts, setPosts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [postsPerPage] = useState(6);
   const location = useLocation();
@@ -16,30 +18,65 @@ export default function Home() {
   const isMobile = useMediaQuery({ maxWidth: 768 });
   const isMediumOrAbove = useMediaQuery({ minWidth: 769 });
 
-  useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        let url = `${baseURL}/posts/all`;
-        if (searchTerm) {
-          url = `${baseURL}/posts/search?q=${encodeURIComponent(searchTerm)}`;
-        } else if (category) {
-          url = `${baseURL}/posts/by-category/${category}`;
-        }
-
-        const res = await axios.get(url);
-        if (res.data.status === "success") {
-          const fetchedPosts = res.data.data;
-          setPosts(shuffleArray(fetchedPosts));
-        } else {
-          toast.error("Failed to fetch posts");
-        }
-      } catch (error) {
-        console.log("Error fetching posts:", error);
+  // Search function definition
+  const performSearch = useCallback(async (term) => {
+    try {
+      setIsSearching(true);
+      console.log(`🔍 Searching for: "${term}"`);
+      
+      const url = `${baseURL}/posts/search?q=${encodeURIComponent(term)}`;
+      const res = await axios.get(url);
+      
+      console.log("🔍 Search response:", res.data);
+      
+      if (res.data.status === "success") {
+        const searchData = res.data.data;
+        setSearchResults(searchData);
+        setPosts([]); // Clear regular posts when showing search results
+      } else {
+        setSearchResults([]);
       }
-    };
+    } catch (error) {
+      console.error("Error searching posts:", error);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  }, []);
 
-    fetchPosts();
-  }, [category, searchTerm]);
+  const fetchAllPosts = useCallback(async () => {
+    try {
+      setIsSearching(true);
+      const url = `${baseURL}/posts/all`;
+      const res = await axios.get(url);
+      if (res.data.status === "success") {
+        const fetchedPosts = res.data.data;
+        setPosts(shuffleArray(fetchedPosts));
+        setSearchResults([]);
+      }
+    } catch (error) {
+      console.log("Error fetching posts:", error);
+    } finally {
+      setIsSearching(false);
+    }
+  }, []);
+
+  const fetchPostsByCategory = useCallback(async (cat) => {
+    try {
+      setIsSearching(true);
+      const url = `${baseURL}/posts/by-category/${cat}`;
+      const res = await axios.get(url);
+      if (res.data.status === "success") {
+        const fetchedPosts = res.data.data;
+        setPosts(shuffleArray(fetchedPosts));
+        setSearchResults([]);
+      }
+    } catch (error) {
+      console.log("Error fetching posts:", error);
+    } finally {
+      setIsSearching(false);
+    }
+  }, []);
 
   const shuffleArray = (array) => {
     let currentIndex = array.length,
@@ -55,14 +92,44 @@ export default function Home() {
     return array;
   };
 
+    // Debounced search function
+  useEffect(() => {
+    const searchTimeout = setTimeout(() => {
+      if (searchTerm.trim()) {
+        performSearch(searchTerm.trim());
+      }
+    }, 500);
+
+    return () => clearTimeout(searchTimeout);
+  }, [searchTerm, performSearch]);
+
+  useEffect(() => {
+    if (!searchTerm && category) {
+      fetchPostsByCategory(category);
+    } else if (!searchTerm && !category) {
+      fetchAllPosts();
+    }
+  }, [category, searchTerm, fetchAllPosts, fetchPostsByCategory]);
+
   const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
+    const value = e.target.value;
+    setSearchTerm(value);
     setCurrentPage(1); // Reset to page 1 on new search
   };
 
+  const clearSearch = () => {
+    setSearchTerm("");
+    setSearchResults([]);
+    setCurrentPage(1);
+    fetchAllPosts();
+  };
+
+  // Determine which posts to display
+  const postsToDisplay = searchTerm.trim() ? searchResults : posts;
+
   const indexOfLastPost = currentPage * postsPerPage;
   const indexOfFirstPost = indexOfLastPost - postsPerPage;
-  const currentPosts = posts.slice(indexOfFirstPost, indexOfLastPost);
+  const currentDisplayPosts = postsToDisplay.slice(indexOfFirstPost, indexOfLastPost);
 
   const paginate = (pageNumber) => {
     setCurrentPage(pageNumber);
@@ -70,7 +137,23 @@ export default function Home() {
   };
 
   const renderPosts = () => {
-    return currentPosts.map((post) => {
+    if (isSearching) {
+      return (
+        <div className="flex justify-center py-8">
+          <div className="text-gray-600">Searching...</div>
+        </div>
+      );
+    }
+
+    if (searchTerm && postsToDisplay.length === 0) {
+      return (
+        <div className="flex justify-center py-8">
+          <div className="text-gray-600">No posts found for &quot;{searchTerm}&quot;</div>
+        </div>
+      );
+    }
+
+    return currentDisplayPosts.map((post) => {
       const truncateContent = (content, maxLength) => {
         const div = document.createElement("div");
         div.innerHTML = content;
@@ -83,10 +166,18 @@ export default function Home() {
 
       const imageWrapperClass = isMediumOrAbove ? "relative image-wrapper" : "";
       const flexDirection = isMediumOrAbove
-        ? posts.indexOf(post) % 2 === 0
+        ? currentDisplayPosts.indexOf(post) % 2 === 0
           ? "row"
           : "row-reverse"
         : "column";
+      
+      // Determine button alignment based on layout
+      const isEvenPost = currentDisplayPosts.indexOf(post) % 2 === 0;
+      const buttonAlignment = isMediumOrAbove 
+        ? isEvenPost 
+          ? "justify-end" // Image left, button right
+          : "justify-start" // Image right, button left
+        : "justify-center"; // Mobile center
 
       return (
         <div
@@ -100,8 +191,8 @@ export default function Home() {
             <img
               className={`${
                 isMediumOrAbove
-                  ? "mt-12 mr-20 relative z-10 h-[333px] w-[600px] object-cover"
-                  : "mx-auto mb-4 h-48 w-auto object-cover"
+                  ? "mt-12 mr-20 relative z-10 h-[350px] w-[820px] object-cover rounded-sm shadow-lg"
+                  : "mx-auto mb-4 h-48 w-full max-w-sm object-cover rounded-sm shadow-md"
               }`}
               src={`${baseURL}/images/${post.img}`}
               alt={post.title}
@@ -123,14 +214,18 @@ export default function Home() {
                 className={`${
                   isMobile
                     ? "text-xl font-bold mt-4 mb-2 text-center"
-                    : "text-xl md:text-2xl font-bold lg:text-4xl mt-4 py-10 ml-14"
+                    : "text-xl md:text-2xl font-bold lg:text-4xl mt-4 py-10 px-14"
                 }`}
               >
                 {post.title}
               </h1>
             </Link>
             <div
-              className="sm:m-0 text-justify md:ml-14"
+              className={`${
+                isMobile 
+                  ? "sm:m-0 text-justify" 
+                  : "sm:m-0 text-justify px-14"
+              }`}
               dangerouslySetInnerHTML={{
                 __html: truncateContent(post.content, isMobile ? 150 : 250),
               }}
@@ -139,7 +234,7 @@ export default function Home() {
               className={`${
                 isMobile
                   ? "flex justify-center mt-2 mb-4"
-                  : "flex justify-start mr-10 mb-10 ml-14"
+                  : `flex ${buttonAlignment} mr-10 mb-10 px-14`
               }`}
             >
               <Link to={`/post/${post.post_id}`}>
@@ -147,8 +242,8 @@ export default function Home() {
                   className={`${
                     isMobile
                       ? "px-2 py-2 text-sm"
-                      : "px-1 py-1 md:p-2 mt-4 ml-5 text-[10px] md:text-lg"
-                  } border-2 border-solid border-black hover:bg-gray-200`}
+                      : "px-4 py-2 mt-4 text-sm md:text-lg"
+                  } border-2 border-solid border-black hover:bg-gray-200 transition-colors`}
                 >
                   Read More
                 </button>
@@ -161,7 +256,7 @@ export default function Home() {
   };
 
   const pageNumbers = [];
-  for (let i = 1; i <= Math.ceil(posts.length / postsPerPage); i++) {
+  for (let i = 1; i <= Math.ceil(postsToDisplay.length / postsPerPage); i++) {
     pageNumbers.push(i);
   }
 
@@ -181,14 +276,37 @@ export default function Home() {
 
   return (
     <div>
-      <div className="p-4">
-        <input
-          type="text"
-          placeholder="Search by title..."
-          value={searchTerm}
-          onChange={handleSearchChange}
-          className="w-[95%] md:w-1/2 px-3 py-2 border rounded-md shadow-md focus:outline-none focus:border-blue-500"
-        />
+      <div className="p-4 flex flex-col items-center">
+        <div className="relative w-[95%] md:w-1/2 max-w-lg">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <FaSearch className="text-gray-400" />
+          </div>
+          <input
+            type="text"
+            placeholder="Search by title, category, or content..."
+            value={searchTerm}
+            onChange={handleSearchChange}
+            className="w-full pl-10 pr-20 py-2 border rounded-md shadow-md focus:outline-none focus:border-blue-500"
+          />
+          <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+            {isSearching && (
+              <FaSpinner className="animate-spin text-gray-400 mr-2" />
+            )}
+            {searchTerm && (
+              <button
+                onClick={clearSearch}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <FaTimes />
+              </button>
+            )}
+          </div>
+        </div>
+        {searchTerm && (
+          <div className="mt-2 text-sm text-gray-600 text-center">
+            {isSearching ? "Searching..." : `Found ${postsToDisplay.length} results`}
+          </div>
+        )}
       </div>
       {renderPosts()}
       <ul className="flex justify-center items-center">
