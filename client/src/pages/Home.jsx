@@ -213,7 +213,7 @@ export default function Home() {
               <h1
                 className={`${
                   isMobile
-                    ? "text-xl font-bold mt-4 mb-2 text-center"
+                    ? "text-xl font-bold mt-4 mb-2 text-left"
                     : "text-xl md:text-2xl font-bold lg:text-4xl mt-4 py-10 px-14"
                 }`}
               >
