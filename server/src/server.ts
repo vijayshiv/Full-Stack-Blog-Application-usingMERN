@@ -1,3 +1,8 @@
+import dotenv from "dotenv";
+
+// Load environment variables from .env file
+dotenv.config();
+
 import express, { Express, Request, Response, NextFunction } from "express";
 import cors from "cors";
 import morgan from "morgan";
@@ -19,6 +24,7 @@ import { redisService } from "./config/redis";
 import userRoutes from "./routes/users";
 import postRoutes from "./routes/posts";
 import notificationRoutes from "./routes/notifications";
+import meetingRoutes from "./routes/meetingRoutes";
 
 const app: Express = express();
 const httpServer = createServer(app);
@@ -116,6 +122,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 app.use("/user", userRoutes);
 app.use("/posts", postRoutes);
 app.use("/notifications", notificationRoutes);
+app.use("/meetings", meetingRoutes);
 
 // Swagger Documentation
 app.use("/api-docs", swaggerUi.serve);

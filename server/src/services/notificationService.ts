@@ -9,8 +9,8 @@ export class NotificationService {
     userId: number,
     type: string,
     message: string,
-    relatedPostId?: number,
-    relatedCommentId?: number
+    relatedPostId?: number | null,
+    relatedCommentId?: number | null
   ): Promise<NotificationData> {
     const query = `
       INSERT INTO notifications (user_id, type, message, related_post_id, related_comment_id, created_at)
@@ -307,6 +307,73 @@ export class NotificationService {
     } catch (error) {
       console.error("Error notifying comment author:", error);
       throw new Error("Failed to notify comment author");
+    }
+  }
+
+  /**
+   * Create notification for meeting request
+   */
+  static async createMeetingRequestNotification(
+    authorId: number,
+    requesterName: string,
+    postTitle: string,
+    message: string,
+    requestId: number,
+    requesterId: number
+  ): Promise<NotificationData | null> {
+    try {
+      const content = `${requesterName} wants to meet with you about "${postTitle}": ${message.substring(
+        0,
+        100
+      )}${message.length > 100 ? "..." : ""}`;
+
+      const notification = await this.createNotification(
+        authorId,
+        "meeting_request",
+        content,
+        requestId, // Use requestId as relatedPostId for now
+        null // relatedCommentId is null for meeting requests
+      );
+
+      return notification;
+    } catch (error) {
+      console.error("Error creating meeting request notification:", error);
+      throw new Error("Failed to create meeting request notification");
+    }
+  }
+
+  /**
+   * Create notification for meeting response (approval/decline)
+   */
+  static async createMeetingResponseNotification(
+    requesterId: number,
+    authorName: string,
+    postTitle: string,
+    action: "approve" | "decline",
+    requestId: number,
+    authorId: number,
+    meetingUrl?: string
+  ): Promise<NotificationData | null> {
+    try {
+      const actionText = action === "approve" ? "approved" : "declined";
+      let content = `${authorName} has ${actionText} your meeting request about "${postTitle}"`;
+
+      if (action === "approve" && meetingUrl) {
+        content += ". The meeting room is ready!";
+      }
+
+      const notification = await this.createNotification(
+        requesterId,
+        `meeting_${action}`,
+        content,
+        requestId, // Use requestId as relatedPostId for now
+        null // relatedCommentId is null for meeting responses
+      );
+
+      return notification;
+    } catch (error) {
+      console.error("Error creating meeting response notification:", error);
+      throw new Error("Failed to create meeting response notification");
     }
   }
 }

@@ -107,6 +107,62 @@ class SocketService {
       }
     );
 
+    // WebRTC signaling events
+    socket.on("joinMeeting", (meetingId: string) => {
+      this.joinMeetingRoom(socket, meetingId);
+    });
+
+    socket.on("leaveMeeting", (meetingId: string) => {
+      this.leaveMeetingRoom(socket, meetingId);
+    });
+
+    socket.on(
+      "webrtcOffer",
+      (data: { meetingId: string; targetUserId: number; offer: any }) => {
+        this.sendWebRTCOffer(
+          socket,
+          data.meetingId,
+          data.targetUserId,
+          data.offer
+        );
+      }
+    );
+
+    socket.on(
+      "webrtcAnswer",
+      (data: { meetingId: string; targetUserId: number; answer: any }) => {
+        this.sendWebRTCAnswer(
+          socket,
+          data.meetingId,
+          data.targetUserId,
+          data.answer
+        );
+      }
+    );
+
+    socket.on(
+      "iceCandidate",
+      (data: { meetingId: string; targetUserId: number; candidate: any }) => {
+        this.sendICECandidate(
+          socket,
+          data.meetingId,
+          data.targetUserId,
+          data.candidate
+        );
+      }
+    );
+
+    socket.on(
+      "meetingMessage",
+      (data: { meetingId: string; message: string; type: string }) => {
+        this.broadcastToMeetingRoom(socket, data.meetingId, "meetingMessage", {
+          message: data.message,
+          type: data.type,
+          timestamp: new Date().toISOString(),
+        });
+      }
+    );
+
     // Handle disconnect
     socket.on("disconnect", () => {
       this.removeUserSocket(socket.userId!, socket.id);
@@ -320,6 +376,120 @@ class SocketService {
    */
   getOnlineUsersCount(): number {
     return this.userSockets.size;
+  }
+
+  /**
+   * Join a meeting room
+   */
+  joinMeetingRoom(socket: AuthenticatedSocket, meetingId: string): void {
+    socket.join(`meeting_${meetingId}`);
+    console.log(`User ${socket.userId} joined meeting room: ${meetingId}`);
+
+    // Notify others in the room
+    socket.to(`meeting_${meetingId}`).emit("userJoined", {
+      userId: socket.userId,
+      userInfo: socket.userInfo,
+    });
+  }
+
+  /**
+   * Leave a meeting room
+   */
+  leaveMeetingRoom(socket: AuthenticatedSocket, meetingId: string): void {
+    socket.leave(`meeting_${meetingId}`);
+    console.log(`User ${socket.userId} left meeting room: ${meetingId}`);
+
+    // Notify others in the room
+    socket.to(`meeting_${meetingId}`).emit("userLeft", {
+      userId: socket.userId,
+    });
+  }
+
+  /**
+   * Send WebRTC offer to specific user in meeting room
+   */
+  sendWebRTCOffer(
+    socket: AuthenticatedSocket,
+    meetingId: string,
+    targetUserId: number,
+    offer: any
+  ): void {
+    const targetSockets = this.userSockets.get(targetUserId);
+    if (targetSockets && targetSockets.length > 0) {
+      targetSockets.forEach((socketId) => {
+        this.io!.to(socketId).emit("webrtcOffer", {
+          from: socket.userId,
+          meetingId,
+          offer,
+        });
+      });
+      console.log(
+        `WebRTC offer sent from ${socket.userId} to ${targetUserId} in meeting ${meetingId}`
+      );
+    }
+  }
+
+  /**
+   * Send WebRTC answer to specific user in meeting room
+   */
+  sendWebRTCAnswer(
+    socket: AuthenticatedSocket,
+    meetingId: string,
+    targetUserId: number,
+    answer: any
+  ): void {
+    const targetSockets = this.userSockets.get(targetUserId);
+    if (targetSockets && targetSockets.length > 0) {
+      targetSockets.forEach((socketId) => {
+        this.io!.to(socketId).emit("webrtcAnswer", {
+          from: socket.userId,
+          meetingId,
+          answer,
+        });
+      });
+      console.log(
+        `WebRTC answer sent from ${socket.userId} to ${targetUserId} in meeting ${meetingId}`
+      );
+    }
+  }
+
+  /**
+   * Send ICE candidate to specific user in meeting room
+   */
+  sendICECandidate(
+    socket: AuthenticatedSocket,
+    meetingId: string,
+    targetUserId: number,
+    candidate: any
+  ): void {
+    const targetSockets = this.userSockets.get(targetUserId);
+    if (targetSockets && targetSockets.length > 0) {
+      targetSockets.forEach((socketId) => {
+        this.io!.to(socketId).emit("iceCandidate", {
+          from: socket.userId,
+          meetingId,
+          candidate,
+        });
+      });
+      console.log(
+        `ICE candidate sent from ${socket.userId} to ${targetUserId} in meeting ${meetingId}`
+      );
+    }
+  }
+
+  /**
+   * Broadcast to meeting room (except sender)
+   */
+  broadcastToMeetingRoom(
+    socket: AuthenticatedSocket,
+    meetingId: string,
+    event: string,
+    data: any
+  ): void {
+    socket.to(`meeting_${meetingId}`).emit(event, {
+      from: socket.userId,
+      ...data,
+    });
   }
 }
 

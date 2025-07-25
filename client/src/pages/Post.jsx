@@ -2,18 +2,24 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { FaVideo } from "react-icons/fa";
 import DOMPurify from "dompurify";
 import baseURL from "../config/apiURL";
 import api from "../config/api";
 import Suggestions from "../components/Suggestions";
 import LikeButton from "../components/LikeButton";
 import Comments from "../components/Comments";
+import MeetingRequestModal from "../components/MeetingRequestModal";
 
 const Post = () => {
   const { id } = useParams();
   const [post, setPost] = useState(null);
   const [suggestions, setSuggestions] = useState([]);
   const [error, setError] = useState(null);
+  const [isMeetingModalOpen, setIsMeetingModalOpen] = useState(false);
+
+  const currentUserId = sessionStorage.getItem('id');
+  const isOwnPost = post && currentUserId && parseInt(currentUserId) === parseInt(post.user_id);
 
   const fetchSuggestions = useCallback(async (category, currentPostId) => {
     currentPostId = parseInt(id);
@@ -208,12 +214,24 @@ const Post = () => {
                   </span>
                   {post.category}
                 </p>
-                <p className="mt-2">
-                  <span className="capitalize font-bold md:text-xl sm:text-sm">
-                    Posted by:{" "}
-                  </span>
-                  {post.user_name}
-                </p>
+                <div className="mt-2 flex flex-col items-end">
+                  <p className="mb-2">
+                    <span className="capitalize font-bold md:text-xl sm:text-sm">
+                      Posted by:{" "}
+                    </span>
+                    {post.user_name}
+                  </p>
+                  {!isOwnPost && currentUserId && (
+                    <button
+                      onClick={() => setIsMeetingModalOpen(true)}
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg text-sm flex items-center transition-colors duration-200 shadow-md hover:shadow-lg"
+                      title="Request a video meeting with the author"
+                    >
+                      <FaVideo className="mr-2" size={14} />
+                      Request Meeting
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
             <Comments postId={id} />
@@ -223,6 +241,16 @@ const Post = () => {
           </div>
         </div>
       </div>
+      
+      {/* Meeting Request Modal */}
+      <MeetingRequestModal
+        isOpen={isMeetingModalOpen}
+        onClose={() => setIsMeetingModalOpen(false)}
+        authorName={post?.user_name || ''}
+        authorId={post?.user_id || 0}
+        postId={id}
+        postTitle={post?.title || ''}
+      />
     </>
   );
 };

@@ -160,21 +160,32 @@ const NotificationBell = ({ socket }) => {
   const handleNotificationClick = (notification) => {
     console.log("🔔 Notification clicked:", notification);
     console.log("🔔 Post ID:", notification.post_id);
+    console.log("🔔 Notification type:", notification.type);
     
     // Mark as read when clicked
     if (!notification.read) {
       markAsRead(notification.id);
     }
     
-    // Navigate to the post
-    if (notification.post_id) {
-      // Close dropdown
-      setIsDropdownOpen(false);
+    // Close dropdown
+    setIsDropdownOpen(false);
+    
+    // Handle different notification types
+    if (notification.type === 'meeting_request') {
+      // For meeting requests, navigate to a dedicated meeting management page
+      console.log(`🔔 Navigating to meeting requests page`);
+      navigate('/meetings');
+    } else if (notification.type === 'meeting_approve' || notification.type === 'meeting_decline') {
+      // For meeting responses, navigate to sent meetings page
+      console.log(`🔔 Navigating to sent meetings page`);
+      navigate('/meetings/sent');
+    } else if (notification.post_id) {
+      // For regular notifications (comments, likes), navigate to the post
       console.log(`🔔 Navigating to post: /post/${notification.post_id}`);
-      // Navigate to post using React Router
       navigate(`/post/${notification.post_id}`);
     } else {
       console.log("🔔 No post_id found, cannot navigate");
+      toast.info("Notification details not available");
     }
   };
 

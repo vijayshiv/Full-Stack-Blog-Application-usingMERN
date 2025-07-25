@@ -14,6 +14,8 @@ import MyPosts from "./pages/MyPost";
 import EditPost from "./pages/EditPost";
 import ForgotPassword from "./pages/ForgetPassword";
 import ResetPassword from "./pages/ResetPassword";
+import MeetingRequests from "./pages/MeetingRequests";
+import MeetingRoom from "./pages/MeetingRoom";
 import { SocketProvider } from "./context/SocketContext";
 
 const router = createBrowserRouter([
@@ -36,6 +38,9 @@ const router = createBrowserRouter([
       { path: "/edit-post/:id", element: <EditPost /> },
       { path: "/forgot-password", element: <ForgotPassword /> }, // New route
       { path: "/reset-password/:token", element: <ResetPassword /> }, // New route
+      { path: "/meetings", element: <MeetingRequests /> }, // Meeting requests page
+      { path: "/meetings/sent", element: <MeetingRequests /> }, // Sent meetings (same component with tab)
+      { path: "/meeting/:requestId", element: <MeetingRoom /> }, // WebRTC meeting room
     ],
   },
 ]);

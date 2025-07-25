@@ -2,6 +2,7 @@ export { UserService } from "./userService";
 export { PostService } from "./postService";
 export { CommentService } from "./commentService";
 export { NotificationService } from "./notificationService";
+export { MeetingService } from "./meetingService";
 
 // Re-export default exports as well
 export { default as UserServiceDefault } from "./userService";
