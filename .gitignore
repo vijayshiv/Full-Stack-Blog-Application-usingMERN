@@ -10,3 +10,9 @@ logs/
 
 # Ignore the images folder
 server/src/images
+
+#ignore Python virtual environment
+nova-mind/venv
+
+#ignore Python cache files
+nova-mind/app/__pycache__
