@@ -28,6 +28,32 @@ TONE_INSTRUCTIONS = {
     "SEO": "Rephrase this text to be more SEO-friendly with better keywords and structure",
 }
 
+MAX_CONTEXT_LENGTH = 2000  # characters
+
+
+def summarize_context(context, groq_api_key):
+    url = "https://api.groq.com/openai/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {groq_api_key}",
+        "Content-Type": "application/json",
+    }
+    payload = {
+        "model": "llama3-70b-8192",
+        "messages": [
+            {
+                "role": "system",
+                "content": "Summarize the following blog content for answering a user question.",
+            },
+            {"role": "user", "content": context},
+        ],
+        "max_tokens": 300,
+        "temperature": 0.5,
+    }
+    resp = requests.post(url, headers=headers, json=payload, timeout=30)
+    resp.raise_for_status()
+    data = resp.json()
+    return data["choices"][0]["message"]["content"].strip()
+
 
 def get_instruction(tone):
     return TONE_INSTRUCTIONS.get(tone, "Rephrase this text")
@@ -53,24 +79,31 @@ async def semantic_search(req: SemanticSearchRequest):
 async def qa_endpoint(request: QARequest):
     # 1. Embed the question
     question_embedding = embedding_model.encode([request.question])[0]
-    # 2. Retrieve relevant posts
+    # 2. Retrieve relevant chunks
     results = chroma_collection.query(
         query_embeddings=[question_embedding.tolist()],
         n_results=request.top_k,
         include=["metadatas"],
     )
-    # 3. Build context from top posts
+    # 3. Build context from top chunks
     context = ""
     for meta in results["metadatas"][0]:
-        context += f"Title: {meta['title']}\nCategory: {meta['category']}\n\n"
-    # 4. Build prompt for Groq
+        context += (
+            f"Title: {meta['title']}\n"
+            f"Category: {meta['category']}\n"
+            f"Content: {meta.get('plain_content', '')[:500]}\n\n"
+        )
+    # 4. Summarize context if too long
+    if len(context) > MAX_CONTEXT_LENGTH:
+        context = summarize_context(context, config.GROQ_API_KEY)
+    # 5. Build prompt for Groq
     prompt = (
         f"Answer the following question using only the information from the provided blog posts.\n\n"
         f"Context:\n{context}\n"
         f"Question: {request.question}\n"
         f"Answer:"
     )
-    # 5. Call Groq (Llama 3)
+    # 6. Call Groq (Llama 3)
     url = "https://api.groq.com/openai/v1/chat/completions"
     headers = {
         "Authorization": f"Bearer {config.GROQ_API_KEY}",
