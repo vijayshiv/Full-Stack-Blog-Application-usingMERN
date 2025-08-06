@@ -131,7 +131,7 @@ const EditPost = () => {
   const imageUrl = previewImg ? previewImg : `${baseURL}/images/${img}`;
 
   return (
-    <div className="container mx-auto mt-16">
+    <div className="container mx-auto mt-8">
       <h1 className="text-3xl font-bold mb-8">Edit Post</h1>
       <div className="flex flex-wrap mb-4">
         <div className="w-full md:w-3/4 pr-4 mb-4 md:mb-0">
@@ -171,18 +171,18 @@ const EditPost = () => {
             id="content"
             value={content}
             onChange={handleContentChange}
-            className="mb-4 h-auto border-gray-700"
+            className="mb-4 h-72 border-gray-700"
           />
           {/* AI Rephrase Button */}
-          <div className="mb-2 flex justify-end">
+          <div className="max-sm:mt-20 mt-16 mb-2 flex justify-end max-sm:justify-center">
             <button
               onClick={handleRephrase}
-              className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors text-sm"
+              className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors text-sm shadow-md"
             >
               🤖 AI Rephrase Selected Text
             </button>
           </div>
-          <div className="text-right">
+          <div className="text-right max-sm:text-center">
             <span>{charCount}/8192</span>
           </div>
         </div>
@@ -219,7 +219,7 @@ const EditPost = () => {
       </div>
       <button
         onClick={handleSave}
-        className="bg-blue-600 text-white p-2 rounded"
+        className="md:mr-72 bg-blue-600 text-white p-2 rounded "
       >
         Save Changes
       </button>

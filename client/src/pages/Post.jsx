@@ -111,21 +111,21 @@ const Post = () => {
 
           .post-content h1 {
             font-size: 1.25rem;
-            color: #1a202c;
+            color: #1f1e1e;
             margin-top: 1em;
             margin-bottom: 0.5em;
           }
 
           .post-content h2 {
             font-size: 1rem;
-            color: #2d3748;
+            color: #1f1e1e;
             margin-top: 0.75em;
             margin-bottom: 0.5em;
           }
 
           .post-content h3 {
             font-size: 0.875rem;
-            color: #4a5568;
+            color: #1f1e1e;
             margin-top: 0.5em;
             margin-bottom: 0.5em;
           }

@@ -65,7 +65,7 @@ async def rephrase_groq(request: RephraseRequest):
             "Content-Type": "application/json",
         }
         payload = {
-            "model": "llama-3.3-70b-versatile",  # or "llama2-70b-4096", "gemma-7b-it", etc.
+            "model": "llama3-70b-8192",  # or "llama2-70b-4096", "gemma-7b-it", etc.
             "messages": [
                 {"role": "system", "content": instruction},
                 {"role": "user", "content": request.text},

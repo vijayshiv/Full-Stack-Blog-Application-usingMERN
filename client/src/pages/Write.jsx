@@ -118,20 +118,20 @@ const Write = () => {
                 onChange={(e) => setTitle(e.target.value)}
               />
             </div>
-            <div className="mt-4">
+            <div className="mt-4 mb-4">
               <ReactQuill
                 ref={quillRef}
-                className="h-48 w-auto overflow-y"
+                className="h-52 w-auto  border-gray-300 rounded-md"
                 theme="snow"
                 value={content}
                 onChange={handleChange}
               />
             </div>
             {/* AI Rephrase Button */}
-            <div className="mt-2 flex justify-end">
+            <div className="max-sm:mt-16 max-sm:justify-center mt-10 mb-4 flex justify-end">
               <button
                 onClick={handleRephrase}
-                className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors text-sm"
+                className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors text-sm shadow-md"
               >
                 🤖 AI Rephrase Selected Text
               </button>
@@ -139,7 +139,7 @@ const Write = () => {
           </div>
         </div>
         <div className="md:basis-1/4 p-4">
-          <div className="flex flex-col mt-20 md:mt-0">
+          <div className="flex flex-col md:mt-0">
             <span>
               <input
                 style={{ display: "none" }}
