@@ -1,11 +1,24 @@
 from fastapi import APIRouter, HTTPException
-from .schemas import RephraseRequest, RephraseResponse
+from .schemas import (
+    RephraseRequest,
+    RephraseResponse,
+    SemanticSearchRequest,
+    QARequest,
+    QAResponse,
+)
 from .config import config
 from .services import cache_service
+from sentence_transformers import SentenceTransformer
+import chromadb
 import openai
 import requests
 
 router = APIRouter()
+# Load ChromaDB and embedding Mode
+chroma_client = chromadb.PersistentClient(path="chroma_db")
+chroma_collection = chroma_client.get_or_create_collection("blog_posts")
+embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
+
 
 # Helper for prompt instructions
 TONE_INSTRUCTIONS = {
@@ -18,6 +31,68 @@ TONE_INSTRUCTIONS = {
 
 def get_instruction(tone):
     return TONE_INSTRUCTIONS.get(tone, "Rephrase this text")
+
+
+@router.post("/semantic-search")
+async def semantic_search(req: SemanticSearchRequest):
+    query_embedding = embedding_model.encode([req.query])[0]
+    results = chroma_collection.query(
+        query_embeddings=[query_embedding.tolist()],
+        n_results=req.top_k,
+        include=["metadatas"],
+    )
+    posts = []
+    for meta in results["metadatas"][0]:
+        posts.append(
+            {"id": meta["id"], "title": meta["title"], "category": meta["category"]}
+        )
+    return {"results": posts}
+
+
+@router.post("/qa", response_model=QAResponse)
+async def qa_endpoint(request: QARequest):
+    # 1. Embed the question
+    question_embedding = embedding_model.encode([request.question])[0]
+    # 2. Retrieve relevant posts
+    results = chroma_collection.query(
+        query_embeddings=[question_embedding.tolist()],
+        n_results=request.top_k,
+        include=["metadatas"],
+    )
+    # 3. Build context from top posts
+    context = ""
+    for meta in results["metadatas"][0]:
+        context += f"Title: {meta['title']}\nCategory: {meta['category']}\n\n"
+    # 4. Build prompt for Groq
+    prompt = (
+        f"Answer the following question using only the information from the provided blog posts.\n\n"
+        f"Context:\n{context}\n"
+        f"Question: {request.question}\n"
+        f"Answer:"
+    )
+    # 5. Call Groq (Llama 3)
+    url = "https://api.groq.com/openai/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {config.GROQ_API_KEY}",
+        "Content-Type": "application/json",
+    }
+    payload = {
+        "model": "llama3-70b-8192",
+        "messages": [
+            {"role": "system", "content": "You are a helpful blog assistant."},
+            {"role": "user", "content": prompt},
+        ],
+        "max_tokens": 300,
+        "temperature": 0.7,
+    }
+    try:
+        resp = requests.post(url, headers=headers, json=payload, timeout=30)
+        resp.raise_for_status()
+        data = resp.json()
+        answer = data["choices"][0]["message"]["content"].strip()
+        return {"answer": answer}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Groq Q&A error: {str(e)}")
 
 
 @router.post("/rephrase-openai", response_model=RephraseResponse)

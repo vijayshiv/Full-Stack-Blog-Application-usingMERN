@@ -4,3 +4,7 @@ pydantic
 openai
 redis
 python-dotenv
+sentence-transformers
+chromadb
+mysql-connector-python
+beautifulsoup4
