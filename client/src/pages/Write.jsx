@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
-import axios from "axios";
+import { useState, useEffect, useRef } from "react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { useNavigate } from "react-router-dom";
@@ -17,6 +16,7 @@ const Write = () => {
   const [maxCharCount] = useState(8192); // Maximum character count
   const [isRephraseModalOpen, setIsRephraseModalOpen] = useState(false);
   const [selectedText, setSelectedText] = useState("");
+  const [selectionInfo, setSelectionInfo] = useState(null);
   const quillRef = useRef(null);
   const navigate = useNavigate();
 
@@ -43,6 +43,7 @@ const Write = () => {
       if (selection && selection.length > 0) {
         const text = quill.getText(selection.index, selection.length);
         setSelectedText(text.trim());
+        setSelectionInfo({ index: selection.index, length: selection.length });
         setIsRephraseModalOpen(true);
       } else {
         toast.warning("Please select some text to rephrase");
@@ -52,15 +53,16 @@ const Write = () => {
 
   const handleTextReplaced = (newText) => {
     const quill = quillRef.current?.getEditor();
-    if (quill) {
-      const selection = quill.getSelection();
-      if (selection && selection.length > 0) {
-        quill.deleteText(selection.index, selection.length);
-        quill.insertText(selection.index, newText);
-        // Update content state
-        setContent(quill.root.innerHTML);
-        setCharCount(quill.getText().length);
-      }
+    if (quill && selectionInfo) {
+      // Use the stored selection information instead of current selection
+      quill.deleteText(selectionInfo.index, selectionInfo.length);
+      quill.insertText(selectionInfo.index, newText);
+      // Update content state
+      setContent(quill.root.innerHTML);
+      setCharCount(quill.getText().length);
+      // Clear the selection info
+      setSelectionInfo(null);
+      setSelectedText("");
     }
   };
 
@@ -86,7 +88,7 @@ const Write = () => {
     formData.append("category", category);
 
     try {
-      const response = await api.post("/posts/add-post", formData, {
+      await api.post("/posts/add-post", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
           token: token,

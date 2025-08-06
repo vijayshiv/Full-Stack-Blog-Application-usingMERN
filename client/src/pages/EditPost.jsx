@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import ReactQuill from "react-quill";
@@ -19,6 +19,7 @@ const EditPost = () => {
   const [previewImg, setPreviewImg] = useState("");
   const [isRephraseModalOpen, setIsRephraseModalOpen] = useState(false);
   const [selectedText, setSelectedText] = useState("");
+  const [selectionInfo, setSelectionInfo] = useState(null);
   const quillRef = useRef(null);
 
   useEffect(() => {
@@ -104,6 +105,7 @@ const EditPost = () => {
       if (selection && selection.length > 0) {
         const text = quill.getText(selection.index, selection.length);
         setSelectedText(text.trim());
+        setSelectionInfo({ index: selection.index, length: selection.length });
         setIsRephraseModalOpen(true);
       } else {
         toast.warning("Please select some text to rephrase");
@@ -113,15 +115,16 @@ const EditPost = () => {
 
   const handleTextReplaced = (newText) => {
     const quill = quillRef.current?.getEditor();
-    if (quill) {
-      const selection = quill.getSelection();
-      if (selection && selection.length > 0) {
-        quill.deleteText(selection.index, selection.length);
-        quill.insertText(selection.index, newText);
-        // Update content state
-        setContent(quill.root.innerHTML);
-        setCharCount(quill.getText().length);
-      }
+    if (quill && selectionInfo) {
+      // Use the stored selection information instead of current selection
+      quill.deleteText(selectionInfo.index, selectionInfo.length);
+      quill.insertText(selectionInfo.index, newText);
+      // Update content state
+      setContent(quill.root.innerHTML);
+      setCharCount(quill.getText().length);
+      // Clear the selection info
+      setSelectionInfo(null);
+      setSelectedText("");
     }
   };
 

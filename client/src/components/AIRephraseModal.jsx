@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import PropTypes from 'prop-types';
 import { toast } from 'react-toastify';
 import api from '../config/api';
 
@@ -199,6 +200,12 @@ const AIRephraseModal = ({
       </div>
     </div>
   );
+};
+AIRephraseModal.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  selectedText: PropTypes.string.isRequired,
+  onTextReplaced: PropTypes.func.isRequired,
 };
 
 export default AIRephraseModal;
