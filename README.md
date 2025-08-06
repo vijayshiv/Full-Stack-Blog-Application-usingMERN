@@ -1,272 +1,157 @@
-# Full-Stack Blog Application
+# Full-Stack Blog Application with AI Features
 
-A modern, responsive blog application built with the MERN stack and TypeScript.
+A modern, feature-rich blog platform built with MERN stack, TypeScript, and AI-powered content enhancement.
 
-## 🚀 Features
+## ✨ Features
 
-### 👤 User Management
+### 🔐 Authentication & User Management
 
-- **User Registration** - Create new accounts with email validation
-- **Secure Authentication** - JWT-based login/logout system
-- **Profile Management** - Update personal information and settings
-- **Password Security** - Change password with old password verification
-- **Password Recovery** - Email-based password reset with secure tokens
-- **Account Management** - Soft delete user accounts
+- User registration and login with JWT authentication
+- Profile management and password reset via email
+- Secure session handling with token expiration
 
-### 📝 Blog Post Management
+### 📝 Blog Management
 
-- **Rich Content Creation** - Advanced text editor with formatting options
-- **Image Upload** - Upload and manage post images with file validation
-- **Post Categories** - Organize content by topics (Art, Technology, Food, Travel, etc.)
-- **Draft & Publish** - Create and manage blog post lifecycle
-- **Post Editing** - Full CRUD operations for post authors
-- **Post Deletion** - Soft delete with data integrity
-- **Personal Dashboard** - View and manage all your posts
+- Create, edit, and delete blog posts with rich text editor
+- Image upload and management for posts
+- Category-based post organization
+- Personal dashboard for managing your posts
 
-### 🔍 Content Discovery
+### 💬 Social Features
 
-- **Browse All Posts** - Paginated view of all published content
-- **Category Filtering** - Filter posts by specific categories
-- **Search Functionality** - Full-text search across titles and content
-- **Post Details** - Individual post view with full content
-- **Related Posts** - Suggested content based on categories
-- **Responsive Pagination** - Navigate through large content sets
+- Comment system with threading support
+- Like/unlike posts with real-time counters
+- User notifications for interactions
+- Real-time updates via Socket.io
 
-### 💬 Social Engagement
+### 🎥 Video Meeting System
 
-- **Like System** - Like/unlike posts with real-time counters
-- **Comment System** - Add, edit, and delete comments
-- **Comment Threading** - Organized discussion on posts
-- **User Interactions** - See who liked and commented on posts
-- **Real-time Updates** - Dynamic content loading without page refresh
+- Request meetings with post authors
+- WebRTC-based video conferencing
+- Real-time meeting notifications
+- Meeting room management
 
-### 📱 Cross-Platform Support
+### 🤖 AI-Powered Content Enhancement
 
-- **Responsive Design** - Fully optimized for all screen sizes
-- **Mobile-First Approach** - Touch-friendly interface design
-- **Desktop Optimization** - Enhanced experience for larger screens
-- **Tablet Support** - Seamless experience across all devices
-- **Progressive Enhancement** - Works on modern and legacy browsers
-- **Accessibility Features** - WCAG compliant design elements
+- **AI Text Rephrasing**: Rephrase selected text in different tones (Professional, Technical, Casual, SEO)
+- **Multiple AI Providers**: Choose between Groq (fast & free) or OpenAI (premium)
+- **Real-time Processing**: Instant text enhancement while writing/editing
+- **Smart Integration**: Seamlessly integrated into the blog editor
 
-### 🔒 Security Features
+### 📱 Modern Experience
 
-- **Input Validation** - Comprehensive server-side validation
-- **XSS Protection** - Content sanitization and security
-- **SQL Injection Prevention** - Parameterized queries
-- **CORS Configuration** - Controlled cross-origin requests
-- **Rate Limiting** - API protection against abuse
-- **Secure Headers** - Enhanced security configurations
-- **Token Expiration** - Automatic session management
-
-### 🎨 User Experience
-
-- **Modern UI/UX** - Clean, intuitive interface design
-- **Fast Loading** - Optimized performance and caching
-- **Smooth Animations** - Enhanced user interactions
-- **Error Handling** - Graceful error messages and recovery
-- **Loading States** - Visual feedback for user actions
-- **Toast Notifications** - Real-time user feedback
-- **Scroll Management** - Automatic scroll-to-top navigation
+- Responsive design for all devices
+- Real-time notifications and updates
+- Fast loading with optimized performance
+- Intuitive user interface
 
 ## 🛠️ Tech Stack
 
-### Frontend Technologies
+### Frontend
 
-- **React 18** - Modern component-based UI library
-- **Vite** - Lightning-fast build tool and dev server
-- **TypeScript** - Type-safe JavaScript development
-- **Tailwind CSS** - Utility-first CSS framework
-- **React Router DOM** - Client-side routing and navigation
-- **React Quill** - Rich text editor with formatting
-- **Axios** - HTTP client for API requests
-- **React Toastify** - Toast notifications
-- **React Icons** - Comprehensive icon library
-- **DOMPurify** - XSS protection for user content
-- **React Responsive** - Media query components
-- **PostCSS** - CSS processing and optimization
+- **React 18** with TypeScript
+- **Vite** for fast development
+- **Tailwind CSS** for styling
+- **React Quill** for rich text editing
+- **Socket.io Client** for real-time features
 
-### Backend Technologies
+### Backend
 
-- **Node.js** - JavaScript runtime environment
-- **Express.js** - Minimal web application framework
-- **TypeScript** - Strongly typed programming language
-- **MySQL2** - MySQL database driver with promise support
-- **JWT (jsonwebtoken)** - JSON Web Token authentication
-- **Multer** - File upload handling middleware
-- **Nodemailer** - Email sending functionality
-- **Crypto-JS** - Cryptographic utilities
-- **CORS** - Cross-origin resource sharing
-- **Morgan** - HTTP request logger middleware
-- **ts-node** - TypeScript execution environment
-- **Nodemon** - Development auto-restart utility
+- **Node.js** with Express and TypeScript
+- **MySQL** for data storage
+- **Socket.io** for real-time communication
+- **Redis** for caching and session management
+- **JWT** for authentication
 
-### Database & Storage
+### AI Service
 
-- **MySQL** - Relational database management system
-- **File System** - Local image storage with organized structure
+- **FastAPI** (Python) for AI endpoints
+- **Groq API** for fast text processing
+- **OpenAI API** for premium AI features
+- **Redis** for response caching
 
-### Development & Documentation
-
-- **Swagger UI Express** - Interactive API documentation
-- **Swagger JSDoc** - API documentation generation
-- **ESLint** - Code linting and quality assurance
-- **Prettier** - Code formatting
-- **Git** - Version control system
-
-## 🏃‍♂️ Quick Start
+## 🚀 Quick Start
 
 ### Prerequisites
 
-- Node.js (v14+)
-- MySQL
-- Git
+- Node.js 16+
+- MySQL 8.0+
+- Redis
+- Python 3.8+ (for AI service)
 
-### Installation
+### 1. Database Setup
 
-1. **Clone the repository**
+```bash
+# Import the database schema
+mysql -u your_username -p < database/blogapp_complete.sql
+```
 
-   ```bash
-   git clone <your-repo-url>
-   cd Full-Stack-Blog-Application-usingMERN
-   ```
+### 2. Backend Setup
 
-2. **Backend Setup**
+```bash
+cd server
+npm install
+npm run dev
+```
 
-   ```bash
-   cd server
-   npm install
-   npm run dev
-   ```
+### 3. Frontend Setup
 
-3. **Frontend Setup**
+```bash
+cd client
+npm install
+npm run dev
+```
 
-   ```bash
-   cd client
-   npm install
-   npm run dev
-   ```
+### 4. AI Service Setup
 
-4. **Database Setup**
-   - Import `blogapp.sql` into your MySQL database
-   - Update database credentials in server configuration
+```bash
+cd nova-mind
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirement.txt
+uvicorn app.main:app --reload
+```
 
-## 📚 API Documentation
-
-Visit `http://localhost:4000/api-docs` for interactive Swagger documentation.
-
-## 🌐 Live Demo
+## 🌐 Access Points
 
 - **Frontend**: http://localhost:5173
-- **Backend**: http://localhost:4000
-- **API Docs**: http://localhost:4000/api-docs
+- **Backend API**: http://localhost:4000
+- **AI Service**: http://localhost:8000
 
 ## 📁 Project Structure
 
 ```
-├── client/                  # React Frontend Application
-│   ├── public/             # Static assets and images
-│   ├── src/
-│   │   ├── components/    # Reusable UI components
-│   │   ├── pages/         # Application pages/routes
-│   │   ├── config/        # API configuration
-│   │   ├── images/        # Client-side assets
-│   │   └── styles/        # CSS and styling files
-│   ├── package.json       # Frontend dependencies
-│   └── vite.config.js     # Vite build configuration
-│
-├── server/                 # TypeScript Backend Application
-│   ├── src/
-│   │   ├── controllers/   # Request handlers and business logic
-│   │   ├── routes/        # API endpoint definitions
-│   │   ├── middleware/    # Authentication and validation
-│   │   ├── services/      # Business service layer
-│   │   ├── repositories/  # Database access layer
-│   │   ├── types/         # TypeScript type definitions
-│   │   ├── config/        # Server configuration
-│   │   └── images/        # Uploaded post images
-│   ├── package.json       # Backend dependencies
-│   └── tsconfig.json      # TypeScript configuration
-│
-├── database/              # Database Schema & Sample Data
-│   ├── blogapp.sql        # Complete database schema
-│   ├── Sample data/       # Pre-populated test data
-│   └── db_schema.mwb      # MySQL Workbench model
-│
-└── README.md              # Project documentation
+├── client/          # React frontend application
+├── server/          # Node.js backend API
+├── nova-mind/       # Python AI service
+├── database/        # Database schema and sample data
+└── docs/           # Project documentation
 ```
 
-## 🌐 Platform Compatibility
+## 🔧 Key Features in Detail
 
-### Desktop Support
+### AI Text Rephrasing
 
-- **Windows** - Full compatibility with Windows 10/11
-- **macOS** - Native support for macOS 10.15+
-- **Linux** - Ubuntu, Debian, CentOS, and other distributions
-- **Browser Support** - Chrome 90+, Firefox 88+, Safari 14+, Edge 90+
+1. Select any text in the blog editor
+2. Click the "AI Rephrase" button
+3. Choose your preferred tone and AI provider
+4. Get instant AI-enhanced text suggestions
+5. Apply changes seamlessly to your content
 
-### Mobile Support
+### Video Meeting System
 
-- **iOS** - iPhone and iPad with iOS 13+
-- **Android** - Android 8.0+ devices
-- **Progressive Web App** - Installable mobile experience
-- **Touch Optimized** - Gesture-friendly interface
-- **Responsive Breakpoints** - Optimized for all screen sizes
+1. Request a meeting from any blog post
+2. Real-time notifications for meeting requests
+3. WebRTC-powered video calls
+4. Integrated meeting room interface
 
-### Performance Optimizations
+### Real-time Features
 
-- **Lazy Loading** - Images and content loaded on demand
-- **Code Splitting** - Optimized bundle sizes
-- **Caching Strategy** - Enhanced performance with browser caching
-- **Database Indexing** - Optimized query performance
-- **Image Optimization** - Compressed and resized media files
-
-## 🔧 Environment Variables
-
-### Server Configuration
-
-Create a `.env` file in the server directory:
-
-```env
-# Database Configuration
-DB_HOST=localhost
-DB_USER=root
-DB_PASSWORD=your_password
-DB_NAME=blogapp
-
-# Authentication
-JWT_SECRET=your_jwt_secret_key
-
-# Email Configuration (for password reset)
-EMAIL_USER=your_email@gmail.com
-EMAIL_PASS=your_app_password
-
-# Server Configuration
-PORT=4000
-NODE_ENV=development
-```
-
-### Client Configuration
-
-Create a `.env` file in the client directory:
-
-```env
-# API Configuration
-VITE_API_URL=http://localhost:4000
-VITE_APP_NAME=Blog Application
-
-# Environment
-VITE_NODE_ENV=development
-```
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Open a Pull Request
+- Live comment updates
+- Instant notifications
+- Real-time like counters
+- Meeting status updates
 
 ## 📄 License
 
-This project is open source and available under the MIT License.
+MIT License - feel free to use this project for learning and development.
