@@ -25,6 +25,7 @@ import userRoutes from "./routes/users";
 import postRoutes from "./routes/posts";
 import notificationRoutes from "./routes/notifications";
 import meetingRoutes from "./routes/meetingRoutes";
+import aiRoutes from "./routes/aiRoutes";
 
 const app: Express = express();
 const httpServer = createServer(app);
@@ -123,6 +124,7 @@ app.use("/user", userRoutes);
 app.use("/posts", postRoutes);
 app.use("/notifications", notificationRoutes);
 app.use("/meetings", meetingRoutes);
+app.use("/ai", aiRoutes);
 
 // Swagger Documentation
 app.use("/api-docs", swaggerUi.serve);

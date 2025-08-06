@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import ReactQuill from "react-quill";
@@ -6,6 +6,7 @@ import "react-quill/dist/quill.snow.css";
 import { toast } from "react-toastify";
 import baseURL from "../config/apiURL";
 import api from "../config/api";
+import AIRephraseModal from "../components/AIRephraseModal";
 
 const EditPost = () => {
   const { id } = useParams();
@@ -16,6 +17,9 @@ const EditPost = () => {
   const [charCount, setCharCount] = useState(0);
   const [img, setImg] = useState("");
   const [previewImg, setPreviewImg] = useState("");
+  const [isRephraseModalOpen, setIsRephraseModalOpen] = useState(false);
+  const [selectedText, setSelectedText] = useState("");
+  const quillRef = useRef(null);
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -92,6 +96,35 @@ const EditPost = () => {
     }
   };
 
+  // Handle AI rephrase functionality
+  const handleRephrase = () => {
+    const quill = quillRef.current?.getEditor();
+    if (quill) {
+      const selection = quill.getSelection();
+      if (selection && selection.length > 0) {
+        const text = quill.getText(selection.index, selection.length);
+        setSelectedText(text.trim());
+        setIsRephraseModalOpen(true);
+      } else {
+        toast.warning("Please select some text to rephrase");
+      }
+    }
+  };
+
+  const handleTextReplaced = (newText) => {
+    const quill = quillRef.current?.getEditor();
+    if (quill) {
+      const selection = quill.getSelection();
+      if (selection && selection.length > 0) {
+        quill.deleteText(selection.index, selection.length);
+        quill.insertText(selection.index, newText);
+        // Update content state
+        setContent(quill.root.innerHTML);
+        setCharCount(quill.getText().length);
+      }
+    }
+  };
+
   const imageUrl = previewImg ? previewImg : `${baseURL}/images/${img}`;
 
   return (
@@ -131,11 +164,21 @@ const EditPost = () => {
             Content :
           </label>
           <ReactQuill
+            ref={quillRef}
             id="content"
             value={content}
             onChange={handleContentChange}
             className="mb-4 h-auto border-gray-700"
           />
+          {/* AI Rephrase Button */}
+          <div className="mb-2 flex justify-end">
+            <button
+              onClick={handleRephrase}
+              className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors text-sm"
+            >
+              🤖 AI Rephrase Selected Text
+            </button>
+          </div>
           <div className="text-right">
             <span>{charCount}/8192</span>
           </div>
@@ -177,6 +220,14 @@ const EditPost = () => {
       >
         Save Changes
       </button>
+
+      {/* AI Rephrase Modal */}
+      <AIRephraseModal
+        isOpen={isRephraseModalOpen}
+        onClose={() => setIsRephraseModalOpen(false)}
+        selectedText={selectedText}
+        onTextReplaced={handleTextReplaced}
+      />
     </div>
   );
 };
