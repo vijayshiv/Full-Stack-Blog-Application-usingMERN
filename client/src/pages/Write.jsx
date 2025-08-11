@@ -6,6 +6,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import api from "../config/api";
 import AIRephraseModal from "../components/AIRephraseModal";
+import TopicSummaryModal from "../components/TopicSummaryModal";
 
 const Write = () => {
   const [title, setTitle] = useState("");
@@ -17,6 +18,7 @@ const Write = () => {
   const [isRephraseModalOpen, setIsRephraseModalOpen] = useState(false);
   const [selectedText, setSelectedText] = useState("");
   const [selectionInfo, setSelectionInfo] = useState(null);
+  const [isTopicSummaryModalOpen, setIsTopicSummaryModalOpen] = useState(false);
   const quillRef = useRef(null);
   const navigate = useNavigate();
 
@@ -127,8 +129,17 @@ const Write = () => {
                 onChange={handleChange}
               />
             </div>
-            {/* AI Rephrase Button */}
-            <div className="max-sm:mt-16 max-sm:justify-center mt-10 mb-4 flex justify-end">
+            {/* AI Buttons Section */}
+            <div className="max-sm:mt-16 max-sm:justify-center mt-10 mb-4 flex justify-between items-center">
+              {/* Topic Summary Button - Left Aligned */}
+              <button
+                onClick={() => setIsTopicSummaryModalOpen(true)}
+                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm shadow-md"
+              >
+                📖 Topic Summary
+              </button>
+              
+              {/* AI Rephrase Button - Right Aligned */}
               <button
                 onClick={handleRephrase}
                 className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors text-sm shadow-md"
@@ -257,6 +268,12 @@ const Write = () => {
         onClose={() => setIsRephraseModalOpen(false)}
         selectedText={selectedText}
         onTextReplaced={handleTextReplaced}
+      />
+
+      {/* Topic Summary Modal */}
+      <TopicSummaryModal
+        isOpen={isTopicSummaryModalOpen}
+        onClose={() => setIsTopicSummaryModalOpen(false)}
       />
     </>
   );

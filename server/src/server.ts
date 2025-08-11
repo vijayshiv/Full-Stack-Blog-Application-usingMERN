@@ -98,6 +98,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
     "/posts/comments/",
     "/images/",
     "/api-docs",
+    "/ai/", // Add AI routes to public patterns
     "/health",
   ];
 

@@ -17,6 +17,9 @@ import chromadb
 import openai
 import requests
 import logging
+import mysql.connector
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
 
 router = APIRouter()
 
@@ -29,6 +32,94 @@ chroma_client = chromadb.PersistentClient(path="chroma_db")
 # Update collection name to support multi-source data
 chroma_collection = chroma_client.get_or_create_collection("knowledge_base")
 embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
+
+
+# Database connection helper
+def get_db_connection():
+    try:
+        connection = mysql.connector.connect(
+            host=config.DB_HOST,
+            user=config.DB_USER,
+            password=config.DB_PASSWORD,
+            database=config.DB_NAME,
+        )
+        return connection
+    except mysql.connector.Error as e:
+        logger.error(f"Database connection error: {e}")
+        return None
+
+
+# Blog posts semantic search helper
+def search_blog_posts(query, limit=5):
+    """Search blog posts using basic text matching and return formatted results"""
+    connection = get_db_connection()
+    if not connection:
+        return []
+
+    try:
+        cursor = connection.cursor(dictionary=True)
+
+        # Search in title, content, and categories
+        search_query = """
+        SELECT p.id, p.title, p.content, p.cat, p.img, p.date, u.username 
+        FROM posts p 
+        JOIN users u ON p.user_id = u.id 
+        WHERE p.title LIKE %s OR p.content LIKE %s OR p.cat LIKE %s
+        ORDER BY p.date DESC
+        LIMIT %s
+        """
+
+        search_term = f"%{query}%"
+        cursor.execute(search_query, (search_term, search_term, search_term, limit))
+
+        results = cursor.fetchall()
+
+        # Format results to match semantic search format
+        formatted_results = []
+        for post in results:
+            # Calculate a simple relevance score based on query matches
+            title_matches = query.lower() in post["title"].lower()
+            content_matches = query.lower() in (post["content"] or "").lower()
+            category_matches = query.lower() in (post["cat"] or "").lower()
+
+            # Simple scoring: title match = 0.5, content match = 0.3, category match = 0.2
+            relevance_score = 0
+            if title_matches:
+                relevance_score += 0.5
+            if content_matches:
+                relevance_score += 0.3
+            if category_matches:
+                relevance_score += 0.2
+
+            formatted_result = {
+                "id": str(post["id"]),
+                "title": post["title"],
+                "content": post["content"][:200] + "..."
+                if len(post["content"]) > 200
+                else post["content"],
+                "category": post["cat"],
+                "author": post["username"],
+                "date": post["date"].strftime("%Y-%m-%d") if post["date"] else None,
+                "image": post["img"],
+                "source": "blog",
+                "url": f"/posts/{post['id']}",
+                "relevance_score": relevance_score,
+                "priority": 1,  # Highest priority for blog posts
+            }
+            formatted_results.append(formatted_result)
+
+        cursor.close()
+        connection.close()
+
+        # Sort by relevance score
+        formatted_results.sort(key=lambda x: x["relevance_score"], reverse=True)
+        return formatted_results
+
+    except mysql.connector.Error as e:
+        logger.error(f"Database query error: {e}")
+        if connection:
+            connection.close()
+        return []
 
 
 # Helper for prompt instructions
@@ -122,49 +213,25 @@ def format_search_result(metadata, source_type):
 @router.post("/semantic-search")
 async def semantic_search(req: SemanticSearchRequest):
     try:
-        query_embedding = embedding_model.encode([req.query])[0]
-
-        # Get results from all data sources
-        results = chroma_collection.query(
-            query_embeddings=[query_embedding.tolist()],
-            n_results=req.top_k
-            * 2,  # Get more results to allow for sorting by priority
-            include=["metadatas", "documents", "distances"],
-        )
-
-        if not results["metadatas"][0]:
-            logger.warning("No results found in semantic search")
-            return {"results": [], "message": "No relevant content found"}
-
-        # Process and sort results by data source priority and relevance
-        processed_results = []
-        for i, metadata in enumerate(results["metadatas"][0]):
-            source_type = metadata.get("source", "unknown")
-            distance = results["distances"][0][i]
-            priority = get_data_source_priority(metadata)
-
-            result = format_search_result(metadata, source_type)
-            result["relevance_score"] = 1 - distance  # Convert distance to similarity
-            result["priority"] = priority
-
-            processed_results.append(result)
-
-        # Sort by priority first, then by relevance score
-        processed_results.sort(key=lambda x: (x["priority"], -x["relevance_score"]))
-
-        # Return top k results
-        final_results = processed_results[: req.top_k]
+        # Search ONLY blog posts from your MySQL database
+        blog_results = search_blog_posts(req.query, req.top_k)
+        logger.info(f"Found {len(blog_results)} blog results for query: '{req.query}'")
 
         # Group results by source for statistics
         source_stats = {}
-        for result in final_results:
+        for result in blog_results:
             source = result["source"]
             source_stats[source] = source_stats.get(source, 0) + 1
 
+        logger.info(
+            f"Blog-only semantic search completed: {len(blog_results)} total results"
+        )
+        logger.info(f"Source distribution: {source_stats}")
+
         return {
-            "results": final_results,
+            "results": blog_results,
             "source_distribution": source_stats,
-            "total_found": len(processed_results),
+            "total_found": len(blog_results),
         }
 
     except Exception as e:

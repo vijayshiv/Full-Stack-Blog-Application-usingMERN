@@ -10,6 +10,7 @@ import Suggestions from "../components/Suggestions";
 import LikeButton from "../components/LikeButton";
 import Comments from "../components/Comments";
 import MeetingRequestModal from "../components/MeetingRequestModal";
+import SummarizationModal from "../components/SummarizationModal";
 
 const Post = () => {
   const { id } = useParams();
@@ -17,6 +18,7 @@ const Post = () => {
   const [suggestions, setSuggestions] = useState([]);
   const [error, setError] = useState(null);
   const [isMeetingModalOpen, setIsMeetingModalOpen] = useState(false);
+  const [isSummarizationModalOpen, setIsSummarizationModalOpen] = useState(false);
 
   const currentUserId = sessionStorage.getItem('id');
   const isOwnPost = post && currentUserId && parseInt(currentUserId) === parseInt(post.user_id);
@@ -221,16 +223,30 @@ const Post = () => {
                     </span>
                     {post.user_name}
                   </p>
-                  {!isOwnPost && currentUserId && (
+                  
+                  {/* Action Buttons Container */}
+                  <div className="flex flex-col sm:flex-row gap-2 items-end">
+                    {/* Summarize Button - Available for all users */}
                     <button
-                      onClick={() => setIsMeetingModalOpen(true)}
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg text-sm flex items-center transition-colors duration-200 shadow-md hover:shadow-lg"
-                      title="Request a video meeting with the author"
+                      onClick={() => setIsSummarizationModalOpen(true)}
+                      className="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded-lg text-sm flex items-center transition-colors duration-200 shadow-md hover:shadow-lg"
+                      title="Get AI-powered summary of this post (200 words)"
                     >
-                      <FaVideo className="mr-2" size={14} />
-                      Request Meeting
+                      📝 Summarize Post
                     </button>
-                  )}
+                    
+                    {/* Meeting Request Button - Only for other users */}
+                    {!isOwnPost && currentUserId && (
+                      <button
+                        onClick={() => setIsMeetingModalOpen(true)}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg text-sm flex items-center transition-colors duration-200 shadow-md hover:shadow-lg"
+                        title="Request a video meeting with the author"
+                      >
+                        <FaVideo className="mr-2" size={14} />
+                        Request Meeting
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -249,6 +265,14 @@ const Post = () => {
         authorName={post?.user_name || ''}
         authorId={post?.user_id || 0}
         postId={id}
+        postTitle={post?.title || ''}
+      />
+
+      {/* Summarization Modal */}
+      <SummarizationModal
+        isOpen={isSummarizationModalOpen}
+        onClose={() => setIsSummarizationModalOpen(false)}
+        content={post?.content || ''}
         postTitle={post?.title || ''}
       />
     </>

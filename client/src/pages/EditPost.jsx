@@ -7,6 +7,7 @@ import { toast } from "react-toastify";
 import baseURL from "../config/apiURL";
 import api from "../config/api";
 import AIRephraseModal from "../components/AIRephraseModal";
+import TopicSummaryModal from "../components/TopicSummaryModal";
 
 const EditPost = () => {
   const { id } = useParams();
@@ -20,6 +21,7 @@ const EditPost = () => {
   const [isRephraseModalOpen, setIsRephraseModalOpen] = useState(false);
   const [selectedText, setSelectedText] = useState("");
   const [selectionInfo, setSelectionInfo] = useState(null);
+  const [isTopicSummaryModalOpen, setIsTopicSummaryModalOpen] = useState(false);
   const quillRef = useRef(null);
 
   useEffect(() => {
@@ -173,8 +175,17 @@ const EditPost = () => {
             onChange={handleContentChange}
             className="mb-4 h-72 border-gray-700"
           />
-          {/* AI Rephrase Button */}
-          <div className="max-sm:mt-20 mt-16 mb-2 flex justify-end max-sm:justify-center">
+          {/* AI Buttons Section */}
+          <div className="max-sm:mt-20 mt-16 mb-2 flex justify-between items-center max-sm:flex-col max-sm:gap-2">
+            {/* Topic Summary Button - Left Aligned */}
+            <button
+              onClick={() => setIsTopicSummaryModalOpen(true)}
+              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm shadow-md"
+            >
+              📖 Topic Summary
+            </button>
+            
+            {/* AI Rephrase Button - Right Aligned */}
             <button
               onClick={handleRephrase}
               className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors text-sm shadow-md"
@@ -230,6 +241,12 @@ const EditPost = () => {
         onClose={() => setIsRephraseModalOpen(false)}
         selectedText={selectedText}
         onTextReplaced={handleTextReplaced}
+      />
+
+      {/* Topic Summary Modal */}
+      <TopicSummaryModal
+        isOpen={isTopicSummaryModalOpen}
+        onClose={() => setIsTopicSummaryModalOpen(false)}
       />
     </div>
   );

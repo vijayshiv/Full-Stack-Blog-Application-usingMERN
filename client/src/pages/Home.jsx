@@ -18,12 +18,13 @@ export default function Home() {
   const isMobile = useMediaQuery({ maxWidth: 768 });
   const isMediumOrAbove = useMediaQuery({ minWidth: 769 });
 
-  // Search function definition
+    // Search function definition
   const performSearch = useCallback(async (term) => {
     try {
       setIsSearching(true);
       console.log(`🔍 Searching for: "${term}"`);
       
+      // Use regular search
       const url = `${baseURL}/posts/search?q=${encodeURIComponent(term)}`;
       const res = await axios.get(url);
       
@@ -188,15 +189,30 @@ export default function Home() {
           style={{ flexDirection: flexDirection }}
         >
           <div className={imageWrapperClass}>
-            <img
-              className={`${
+            {!post.img ? (
+              <div className={`${
                 isMediumOrAbove
-                  ? "mt-12 mr-20 relative z-10 h-[350px] w-[820px] object-cover rounded-sm shadow-lg"
-                  : "mx-auto mb-4 h-48 w-full max-w-sm object-cover rounded-sm shadow-md"
-              }`}
-              src={`${baseURL}/images/${post.img}`}
-              alt={post.title}
-            />
+                  ? "mt-12 mr-20 relative z-10 h-[350px] w-[820px] rounded-sm shadow-lg flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100"
+                  : "mx-auto mb-4 h-48 w-full max-w-sm rounded-sm shadow-md flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100"
+              }`}>
+                <div className="text-center p-6">
+                  <div className="text-3xl mb-2">📝</div>
+                  <div className="text-lg font-semibold text-gray-700">
+                    Blog Post
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <img
+                className={`${
+                  isMediumOrAbove
+                    ? "mt-12 mr-20 relative z-10 h-[350px] w-[820px] object-cover rounded-sm shadow-lg"
+                    : "mx-auto mb-4 h-48 w-full max-w-sm object-cover rounded-sm shadow-md"
+                }`}
+                src={`${baseURL}/images/${post.img}`}
+                alt={post.title}
+              />
+            )}
           </div>
           <div
             className={`${
@@ -210,16 +226,16 @@ export default function Home() {
             }`}
           >
             <Link to={`/post/${post.post_id}`}>
-              <h1
-                className={`${
-                  isMobile
-                    ? "text-xl font-bold mt-4 mb-4 text-center"
-                    : "text-xl md:text-2xl font-bold lg:text-4xl mt-4 py-10 px-14"
-                }`}
-              >
-                {post.title}
-              </h1>
-            </Link>
+                <h1
+                  className={`${
+                    isMobile
+                      ? "text-xl font-bold mt-4 mb-4 text-center"
+                      : "text-xl md:text-2xl font-bold lg:text-4xl mt-4 py-10 px-14"
+                  }`}
+                >
+                  {post.title}
+                </h1>
+              </Link>
             <div
               className={`${
                 isMobile 
@@ -237,17 +253,17 @@ export default function Home() {
                   : `flex ${buttonAlignment} mr-10 mb-10 px-14`
               }`}
             >
-              <Link to={`/post/${post.post_id}`}>
-                <button
-                  className={`${
-                    isMobile
-                      ? "px-2 py-2 text-sm"
-                      : "px-4 py-2 mt-4 text-sm md:text-lg"
-                  } border-2 border-solid border-black hover:bg-gray-200 transition-colors`}
-                >
-                  Read More
-                </button>
-              </Link>
+                <Link to={`/post/${post.post_id}`}>
+                  <button
+                    className={`${
+                      isMobile
+                        ? "px-2 py-2 text-sm"
+                        : "px-4 py-2 mt-4 text-sm md:text-lg"
+                    } border-2 border-solid border-black hover:bg-gray-200 transition-colors`}
+                  >
+                    Read More
+                  </button>
+                </Link>
             </div>
           </div>
         </div>
@@ -277,6 +293,7 @@ export default function Home() {
   return (
     <div>
       <div className="p-4 flex flex-col items-center">
+        {/* Search Box */}
         <div className="relative w-[95%] md:w-1/2 max-w-lg">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <FaSearch className="text-gray-400" />
@@ -304,49 +321,56 @@ export default function Home() {
         </div>
         {searchTerm && (
           <div className="mt-2 text-sm text-gray-600 text-center">
-            {isSearching ? "Searching..." : `Found ${postsToDisplay.length} results`}
+            {isSearching 
+              ? "Searching..." 
+              : `Found ${postsToDisplay.length} results`
+            }
           </div>
         )}
       </div>
+      
+      {/* Only show posts when not in semantic search mode */}
+      
+      {/* Posts and Pagination */}
       {renderPosts()}
       <ul className="flex justify-center items-center">
-        <li>
-          <button
-            onClick={handlePrevClick}
-            className={`mx-1 px-1 py-1 md:px-2 rounded-2xl md:py-2 focus:outline-none bg-white text-black hover:bg-slate-200 ${
-              currentPage === 1 ? "cursor-not-allowed opacity-50" : ""
-            }`}
-            disabled={currentPage === 1}
-          >
-            <FaChevronLeft />
-          </button>
-        </li>
-        {pageNumbers.map((number) => (
-          <li key={number}>
-            <button
-              className={`mx-1 px-2 py-1  hover:underline md:px-2 border md:py-1 rounded-sm shadow-md focus:outline-none bg-white text-black hover:bg-slate-200 ${
-                number === currentPage ? "shadow-blue-400  " : ""
-              }`}
-              onClick={() => paginate(number)}
-            >
-              {number}
-            </button>
-          </li>
-        ))}
-        <li>
-          <button
-            onClick={handleNextClick}
-            className={`mx-1 px-1 py-1 md:px-2 rounded-2xl md:py-2 focus:outline-none bg-white text-black hover:bg-slate-200  ${
-              currentPage === Math.ceil(posts.length / postsPerPage)
-                ? "cursor-not-allowed opacity-50"
-                : ""
-            }`}
-            disabled={currentPage === Math.ceil(posts.length / postsPerPage)}
-          >
-            <FaChevronRight />
-          </button>
-        </li>
-      </ul>
+            <li>
+              <button
+                onClick={handlePrevClick}
+                className={`mx-1 px-1 py-1 md:px-2 rounded-2xl md:py-2 focus:outline-none bg-white text-black hover:bg-slate-200 ${
+                  currentPage === 1 ? "cursor-not-allowed opacity-50" : ""
+                }`}
+                disabled={currentPage === 1}
+              >
+                <FaChevronLeft />
+              </button>
+            </li>
+            {pageNumbers.map((number) => (
+              <li key={number}>
+                <button
+                  className={`mx-1 px-2 py-1  hover:underline md:px-2 border md:py-1 rounded-sm shadow-md focus:outline-none bg-white text-black hover:bg-slate-200 ${
+                    number === currentPage ? "shadow-blue-400  " : ""
+                  }`}
+                  onClick={() => paginate(number)}
+                >
+                  {number}
+                </button>
+              </li>
+            ))}
+            <li>
+              <button
+                onClick={handleNextClick}
+                className={`mx-1 px-1 py-1 md:px-2 rounded-2xl md:py-2 focus:outline-none bg-white text-black hover:bg-slate-200  ${
+                  currentPage === Math.ceil(posts.length / postsPerPage)
+                    ? "cursor-not-allowed opacity-50"
+                    : ""
+                }`}
+                disabled={currentPage === Math.ceil(posts.length / postsPerPage)}
+              >
+                <FaChevronRight />
+              </button>
+            </li>
+          </ul>
     </div>
   );
 }
