@@ -14,5 +14,8 @@ server/src/images
 #ignore Python virtual environment
 nova-mind/venv
 
+# Ignore database files
+nova-mind/chroma_db
+
 #ignore Python cache files
 nova-mind/app/__pycache__

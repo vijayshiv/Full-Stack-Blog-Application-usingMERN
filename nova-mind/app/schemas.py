@@ -22,3 +22,28 @@ class QARequest(BaseModel):
 
 class QAResponse(BaseModel):
     answer: str
+
+
+class SummarizeRequest(BaseModel):
+    text: str
+    style: str = "concise"  # "concise", "detailed", "bullet_points", "executive"
+    max_length: int = 200
+
+
+class SummarizeResponse(BaseModel):
+    summary: str
+    original_length: int
+    summary_length: int
+
+
+class TopicSummaryRequest(BaseModel):
+    topic: str
+    max_sources: int = 10
+    summary_style: str = "comprehensive"  # "comprehensive", "technical", "beginner"
+
+
+class TopicSummaryResponse(BaseModel):
+    topic: str
+    summary: str
+    sources_used: list
+    total_sources_found: int

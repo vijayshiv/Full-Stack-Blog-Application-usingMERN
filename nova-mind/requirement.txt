@@ -8,3 +8,6 @@ sentence-transformers
 chromadb
 mysql-connector-python
 beautifulsoup4
+wikipedia-api
+requests
+lxml
