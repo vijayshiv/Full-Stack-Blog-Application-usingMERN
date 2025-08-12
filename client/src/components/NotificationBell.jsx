@@ -270,7 +270,8 @@ const NotificationBell = ({ socket }) => {
 
       {/* Notification Dropdown */}
       {isDropdownOpen && (
-        <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-96 overflow-hidden">
+        <div className="absolute right-0 mt-2 w-80 sm:w-80 xs:w-72 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-96 overflow-hidden
+                        sm:right-0 xs:right-[-100px] xs:w-[calc(100vw-2rem)] xs:max-w-sm xs:left-auto">
           {/* Header */}
           <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
             <div className="flex justify-between items-center">

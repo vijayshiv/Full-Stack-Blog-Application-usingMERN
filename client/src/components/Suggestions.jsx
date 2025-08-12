@@ -7,8 +7,8 @@ const Suggestions = ({ suggestions }) => {
   const visibleSuggestions = suggestions.slice(0, 3);
 
   return (
-    <div className="lg:ml-12">
-      <h2 className="font-bold text-2xl mb-4">
+    <div className="text-center">
+      <h2 className="font-bold text-lg mb-3 text-center">
         Other Suggested Posts You May Like
       </h2>
       <div className="overflow-x-auto lg:overflow-y-auto">
@@ -17,7 +17,7 @@ const Suggestions = ({ suggestions }) => {
           style={{ listStyleType: "none" }}
         >
           {visibleSuggestions.map((item) => (
-            <li key={item.post_id} className="mb-4">
+            <li key={item.post_id} className="mb-3">
               <Link
                 to={`/post/${item.post_id}`}
                 className="block"
@@ -26,16 +26,16 @@ const Suggestions = ({ suggestions }) => {
                 <img
                   src={`${baseURL}/images/${item.img}`}
                   alt={item.title}
-                  className="w-40 h-40 lg:w-full lg:h-56 object-cover rounded-md mb-2 cursor-pointer"
+                  className="w-32 h-32 lg:w-full lg:h-40 object-cover rounded-md mb-2 cursor-pointer mx-auto"
                 />
-                <h3 className="text-md text-center lg:text-xl mb-4 font-semibold text-blue-700 hover:underline cursor-pointer truncate-text">
+                <h3 className="text-sm text-center lg:text-base mb-2 font-semibold text-blue-700 hover:underline cursor-pointer truncate-text">
                   {item.title}
                 </h3>
               </Link>
-              <p className="text-gray-600">{item.category}</p>
+              <p className="text-gray-600 text-xs text-center">{item.category}</p>
               <Link
                 to={`/post/${item.post_id}`}
-                className="text-black-700 hover:underline bg-slate-200 hover:bg-slate-300 p-1 rounded-sm"
+                className="text-black-700 hover:underline bg-slate-200 hover:bg-slate-300 p-1 rounded-sm text-xs inline-block mt-1"
                 onClick={() => window.scrollTo(0, 0)}
               >
                 Read More

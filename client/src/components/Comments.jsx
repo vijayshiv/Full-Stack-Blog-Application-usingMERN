@@ -351,227 +351,336 @@ const Comments = ({ postId }) => {
   }, [comments]);
 
   return (
-    <div className="mt-8 p-2 bg-gray-100 rounded-lg comments-container">
-      <h2 className="text-2xl font-semibold mb-4">Comments</h2>
-      <form onSubmit={handleCommentSubmit} className="mb-4 flex items-center">
-        <textarea
-          className="flex-grow px-4 py-2 border rounded-l-md"
-          value={newComment}
-          onChange={(e) => setNewComment(e.target.value)}
-          placeholder="Add a comment..."
-        />
-        <button
-          type="submit"
-          className="px-2 py-1 bg-blue-500 text-white rounded-md mb-8 ml-2"
-        >
-          Submit
-        </button>
-      </form>
-      {mainComments.map((comment) => {
-        const replies = repliesMap[comment.comment_id.toString()] || [];
-        const isThreadExpanded = expandedThreads[comment.comment_id];
-        
-        return (
-          <div key={comment.comment_id}>
-            {/* Main Comment */}
-            <div className="bg-white rounded-lg shadow-md p-4 mb-4">
-              {editCommentId === comment.comment_id ? (
-                <div className="flex flex-col">
-                  <textarea
-                    className="mb-2 p-2 border rounded-md"
-                    value={editCommentContent}
-                    onChange={(e) => setEditCommentContent(e.target.value)}
-                  />
-                  <div className="flex justify-end">
-                    <button
-                      onClick={() => handleSaveEdit(comment.comment_id)}
-                      className="mr-2 px-4 py-2 bg-green-500 text-white rounded-md flex items-center"
-                    >
-                      <FaSave className="mr-1" size={20} /> Save
-                    </button>
-                    <button
-                      onClick={handleCancelEdit}
-                      className="px-4 py-2 bg-red-500 text-white rounded-md flex items-center"
-                    >
-                      <FaTimes className="mr-1" size={20} /> Cancel
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex justify-between items-start">
-                  <p className="text-gray-700">{comment.content}</p>
-                  <div className="flex items-center ml-4">
-                    {parseInt(userId) === parseInt(comment.id) && (
-                      <>
-                        <button
-                          onClick={() =>
-                            handleEditComment(comment.comment_id, comment.content)
-                          }
-                          className="mr-2 text-blue-500"
-                        >
-                          <FaEdit size={20} />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteComment(comment.comment_id)}
-                          className="text-red-500"
-                        >
-                          <FaTrash size={20} />
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </div>
-              )}
-              
-              {/* Comment Footer with Reply Link */}
-              <div className="flex justify-between items-center mt-3">
-                <div className="flex items-center space-x-4">
-                  <button
-                    onClick={() => startReply(comment.comment_id)}
-                    className="text-blue-600 hover:text-blue-800 text-sm flex items-center"
-                  >
-                    <FaReply className="mr-1" size={12} />
-                    Reply
-                  </button>
-                  
-                  {replies.length > 0 && (
-                    <button
-                      onClick={() => toggleThread(comment.comment_id)}
-                      className="text-gray-600 hover:text-gray-800 text-sm flex items-center"
-                    >
-                      {isThreadExpanded ? (
-                        <>
-                          <FaChevronUp className="mr-1" size={12} />
-                          Hide {replies.length} {replies.length === 1 ? 'reply' : 'replies'}
-                        </>
-                      ) : (
-                        <>
-                          <FaChevronDown className="mr-1" size={12} />
-                          Show {replies.length} {replies.length === 1 ? 'reply' : 'replies'}
-                        </>
-                      )}
-                    </button>
-                  )}
-                </div>
-                
-                <div className="text-sm text-gray-500 capitalize">
-                  Posted by: {comment.fullname} on{" "}
-                  {new Date(comment.createdTimestamp).toLocaleString()}
-                </div>
-              </div>
+    <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-md border border-white/20 p-2 
+                    hover:shadow-lg transition-all duration-500 animate-fade-in">
+      {/* Header */}
+      <div className="flex items-center space-x-1 mb-2">
+        <div className="w-4 h-4 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full 
+                        flex items-center justify-center text-white font-bold shadow-lg text-xs">
+          💬
+        </div>
+        <h2 className="text-sm font-bold bg-gradient-to-r from-slate-800 to-blue-800 bg-clip-text text-transparent">
+          Comments ({mainComments.length})
+        </h2>
+      </div>
 
-              {/* Reply Form */}
-              {replyToCommentId === comment.comment_id && (
-                <div className="mt-4 p-3 bg-blue-50 rounded-lg border-l-4 border-blue-400">
-                  <form onSubmit={(e) => handleReplySubmit(e, comment.comment_id)}>
+      {/* Comment Input Form */}
+      <form onSubmit={handleCommentSubmit} className="mb-2 animate-slide-up delay-300">
+        <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-2 border border-blue-100">
+          <div className="flex flex-col sm:flex-row gap-1">
+            <div className="flex-1">
+              <textarea
+                className="w-full px-2 py-1 border border-gray-200 rounded-md resize-none
+                           focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100
+                           transition-all duration-300 bg-white placeholder-gray-400 text-xs"
+                rows="1"
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder="Share your thoughts..."
+              />
+            </div>
+            <button
+              type="submit"
+              className="px-2 py-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white 
+                         rounded-md hover:from-blue-600 hover:to-blue-700 transform hover:scale-105 
+                         transition-all duration-300 shadow-md hover:shadow-lg font-medium text-xs
+                         self-start sm:self-end"
+            >
+              Post
+            </button>
+          </div>
+        </div>
+      </form>
+
+      {/* Comments List */}
+      <div className="space-y-2">
+        {mainComments.map((comment, index) => {
+          const replies = repliesMap[comment.comment_id.toString()] || [];
+          const isThreadExpanded = expandedThreads[comment.comment_id];
+          
+          return (
+            <div key={comment.comment_id} 
+                 className="animate-slide-up" 
+                 style={{ animationDelay: `${(index + 1) * 100}ms` }}>
+              {/* Main Comment */}
+              <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-2 
+                              hover:shadow-md transition-all duration-300">
+                {editCommentId === comment.comment_id ? (
+                  <div className="space-y-1">
                     <textarea
-                      className="w-full px-3 py-2 border rounded-md resize-none"
-                      rows="3"
-                      value={replyContent}
-                      onChange={(e) => setReplyContent(e.target.value)}
-                      placeholder="Write your reply..."
+                      className="w-full p-1 border border-gray-200 rounded-md resize-none
+                                 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100
+                                 transition-all duration-300 text-xs"
+                      rows="1"
+                      value={editCommentContent}
+                      onChange={(e) => setEditCommentContent(e.target.value)}
                     />
-                    <div className="flex justify-end mt-2 space-x-2">
+                    <div className="flex justify-end space-x-1">
                       <button
-                        type="button"
-                        onClick={cancelReply}
-                        className="px-3 py-1 bg-gray-500 text-white rounded-md text-sm"
+                        onClick={() => handleSaveEdit(comment.comment_id)}
+                        className="px-1 py-0.5 bg-gradient-to-r from-green-500 to-green-600 text-white 
+                                   rounded-md hover:from-green-600 hover:to-green-700 
+                                   transform hover:scale-105 transition-all duration-300 
+                                   shadow-sm flex items-center space-x-0.5 text-xs"
                       >
-                        Cancel
+                        <FaSave size={8} />
+                        <span>Save</span>
                       </button>
                       <button
-                        type="submit"
-                        className="px-3 py-1 bg-blue-500 text-white rounded-md text-sm"
+                        onClick={handleCancelEdit}
+                        className="px-1 py-0.5 bg-gradient-to-r from-gray-500 to-gray-600 text-white 
+                                   rounded-md hover:from-gray-600 hover:to-gray-700 
+                                   transform hover:scale-105 transition-all duration-300 
+                                   shadow-sm flex items-center space-x-0.5 text-xs"
                       >
-                        Reply
+                        <FaTimes size={8} />
+                        <span>Cancel</span>
                       </button>
                     </div>
-                  </form>
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    {/* Comment Header */}
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start space-x-1">
+                        <div className="w-4 h-4 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full 
+                                        flex items-center justify-center text-white font-bold shadow-sm text-xs">
+                          {comment.fullname.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="text-left">
+                          <p className="text-gray-800 font-semibold text-xs text-left">{comment.fullname}</p>
+                          <p className="text-gray-600 text-xs text-left">
+                            {new Date(comment.createdTimestamp).toLocaleString()}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {/* Action Buttons */}
+                      {parseInt(userId) === parseInt(comment.id) && (
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() => handleEditComment(comment.comment_id, comment.content)}
+                            className="p-1 text-blue-500 hover:text-blue-700 hover:bg-blue-50 
+                                       rounded-md transition-all duration-300 transform hover:scale-110"
+                            title="Edit comment"
+                          >
+                            <FaEdit size={12} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteComment(comment.comment_id)}
+                            className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 
+                                       rounded-md transition-all duration-300 transform hover:scale-110"
+                            title="Delete comment"
+                          >
+                            <FaTrash size={12} />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Comment Content - moved to right */}
+                    <p className="text-gray-700 leading-relaxed text-xs text-right pr-2">{comment.content}</p>
+
+                    {/* Comment Footer */}
+                    <div className="flex items-center justify-between pt-1 border-t border-gray-100">
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => startReply(comment.comment_id)}
+                          className="flex items-center space-x-1 text-blue-600 hover:text-blue-800 
+                                     px-1 py-0.5 rounded-sm hover:bg-blue-50 transition-all duration-300 
+                                     transform hover:scale-105"
+                        >
+                          <FaReply size={8} />
+                          <span className="font-medium text-xs">Reply</span>
+                        </button>
+                        
+                        {replies.length > 0 && (
+                          <button
+                            onClick={() => toggleThread(comment.comment_id)}
+                            className="flex items-center space-x-1 text-gray-600 hover:text-gray-800 
+                                       px-1 py-0.5 rounded-sm hover:bg-gray-50 transition-all duration-300 
+                                       transform hover:scale-105"
+                          >
+                            {isThreadExpanded ? (
+                              <>
+                                <FaChevronUp size={8} />
+                                <span className="text-xs">Hide {replies.length} {replies.length === 1 ? 'reply' : 'replies'}</span>
+                              </>
+                            ) : (
+                              <>
+                                <FaChevronDown size={8} />
+                                <span className="text-xs">Show {replies.length} {replies.length === 1 ? 'reply' : 'replies'}</span>
+                              </>
+                            )}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Reply Form */}
+                {replyToCommentId === comment.comment_id && (
+                  <div className="mt-2 p-2 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg 
+                                  border-l-2 border-blue-400 animate-slide-up">
+                    <form onSubmit={(e) => handleReplySubmit(e, comment.comment_id)}>
+                      <textarea
+                        className="w-full px-2 py-1 border border-gray-200 rounded-md resize-none
+                                   focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100
+                                   transition-all duration-300 bg-white placeholder-gray-400 text-xs"
+                        rows="1"
+                        value={replyContent}
+                        onChange={(e) => setReplyContent(e.target.value)}
+                        placeholder="Write your reply..."
+                      />
+                      <div className="flex justify-end mt-1 space-x-1">
+                        <button
+                          type="button"
+                          onClick={cancelReply}
+                          className="px-2 py-0.5 bg-gray-500 text-white rounded-md 
+                                     hover:bg-gray-600 transform hover:scale-105 
+                                     transition-all duration-300 shadow-sm text-xs"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          className="px-2 py-0.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white 
+                                     rounded-md hover:from-blue-600 hover:to-blue-700 
+                                     transform hover:scale-105 transition-all duration-300 shadow-sm text-xs"
+                        >
+                          Reply
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                )}
+              </div>
+
+              {/* Replies Thread */}
+              {replies.length > 0 && isThreadExpanded && (
+                <div className="ml-4 mt-2 space-y-2 animate-slide-up delay-300">
+                  <div className="bg-gradient-to-r from-blue-50/50 to-purple-50/50 rounded-lg p-2 
+                                  border-l-2 border-blue-300">
+                    {replies.map((reply, replyIndex) => (
+                      <div key={reply.comment_id} 
+                           className="bg-white rounded-md shadow-sm p-2 mb-2 last:mb-0
+                                      hover:shadow-md transition-all duration-300
+                                      animate-slide-up"
+                           style={{ animationDelay: `${replyIndex * 100}ms` }}>
+                        {editReplyId === reply.comment_id ? (
+                          <div className="space-y-1">
+                            <textarea
+                              className="w-full p-1 border border-gray-200 rounded-md resize-none
+                                         focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100
+                                         transition-all duration-300 text-xs"
+                              rows="1"
+                              value={editReplyContent}
+                              onChange={(e) => setEditReplyContent(e.target.value)}
+                            />
+                            <div className="flex justify-end space-x-1">
+                              <button
+                                onClick={() => handleReplyEdit(reply.comment_id)}
+                                className="px-1 py-0.5 bg-gradient-to-r from-green-500 to-green-600 text-white 
+                                           rounded-md hover:from-green-600 hover:to-green-700 
+                                           transform hover:scale-105 transition-all duration-300 
+                                           shadow-sm flex items-center space-x-0.5 text-xs"
+                              >
+                                <FaSave size={8} />
+                                <span>Save</span>
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setEditReplyId(null);
+                                  setEditReplyContent("");
+                                }}
+                                className="px-1 py-0.5 bg-gradient-to-r from-gray-500 to-gray-600 text-white 
+                                           rounded-md hover:from-gray-600 hover:to-gray-700 
+                                           transform hover:scale-105 transition-all duration-300 
+                                           shadow-sm flex items-center space-x-0.5 text-xs"
+                              >
+                                <FaTimes size={8} />
+                                <span>Cancel</span>
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="space-y-1">
+                            {/* Reply Header */}
+                            <div className="flex items-start justify-between">
+                              <div className="flex items-center space-x-1">
+                                <div className="w-4 h-4 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full 
+                                                flex items-center justify-center text-white font-bold text-xs shadow-sm">
+                                  {reply.fullname.charAt(0).toUpperCase()}
+                                </div>
+                                <div className="text-left">
+                                  <p className="font-medium text-gray-800 text-xs text-left">{reply.fullname}</p>
+                                  <p className="text-xs text-gray-500 text-left">
+                                    {new Date(reply.createdTimestamp).toLocaleString()}
+                                  </p>
+                                </div>
+                              </div>
+                              
+                              {parseInt(userId) === parseInt(reply.id) && (
+                                <div className="flex items-center space-x-2">
+                                  <button
+                                    onClick={() => {
+                                      setEditReplyId(reply.comment_id);
+                                      setEditReplyContent(reply.content);
+                                    }}
+                                    className="p-1 text-blue-500 hover:text-blue-700 hover:bg-blue-50 
+                                               rounded-md transition-all duration-300 transform hover:scale-110"
+                                    title="Edit reply"
+                                  >
+                                    <FaEdit size={12} />
+                                  </button>
+                                  <button
+                                    onClick={() => handleReplyDelete(reply.comment_id)}
+                                    className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 
+                                               rounded-md transition-all duration-300 transform hover:scale-110"
+                                    title="Delete reply"
+                                  >
+                                    <FaTrash size={12} />
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Reply Content - right aligned */}
+                            <p className="text-gray-700 text-xs leading-relaxed text-right pr-2">{reply.content}</p>
+
+                            {/* Reply Footer */}
+                            <div className="flex justify-start">
+                              <button
+                                onClick={() => startReply(comment.comment_id)}
+                                className="flex items-center space-x-0.5 text-blue-600 hover:text-blue-800 
+                                           px-1 py-0.5 rounded-sm hover:bg-blue-50 transition-all duration-300 
+                                           transform hover:scale-105"
+                              >
+                                <FaReply size={8} />
+                                <span className="text-xs font-medium">Reply</span>
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
+          );
+        })}
+      </div>
 
-            {/* Thread Section - Replies */}
-            {replies.length > 0 && isThreadExpanded && (
-              <div className="ml-8 mb-4 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-300">
-                <div className="space-y-3">
-                  {replies.map((reply) => (
-                    <div key={reply.comment_id} className="bg-white rounded-lg shadow-sm p-3">
-                      {editReplyId === reply.comment_id ? (
-                        <div className="flex flex-col">
-                          <textarea
-                            className="mb-2 p-2 border rounded-md resize-none"
-                            rows="2"
-                            value={editReplyContent}
-                            onChange={(e) => setEditReplyContent(e.target.value)}
-                          />
-                          <div className="flex justify-end space-x-2">
-                            <button
-                              onClick={() => handleReplyEdit(reply.comment_id)}
-                              className="px-3 py-1 bg-green-500 text-white rounded-md flex items-center text-sm"
-                            >
-                              <FaSave className="mr-1" size={14} /> Save
-                            </button>
-                            <button
-                              onClick={() => {
-                                setEditReplyId(null);
-                                setEditReplyContent("");
-                              }}
-                              className="px-3 py-1 bg-red-500 text-white rounded-md flex items-center text-sm"
-                            >
-                              <FaTimes className="mr-1" size={14} /> Cancel
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="flex justify-between items-start">
-                          <p className="text-gray-700 text-sm">{reply.content}</p>
-                          <div className="flex items-center ml-4">
-                            {parseInt(userId) === parseInt(reply.id) && (
-                              <>
-                                <button
-                                  onClick={() => {
-                                    setEditReplyId(reply.comment_id);
-                                    setEditReplyContent(reply.content);
-                                  }}
-                                  className="mr-2 text-blue-500"
-                                >
-                                  <FaEdit size={16} />
-                                </button>
-                                <button
-                                  onClick={() => handleReplyDelete(reply.comment_id)}
-                                  className="text-red-500"
-                                >
-                                  <FaTrash size={16} />
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                      
-                      {/* Reply Footer */}
-                      <div className="flex justify-between items-center mt-2">
-                        <button
-                          onClick={() => startReply(comment.comment_id)}
-                          className="text-blue-600 hover:text-blue-800 text-xs flex items-center"
-                        >
-                          <FaReply className="mr-1" size={10} />
-                          Reply
-                        </button>
-                        
-                        <div className="text-xs text-gray-500 capitalize">
-                          {reply.fullname} • {new Date(reply.createdTimestamp).toLocaleString()}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        );
-      })}
+      {/* Empty State */}
+      {mainComments.length === 0 && (
+        <div className="text-center py-6 animate-fade-in">
+          <div className="text-2xl mb-2">💬</div>
+          <h3 className="text-sm font-semibold text-gray-700 mb-1">No comments yet</h3>
+          <p className="text-gray-500 text-xs">Be the first to share your thoughts!</p>
+        </div>
+      )}
     </div>
   );
 };

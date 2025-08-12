@@ -133,107 +133,146 @@ const EditPost = () => {
   const imageUrl = previewImg ? previewImg : `${baseURL}/images/${img}`;
 
   return (
-    <div className="container mx-auto mt-8">
-      <h1 className="text-3xl font-bold mb-8">Edit Post</h1>
-      <div className="flex flex-wrap mb-4">
-        <div className="w-full md:w-3/4 pr-4 mb-4 md:mb-0">
-          <label htmlFor="title" className="block mb-1 font-bold text-left">
-            Title :
-          </label>
-          <input
-            type="text"
-            id="title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full p-2 border border-gray-700 rounded"
-            placeholder="Post Title"
-          />
-          <label
-            htmlFor="category"
-            className="block mt-2 mb-1 font-bold text-left"
-          >
-            Category :
-          </label>
-          <input
-            type="text"
-            id="category"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="w-full p-2 border border-gray-700 rounded"
-            placeholder="Post Category"
-          />
-          <label
-            htmlFor="content"
-            className="block mt-2 mb-1 font-bold text-left"
-          >
-            Content :
-          </label>
-          <ReactQuill
-            ref={quillRef}
-            id="content"
-            value={content}
-            onChange={handleContentChange}
-            className="mb-4 h-72 border-gray-700"
-          />
-          {/* AI Buttons Section */}
-          <div className="max-sm:mt-20 mt-16 mb-2 flex justify-between items-center max-sm:flex-col max-sm:gap-2">
-            {/* Topic Summary Button - Left Aligned */}
-            <button
-              onClick={() => setIsTopicSummaryModalOpen(true)}
-              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm shadow-md"
-            >
-              📖 Topic Summary
-            </button>
-            
-            {/* AI Rephrase Button - Right Aligned */}
-            <button
-              onClick={handleRephrase}
-              className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors text-sm shadow-md"
-            >
-              🤖 AI Rephrase Selected Text
-            </button>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 py-4">
+      <div className="container mx-auto px-4 max-w-4xl">
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 overflow-hidden">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4">
+            <h1 className="text-xl font-bold text-left">✏️ Edit Post</h1>
           </div>
-          <div className="text-right max-sm:text-center">
-            <span>{charCount}/8192</span>
-          </div>
-        </div>
-        <div className="w-full md:w-1/4 flex justify-center items-start">
-          {previewImg && (
-            <div className="flex flex-col items-center justify-center">
-              <label
-                htmlFor="preview"
-                className="block mb-1 font-bold text-left"
+
+          <div className="flex flex-col lg:flex-row">
+            {/* Main Editing Area */}
+            <div className="lg:w-3/4 p-4">
+              {/* Title Section */}
+              <div className="mb-4">
+                <label htmlFor="title" className="block text-sm font-semibold text-gray-700 mb-2 text-left">
+                  Title
+                </label>
+                <input
+                  type="text"
+                  id="title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  placeholder="Enter your post title..."
+                />
+              </div>
+
+              {/* Category Section */}
+              <div className="mb-4">
+                <label htmlFor="category" className="block text-sm font-semibold text-gray-700 mb-2 text-left">
+                  Category
+                </label>
+                <select
+                  id="category"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                >
+                  <option value="">Select a category</option>
+                  <option value="art">🎨 Art</option>
+                  <option value="science">🔬 Science</option>
+                  <option value="technology">💻 Technology</option>
+                  <option value="cinema">🎬 Cinema</option>
+                  <option value="design">🎯 Design</option>
+                  <option value="food">🍕 Food</option>
+                </select>
+              </div>
+
+              {/* Content Editor */}
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-gray-700 mb-2 text-left">
+                  Content
+                </label>
+                <div className="relative">
+                  <ReactQuill
+                    ref={quillRef}
+                    value={content}
+                    onChange={handleContentChange}
+                    className="h-40 border-gray-300 rounded-lg"
+                    theme="snow"
+                  />
+                </div>
+              </div>
+
+              {/* Character Count */}
+              <div className="text-xs text-gray-500 mb-4 text-right mt-12">
+                {charCount}/8192 characters
+              </div>
+
+              {/* AI Tools */}
+              <div className="flex flex-col sm:flex-row gap-2 mb-4">
+                <button
+                  onClick={() => setIsTopicSummaryModalOpen(true)}
+                  className="flex items-center justify-center space-x-2 px-3 py-2 bg-gradient-to-r from-green-500 to-green-600 
+                             text-white rounded-lg hover:from-green-600 hover:to-green-700 
+                             transform hover:scale-105 transition-all duration-300 shadow-md text-sm"
+                >
+                  <span>📖</span>
+                  <span>Topic Summary</span>
+                </button>
+                
+                <button
+                  onClick={handleRephrase}
+                  className="flex items-center justify-center space-x-2 px-3 py-2 bg-gradient-to-r from-purple-500 to-purple-600 
+                             text-white rounded-lg hover:from-purple-600 hover:to-purple-700 
+                             transform hover:scale-105 transition-all duration-300 shadow-md text-sm"
+                >
+                  <span>🤖</span>
+                  <span>AI Rephrase</span>
+                </button>
+              </div>
+
+              {/* Save Button */}
+              <button
+                onClick={handleSave}
+                className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white 
+                           rounded-lg hover:from-blue-700 hover:to-blue-800 
+                           transform hover:scale-105 transition-all duration-300 shadow-lg 
+                           font-semibold text-sm"
               >
-                Image Preview
-              </label>
-              <img
-                src={imageUrl}
-                alt="Preview"
-                className="w-full h-auto rounded mb-2"
-              />
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                className="hidden"
-                id="img-upload"
-              />
-              <label
-                htmlFor="img-upload"
-                className="w-[70%] border-2 border-black p-1 bg-slate-200 cursor-pointer block mb-2 text-center"
-              >
-                Upload Image
-              </label>
+                💾 Save Changes
+              </button>
             </div>
-          )}
+
+            {/* Sidebar - Image Preview */}
+            <div className="lg:w-1/4 bg-gray-50/50 p-4 border-l border-gray-200">
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-gray-700 mb-2 text-left">
+                  Featured Image
+                </label>
+                
+                {previewImg && (
+                  <div className="mb-3">
+                    <img
+                      src={imageUrl}
+                      alt="Preview"
+                      className="w-full h-32 object-cover rounded-lg shadow-md"
+                    />
+                  </div>
+                )}
+                
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="hidden"
+                  id="img-upload"
+                />
+                <label
+                  htmlFor="img-upload"
+                  className="flex items-center justify-center w-full px-3 py-2 border-2 border-dashed border-blue-300 
+                             rounded-lg cursor-pointer hover:border-blue-500 transition-colors text-sm text-center
+                             bg-blue-50 hover:bg-blue-100"
+                >
+                  📸 Change Image
+                </label>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-      <button
-        onClick={handleSave}
-        className="md:mr-72 bg-blue-600 text-white p-2 rounded "
-      >
-        Save Changes
-      </button>
 
       {/* AI Rephrase Modal */}
       <AIRephraseModal

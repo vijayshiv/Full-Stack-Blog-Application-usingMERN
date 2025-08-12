@@ -184,76 +184,128 @@ const Post = () => {
         `}
       </style>
 
-      <div className="container mx-auto mt-16 px-4">
-        <div className="flex flex-col lg:flex-row">
-          <div className="lg:w-3/4">
-            <h1 className="font-bold text-3xl sm:text-3xl lg:text-5xl text-blue-900 mb-8 leading-tight font-serif">
-              &quot;{post.title}&quot;
-            </h1>
-            <div className="clearfix">
-              <img
-                className="float-left mr-10 mb-5 max-w-[55%] rounded-md shadow-md object-cover cursor-pointer"
-                src={`${baseURL}/images/${post.img}`}
-                alt={post.title}
-              />
-              <div
-                className="post-content mt-4"
-                style={{
-                  textAlign: "justify",
-                  fontSize: "1rem",
-                }}
-                dangerouslySetInnerHTML={{
-                  __html: DOMPurify.sanitize(post.content),
-                }}
-              />
-            </div>
-            <div className="flex justify-between items-center sm:text-[4px] md:text-lg lg:text-xl mt-16">
-              <LikeButton postId={id} />
-              <div className="md:text-xl sm:text-xs capitalize text-right">
-                <p>
-                  <span className="capitalize font-bold md:text-xl ">
-                    Category:{" "}
-                  </span>
-                  {post.category}
-                </p>
-                <div className="mt-2 flex flex-col items-end">
-                  <p className="mb-2">
-                    <span className="capitalize font-bold md:text-xl sm:text-sm">
-                      Posted by:{" "}
-                    </span>
-                    {post.user_name}
-                  </p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden">
+        {/* Background decorative elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-10 -right-10 w-72 h-72 bg-gradient-to-br from-blue-400/20 to-purple-600/20 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute -bottom-10 -left-10 w-72 h-72 bg-gradient-to-br from-purple-400/20 to-pink-600/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        </div>
+
+        <div className="container mx-auto px-4 py-4 relative z-10 max-w-4xl">
+          <div className="flex flex-col lg:flex-row gap-4">
+            {/* Main Content */}
+            <div className="lg:w-3/4">
+              {/* Enhanced Title Section */}
+              <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-4 mb-4 
+                              animate-fade-in hover:shadow-xl transition-all duration-500">
+                <h1 className="font-bold text-lg sm:text-xl lg:text-5xl 
+                               bg-gradient-to-r from-slate-800 via-blue-800 to-purple-900 bg-clip-text text-transparent 
+                               mb-3 leading-tight font-serif animate-slide-up">
+                  &quot;{post.title}&quot;
+                </h1>
+                
+                {/* Author and Category Info */}
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center 
+                                border-t border-gray-200 pt-3 animate-slide-up delay-300">
+                  <div className="flex items-center space-x-2 mb-2 sm:mb-0">
+                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full 
+                                    flex items-center justify-center text-white font-bold shadow-lg text-sm">
+                      {post.user_name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="text-left">
+                      <p className="text-gray-800 font-semibold text-sm text-left">
+                        {post.user_name.charAt(0).toUpperCase() + post.user_name.slice(1).toLowerCase()}
+                      </p>
+                      <p className="text-gray-600 text-xs text-left">Author</p>
+                    </div>
+                  </div>
                   
-                  {/* Action Buttons Container */}
-                  <div className="flex flex-col sm:flex-row gap-2 items-end">
-                    {/* Summarize Button - Available for all users */}
-                    <button
-                      onClick={() => setIsSummarizationModalOpen(true)}
-                      className="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded-lg text-sm flex items-center transition-colors duration-200 shadow-md hover:shadow-lg"
-                      title="Get AI-powered summary of this post (200 words)"
-                    >
-                      📝 Summarize Post
-                    </button>
-                    
-                    {/* Meeting Request Button - Only for other users */}
-                    {!isOwnPost && currentUserId && (
-                      <button
-                        onClick={() => setIsMeetingModalOpen(true)}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg text-sm flex items-center transition-colors duration-200 shadow-md hover:shadow-lg"
-                        title="Request a video meeting with the author"
-                      >
-                        <FaVideo className="mr-2" size={14} />
-                        Request Meeting
-                      </button>
-                    )}
+                  <div className="flex items-center space-x-2">
+                    <span className="px-3 py-1 bg-gradient-to-r from-blue-500/10 to-purple-600/10 
+                                     text-blue-700 rounded-full font-medium capitalize border border-blue-200 text-sm">
+                      {post.category}
+                    </span>
                   </div>
                 </div>
               </div>
+
+              {/* Enhanced Content Section */}
+              <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 
+                              overflow-hidden animate-fade-in delay-500 hover:shadow-xl transition-all duration-500">
+                
+                {/* Content with Image */}
+                <div className="p-4">
+                  {/* Image floated to the left - full size */}
+                  <img
+                    className="float-left max-w-xs object-cover rounded-lg mr-4 mb-4 shadow-md 
+                               transition-transform duration-500 hover:scale-105"
+                    src={`${baseURL}/images/${post.img}`}
+                    alt={post.title}
+                  />
+                  
+                  <div
+                    className="post-content text-gray-800 leading-relaxed animate-slide-up delay-700"
+                    style={{
+                      textAlign: "justify",
+                      fontSize: "0.9rem",
+                      lineHeight: "1.6"
+                    }}
+                    dangerouslySetInnerHTML={{
+                      __html: DOMPurify.sanitize(post.content),
+                    }}
+                  />
+
+                  {/* Enhanced Action Buttons */}
+                  <div className="clear-both flex flex-col sm:flex-row justify-between items-center mt-4 pt-4 
+                                  border-t border-gray-200 animate-slide-up delay-900">
+                    <div className="mb-2 sm:mb-0">
+                      <LikeButton postId={id} />
+                    </div>
+                    
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      {/* Summarize Button */}
+                      <button
+                        onClick={() => setIsSummarizationModalOpen(true)}
+                        className="group flex items-center space-x-1 px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-600 
+                                   text-white rounded-lg hover:from-amber-600 hover:to-orange-700 
+                                   transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl text-xs"
+                        title="Get AI-powered summary of this post"
+                      >
+                        <span>📝</span>
+                        <span className="font-medium">Summarize</span>
+                      </button>
+                      
+                      {/* Meeting Request Button */}
+                      {!isOwnPost && currentUserId && (
+                        <button
+                          onClick={() => setIsMeetingModalOpen(true)}
+                          className="group flex items-center space-x-1 px-3 py-1.5 bg-gradient-to-r from-blue-500 to-blue-600 
+                                     text-white rounded-lg hover:from-blue-600 hover:to-blue-700 
+                                     transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl text-xs"
+                          title="Request a video meeting with the author"
+                        >
+                          <FaVideo className="group-hover:rotate-12 transition-transform duration-300" size={12} />
+                          <span className="font-medium">Meeting</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Enhanced Comments Section */}
+              <div className="mt-4 animate-fade-in delay-1000">
+                <Comments postId={id} />
+              </div>
             </div>
-            <Comments postId={id} />
-          </div>
-          <div className="lg:w-1/4 lg:ml-12 mt-8 lg:mt-0">
-            <Suggestions suggestions={suggestions} />
+
+            {/* Enhanced Sidebar */}
+            <div className="lg:w-1/4 animate-fade-in delay-1200">
+              <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 
+                              p-3 hover:shadow-xl transition-all duration-500 sticky top-8">
+                <Suggestions suggestions={suggestions} />
+              </div>
+            </div>
           </div>
         </div>
       </div>

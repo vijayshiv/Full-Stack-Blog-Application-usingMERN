@@ -142,87 +142,201 @@ const Profile = () => {
   };
 
   return (
-    <div className="container mx-auto mt-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden">
       <ToastContainer />
-      <h1 className="font-bold text-3xl lg:text-5xl text-blue-900 leading-tight font-serif text-center">
-        Profile
-      </h1>
-      <h6 className="mb-4 text-center">You can change name and email too</h6>
-      <div className="flex justify-center mb-4">
-        <Link to="/my-post" className="flex items-center text-2xl underline">
-          Go to your posts
-          <FiArrowRight className="ml-1" />
-        </Link>
+      
+      {/* Background decorative elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-10 -right-10 w-96 h-96 bg-gradient-to-br from-blue-400/20 to-purple-600/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute -bottom-10 -left-10 w-96 h-96 bg-gradient-to-br from-purple-400/20 to-pink-600/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-br from-green-400/10 to-blue-500/10 rounded-full blur-3xl animate-pulse delay-500"></div>
       </div>
-      <form className="max-w-md mx-auto">
-        <div className="mb-2 text-left">
-          <label className="text-xl font-medium text-gray-700 mb-2 block">
-            Full Name
-          </label>
-          <input
-            type="text"
-            name="fullname"
-            value={user.fullname}
-            onChange={handleChange}
-            className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-base focus:outline-none focus:border-blue-500"
-          />
-        </div>
-        <div className="mb-2 text-left">
-          <label className="text-xl font-medium text-gray-700 mb-2 block">
-            Email
-          </label>
-          <input
-            type="email"
-            name="email"
-            value={user.email}
-            onChange={handleChange}
-            className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-base focus:outline-none focus:border-blue-500"
-          />
-        </div>
-        <div className="mb-2 text-left">
-          <label className="text-xl font-medium text-gray-700 mb-2 block">
-            Old Password
-          </label>
-          <input
-            type="password"
-            name="oldPassword"
-            value={user.oldPassword}
-            onChange={handleChange}
-            className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-base focus:outline-none focus:border-blue-500"
-          />
-        </div>
-        <div className="mb-4 text-left">
-          <label className="text-xl font-medium text-gray-700 mb-2 block">
-            New Password
-          </label>
-          <input
-            type="password"
-            name="newPassword"
-            value={user.newPassword}
-            onChange={handleChange}
-            className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-base focus:outline-none focus:border-blue-500"
-          />
+
+      <div className="container mx-auto px-4 py-6 relative z-10 max-w-4xl">
+        {/* Enhanced Header Section */}
+        <div className="text-center mb-8 animate-fade-in">
+          <div className="relative inline-block mb-6">
+            {/* Profile Avatar */}
+            <div className="w-20 h-20 mx-auto mb-4 relative">
+              <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 rounded-full 
+                              flex items-center justify-center text-white text-2xl font-bold shadow-2xl
+                              animate-scale-in transform hover:scale-110 transition-transform duration-300">
+                {user.fullname ? user.fullname.charAt(0).toUpperCase() : 'U'}
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-400/30 to-purple-600/30 
+                              rounded-full animate-ping"></div>
+            </div>
+            
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 font-serif
+                           bg-gradient-to-r from-slate-800 via-blue-800 to-purple-900 bg-clip-text text-transparent
+                           animate-slide-up">
+              Profile Settings
+            </h1>
+            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-16 h-0.5 
+                            bg-gradient-to-r from-blue-500 to-purple-600 rounded-full animate-scale-in"></div>
+          </div>
+          
+          <p className="text-sm text-gray-600 mb-4 animate-slide-up delay-300">
+            Manage your account information and preferences
+          </p>
+          
+          {/* Quick Link to Posts */}
+          <div className="flex justify-center mb-6 animate-slide-up delay-500">
+            <Link 
+              to="/my-post" 
+              className="group flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 
+                         text-white rounded-xl hover:from-blue-600 hover:to-purple-700 
+                         transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl text-sm"
+            >
+              <span className="font-medium">View Your Posts</span>
+              <FiArrowRight className="group-hover:translate-x-1 transition-transform duration-300" />
+            </Link>
+          </div>
         </div>
 
-        <button
-          type="submit"
-          className={`w-full text-center py-2 rounded bg-blue-700 text-white hover:bg-blue-800 focus:outline-none my-1 ${
-            loading ? "opacity-50 cursor-not-allowed" : ""
-          }`}
-          disabled={loading}
-          onClick={handleUpdate}
-        >
-          {loading ? "Updating..." : "Update Profile"}
-        </button>
-        <button
-          type="button"
-          onClick={confirmDelete}
-          className="w-full text-center py-2 rounded bg-red-600 text-white hover:bg-red-800 focus:outline-none my-1"
-          disabled={loading}
-        >
-          {loading ? "Deleting..." : "Delete Account"}
-        </button>
-      </form>
+        {/* Enhanced Form Section */}
+        <div className="max-w-xl mx-auto animate-fade-in delay-700">
+          <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl border border-white/20 
+                          hover:shadow-3xl transition-all duration-500 overflow-hidden">
+            {/* Form Header */}
+            <div className="bg-gradient-to-r from-blue-500/10 to-purple-600/10 p-4 border-b border-gray-100">
+              <h2 className="text-xl font-bold text-gray-800 text-center">Account Information</h2>
+              <p className="text-gray-600 text-center mt-1 text-sm">Update your personal details below</p>
+            </div>
+            
+            <form className="p-6 space-y-4">
+              {/* Full Name Field */}
+              <div className="group animate-slide-up delay-800">
+                <label className="block text-sm font-semibold text-gray-700 mb-2 
+                                 group-focus-within:text-blue-600 transition-colors duration-300">
+                  Full Name
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    name="fullname"
+                    value={user.fullname}
+                    onChange={handleChange}
+                    className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm 
+                               focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100
+                               transition-all duration-300 bg-gray-50 hover:bg-white
+                               placeholder-gray-400"
+                    placeholder="Enter your full name"
+                  />
+                  <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/5 to-purple-500/5 
+                                  opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                </div>
+              </div>
+
+              {/* Email Field */}
+              <div className="group animate-slide-up delay-900">
+                <label className="block text-lg font-semibold text-gray-700 mb-3 
+                                 group-focus-within:text-blue-600 transition-colors duration-300">
+                  Email Address
+                </label>
+                <div className="relative">
+                  <input
+                    type="email"
+                    name="email"
+                    value={user.email}
+                    onChange={handleChange}
+                    className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-base 
+                               focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100
+                               transition-all duration-300 bg-gray-50 hover:bg-white
+                               placeholder-gray-400"
+                    placeholder="Enter your email address"
+                  />
+                  <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/5 to-purple-500/5 
+                                  opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                </div>
+              </div>
+
+              {/* Password Fields */}
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="group animate-slide-up delay-1000">
+                  <label className="block text-lg font-semibold text-gray-700 mb-3 
+                                   group-focus-within:text-blue-600 transition-colors duration-300">
+                    Current Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="password"
+                      name="oldPassword"
+                      value={user.oldPassword}
+                      onChange={handleChange}
+                      className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-base 
+                                 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100
+                                 transition-all duration-300 bg-gray-50 hover:bg-white
+                                 placeholder-gray-400"
+                      placeholder="Enter current password"
+                    />
+                    <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/5 to-purple-500/5 
+                                    opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                  </div>
+                </div>
+
+                <div className="group animate-slide-up delay-1100">
+                  <label className="block text-lg font-semibold text-gray-700 mb-3 
+                                   group-focus-within:text-blue-600 transition-colors duration-300">
+                    New Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="password"
+                      name="newPassword"
+                      value={user.newPassword}
+                      onChange={handleChange}
+                      className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-base 
+                                 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100
+                                 transition-all duration-300 bg-gray-50 hover:bg-white
+                                 placeholder-gray-400"
+                      placeholder="Enter new password"
+                    />
+                    <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/5 to-purple-500/5 
+                                    opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4 pt-6 animate-slide-up delay-1200">
+                <button
+                  type="submit"
+                  className={`flex-1 py-3 px-6 rounded-xl font-semibold text-lg transition-all duration-300 
+                             transform hover:scale-105 shadow-lg hover:shadow-xl
+                             ${loading 
+                               ? "bg-gray-400 cursor-not-allowed" 
+                               : "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white"
+                             }`}
+                  disabled={loading}
+                  onClick={handleUpdate}
+                >
+                  {loading ? (
+                    <div className="flex items-center justify-center space-x-2">
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Updating...</span>
+                    </div>
+                  ) : (
+                    "Update Profile"
+                  )}
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={confirmDelete}
+                  className="flex-1 py-3 px-6 bg-gradient-to-r from-red-500 to-red-600 
+                             hover:from-red-600 hover:to-red-700 text-white font-semibold text-lg 
+                             rounded-xl transition-all duration-300 transform hover:scale-105 
+                             shadow-lg hover:shadow-xl"
+                  disabled={loading}
+                >
+                  {loading ? "Processing..." : "Delete Account"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
