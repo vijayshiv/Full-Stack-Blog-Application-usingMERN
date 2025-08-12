@@ -11,3 +11,9 @@ beautifulsoup4
 wikipedia-api
 requests
 lxml
+langchain
+langchain-groq
+langchain-community
+transformers
+torch
+huggingface_hub

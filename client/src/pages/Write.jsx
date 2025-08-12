@@ -130,19 +130,21 @@ const Write = () => {
               />
             </div>
             {/* AI Buttons Section */}
-            <div className="max-sm:mt-16 max-sm:justify-center mt-10 mb-4 flex justify-between items-center">
-              {/* Topic Summary Button - Left Aligned */}
+            <div className="mt-10 mb-4 flex justify-between items-center max-sm:mt-16 max-sm:flex-col max-sm:space-y-3">
+              {/* Topic Summary Button - Top on Mobile */}
               <button
                 onClick={() => setIsTopicSummaryModalOpen(true)}
-                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm shadow-md"
+                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm shadow-md
+               max-sm:px-2 max-sm:py-1 max-sm:text-xs"
               >
                 📖 Topic Summary
               </button>
-              
-              {/* AI Rephrase Button - Right Aligned */}
+
+              {/* AI Rephrase Button - Bottom on Mobile */}
               <button
                 onClick={handleRephrase}
-                className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors text-sm shadow-md"
+                className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors text-sm shadow-md
+               max-sm:px-2 max-sm:py-1 max-sm:text-xs"
               >
                 🤖 AI Rephrase Selected Text
               </button>

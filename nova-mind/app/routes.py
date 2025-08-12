@@ -9,6 +9,14 @@ from .schemas import (
     SummarizeResponse,
     TopicSummaryRequest,
     TopicSummaryResponse,
+    MultiHopQARequest,
+    MultiHopQAResponse,
+    AgentTaskRequest,
+    AgentTaskResponse,
+    ToolRequest,
+    ToolResponse,
+    AdvancedSummarizeRequest,
+    AdvancedSummarizeResponse,
 )
 from .config import config
 from .services import cache_service
@@ -61,11 +69,11 @@ def search_blog_posts(query, limit=5):
 
         # Search in title, content, and categories
         search_query = """
-        SELECT p.id, p.title, p.content, p.cat, p.img, p.date, u.username 
+        SELECT p.post_id, p.title, p.content, p.category, p.img, p.createdTimestamp as date, u.fullname as username 
         FROM posts p 
         JOIN users u ON p.user_id = u.id 
-        WHERE p.title LIKE %s OR p.content LIKE %s OR p.cat LIKE %s
-        ORDER BY p.date DESC
+        WHERE p.title LIKE %s OR p.content LIKE %s OR p.category LIKE %s
+        ORDER BY p.createdTimestamp DESC
         LIMIT %s
         """
 
@@ -80,7 +88,7 @@ def search_blog_posts(query, limit=5):
             # Calculate a simple relevance score based on query matches
             title_matches = query.lower() in post["title"].lower()
             content_matches = query.lower() in (post["content"] or "").lower()
-            category_matches = query.lower() in (post["cat"] or "").lower()
+            category_matches = query.lower() in (post["category"] or "").lower()
 
             # Simple scoring: title match = 0.5, content match = 0.3, category match = 0.2
             relevance_score = 0
@@ -92,17 +100,17 @@ def search_blog_posts(query, limit=5):
                 relevance_score += 0.2
 
             formatted_result = {
-                "id": str(post["id"]),
+                "id": str(post["post_id"]),
                 "title": post["title"],
                 "content": post["content"][:200] + "..."
                 if len(post["content"]) > 200
                 else post["content"],
-                "category": post["cat"],
+                "category": post["category"],
                 "author": post["username"],
                 "date": post["date"].strftime("%Y-%m-%d") if post["date"] else None,
                 "image": post["img"],
                 "source": "blog",
-                "url": f"/posts/{post['id']}",
+                "url": f"/posts/{post['post_id']}",
                 "relevance_score": relevance_score,
                 "priority": 1,  # Highest priority for blog posts
             }
@@ -166,8 +174,6 @@ def get_data_source_priority(metadata):
     source = metadata.get("source", "unknown")
     priorities = {
         "blog": 1,  # Highest priority - our own content
-        "stackoverflow": 2,  # High priority - technical Q&A
-        "wikipedia": 3,  # Lower priority - general knowledge
     }
     return priorities.get(source, 999)
 
@@ -182,26 +188,6 @@ def format_search_result(metadata, source_type):
             "source": "blog",
             "chunk_info": f"{metadata.get('chunk_index', 0) + 1}/{metadata.get('total_chunks', 1)}",
         }
-    elif source_type == "stackoverflow":
-        return {
-            "id": metadata.get("question_id", ""),
-            "title": metadata.get("title", ""),
-            "tags": metadata.get("tags", "").split(", ")
-            if metadata.get("tags")
-            else [],  # Convert string back to list
-            "score": metadata.get("score", 0),
-            "source": "stackoverflow",
-            "url": metadata.get("url", ""),
-            "chunk_info": f"{metadata.get('chunk_index', 0) + 1}/{metadata.get('total_chunks', 1)}",
-        }
-    elif source_type == "wikipedia":
-        return {
-            "title": metadata.get("title", ""),
-            "topic": metadata.get("topic", ""),
-            "source": "wikipedia",
-            "url": metadata.get("url", ""),
-            "chunk_info": f"{metadata.get('chunk_index', 0) + 1}/{metadata.get('total_chunks', 1)}",
-        }
     else:
         return {
             "title": metadata.get("title", "Unknown"),
@@ -213,69 +199,31 @@ def format_search_result(metadata, source_type):
 @router.post("/semantic-search")
 async def semantic_search(req: SemanticSearchRequest):
     try:
-        # 1. Search blog posts from database FIRST (highest priority)
+        # Only search blog posts from database (no external sources)
         blog_results = search_blog_posts(req.query, req.top_k)
-        logger.info(f"Found {len(blog_results)} blog results for query: '{req.query}'")
+        logger.info(f"Found {len(blog_results)} blog results for semantic search")
 
-        # 2. If we have enough blog results, return only those
-        if len(blog_results) >= req.top_k:
-            source_stats = {"blog": len(blog_results)}
-            logger.info(f"Returning only blog results: {source_stats}")
+        if not blog_results:
             return {
-                "results": blog_results[: req.top_k],
-                "source_distribution": source_stats,
-                "total_found": len(blog_results),
+                "results": [],
+                "source_distribution": {"blog": 0},
+                "total_found": 0,
+                "message": "No relevant blog posts found. Try different keywords or browse our categories.",
             }
 
-        # 3. If we have some blog results but not enough, fill with external sources
-        # 4. If we have no blog results, search external sources
-        remaining_slots = req.top_k - len(blog_results)
-        processed_results = blog_results.copy()  # Start with blog results
+        # Return only blog results
+        final_results = blog_results
 
-        if remaining_slots > 0:
-            # Search external content from ChromaDB only if needed
-            query_embedding = embedding_model.encode([req.query])[0]
+        source_stats = {"blog": len(final_results)}
 
-            chroma_results = chroma_collection.query(
-                query_embeddings=[query_embedding.tolist()],
-                n_results=remaining_slots * 2,  # Get more results to allow for sorting
-                include=["metadatas", "documents", "distances"],
-            )
-
-            # Process ChromaDB results
-            if chroma_results["metadatas"][0]:
-                for i, metadata in enumerate(chroma_results["metadatas"][0]):
-                    source_type = metadata.get("source", "unknown")
-                    distance = chroma_results["distances"][0][i]
-                    priority = get_data_source_priority(metadata)
-
-                    result = format_search_result(metadata, source_type)
-                    result["relevance_score"] = (
-                        1 - distance
-                    )  # Convert distance to similarity
-                    result["priority"] = priority
-
-                    processed_results.append(result)
-
-        # Sort by priority first, then by relevance score
-        processed_results.sort(key=lambda x: (x["priority"], -x["relevance_score"]))
-
-        # Return top k results
-        final_results = processed_results[: req.top_k]
-
-        # Group results by source for statistics
-        source_stats = {}
-        for result in final_results:
-            source = result["source"]
-            source_stats[source] = source_stats.get(source, 0) + 1
-
-        logger.info(f"Semantic search completed: {len(final_results)} total results")
-        logger.info(f"Source distribution: {source_stats}")
+        logger.info(
+            f"Semantic search completed: {len(final_results)} blog results only"
+        )
 
         return {
             "results": final_results,
             "source_distribution": source_stats,
-            "total_found": len(processed_results),
+            "total_found": len(final_results),
         }
 
     except Exception as e:
@@ -286,95 +234,201 @@ async def semantic_search(req: SemanticSearchRequest):
 @router.post("/qa", response_model=QAResponse)
 async def qa_endpoint(request: QARequest):
     try:
-        # 1. Embed the question
-        question_embedding = embedding_model.encode([request.question])[0]
+        question = request.question.lower()
 
-        # 2. Retrieve relevant chunks from all sources
-        results = chroma_collection.query(
-            query_embeddings=[question_embedding.tolist()],
-            n_results=request.top_k * 2,  # Get more results for better context
-            include=["metadatas", "documents", "distances"],
-        )
+        # Check if this is a site-specific question (best, trending, etc.)
+        if any(
+            keyword in question
+            for keyword in ["best", "trending", "popular", "most liked", "top"]
+        ):
+            return await handle_site_specific_question(request.question)
 
-        if not results["metadatas"][0]:
-            return {
-                "answer": "I don't have enough information to answer your question. Please try rephrasing or asking about topics covered in our blog."
-            }
+        # Check if this is a content idea request
+        if any(
+            keyword in question
+            for keyword in ["idea", "write about", "suggest", "topic", "content"]
+        ):
+            return await handle_content_idea_request(request.question)
 
-        # 3. Build context with source attribution and priority
-        context_parts = []
+        # Regular Q&A: Only use blog posts (no external sources)
+        # Search blog posts first
+        blog_results = search_blog_posts_for_qa(request.question, 3)
 
-        # Group results by source and priority
-        result_groups = []
-        for i, metadata in enumerate(results["metadatas"][0]):
-            source_type = metadata.get("source", "unknown")
-            distance = results["distances"][0][i]
-            priority = get_data_source_priority(metadata)
-            document = results["documents"][0][i]
-
-            result_groups.append(
-                {
-                    "metadata": metadata,
-                    "document": document,
-                    "distance": distance,
-                    "priority": priority,
-                    "source": source_type,
-                }
+        if blog_results:
+            # Generate answer from blog content
+            blog_context = "\n".join(
+                [
+                    f"[Blog: {post['title']}] {post['content'][:500]}"
+                    for post in blog_results
+                ]
             )
 
-        # Sort by priority and relevance
-        result_groups.sort(key=lambda x: (x["priority"], x["distance"]))
+            if len(blog_context) > MAX_CONTEXT_LENGTH:
+                blog_context = summarize_context(blog_context, config.GROQ_API_KEY)
 
-        # Build context with source diversity
-        total_context_length = 0
-        used_sources = set()
+            answer = await generate_answer_from_context(
+                request.question, blog_context, "blog"
+            )
 
-        for result in result_groups:
-            if total_context_length >= MAX_CONTEXT_LENGTH:
-                break
+            sources = [
+                {
+                    "title": post["title"],
+                    "type": "blog",
+                    "url": f"/posts/{post['post_id']}",
+                    "snippet": post["content"][:200] + "...",
+                }
+                for post in blog_results
+            ]
 
-            metadata = result["metadata"]
-            document = result["document"]
-            source_type = result["source"]
+            return {
+                "answer": answer,
+                "sources": sources,
+                "context_used": "blog_only",
+            }
 
-            # Format context based on source type
-            if source_type == "blog":
-                context_piece = (
-                    f"[Blog Post: {metadata.get('title', 'Untitled')}]\n{document}\n"
+        # If no relevant blog posts found
+        return {
+            "answer": "I don't have enough information to answer your question based on our blog content. Please try asking about topics covered in our blog posts, or consider asking for content ideas.",
+            "sources": [],
+            "context_used": "none",
+        }
+
+    except Exception as e:
+        logger.error(f"Error in QA: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"QA error: {str(e)}")
+
+
+# Helper functions for the new QA logic
+async def handle_site_specific_question(question: str):
+    """Handle questions about best/trending posts from the blog database"""
+    connection = get_db_connection()
+    if not connection:
+        return {
+            "answer": "I'm having trouble accessing the blog database right now. Please try again later.",
+            "sources": [],
+            "context_used": "database_error",
+        }
+
+    try:
+        cursor = connection.cursor(dictionary=True)
+
+        if any(keyword in question.lower() for keyword in ["trending", "popular"]):
+            # Get trending posts (recent posts with high engagement)
+            query = """
+            SELECT p.post_id, p.title, p.content, p.category, p.createdTimestamp as date, u.fullname as username,
+                   COUNT(pl.post_id) as likes_count
+            FROM posts p 
+            JOIN users u ON p.user_id = u.id 
+            LEFT JOIN post_likes pl ON p.post_id = pl.post_id
+            WHERE p.createdTimestamp >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+            GROUP BY p.post_id
+            ORDER BY likes_count DESC, p.createdTimestamp DESC
+            LIMIT 5
+            """
+            cursor.execute(query)
+            posts = cursor.fetchall()
+
+            if posts:
+                post_list = "\n".join(
+                    [
+                        f"• {post['title']} (Category: {post['category']}, Likes: {post['likes_count']})"
+                        for post in posts
+                    ]
                 )
-            elif source_type == "stackoverflow":
-                context_piece = f"[Stack Overflow: {metadata.get('title', 'Untitled')} - Score: {metadata.get('score', 0)}]\n{document}\n"
-            elif source_type == "wikipedia":
-                context_piece = (
-                    f"[Wikipedia: {metadata.get('title', 'Untitled')}]\n{document}\n"
-                )
+                answer = f"Here are the trending blog posts from the last 30 days:\n\n{post_list}"
             else:
-                context_piece = f"[{source_type.title()}: {metadata.get('title', 'Untitled')}]\n{document}\n"
+                answer = "I couldn't find any trending posts at the moment. Check back later!"
 
-            if total_context_length + len(context_piece) <= MAX_CONTEXT_LENGTH:
-                context_parts.append(context_piece)
-                used_sources.add(source_type)
-                total_context_length += len(context_piece)
+        elif any(keyword in question.lower() for keyword in ["best", "top"]):
+            # Get best posts by likes
+            query = """
+            SELECT p.post_id, p.title, p.content, p.category, p.createdTimestamp as date, u.fullname as username,
+                   COUNT(pl.post_id) as likes_count
+            FROM posts p 
+            JOIN users u ON p.user_id = u.id 
+            LEFT JOIN post_likes pl ON p.post_id = pl.post_id
+            GROUP BY p.post_id
+            ORDER BY likes_count DESC
+            LIMIT 5
+            """
+            cursor.execute(query)
+            posts = cursor.fetchall()
 
-        context = "\n".join(context_parts)
+            if posts:
+                post_list = "\n".join(
+                    [
+                        f"• {post['title']} (Category: {post['category']}, Likes: {post['likes_count']})"
+                        for post in posts
+                    ]
+                )
+                answer = f"Here are the best (most liked) blog posts:\n\n{post_list}"
+            else:
+                answer = "I couldn't find any posts with likes at the moment."
+        else:
+            answer = "I can help you find the best or trending posts on our blog. Try asking 'What are the best posts?' or 'What's trending?'"
 
-        # 4. Summarize context if still too long
-        if len(context) > MAX_CONTEXT_LENGTH:
-            context = summarize_context(context, config.GROQ_API_KEY)
+        cursor.close()
+        connection.close()
 
-        # 5. Build enhanced prompt with source awareness
-        source_info = ", ".join(used_sources) if used_sources else "our knowledge base"
+        return {
+            "answer": answer,
+            "sources": [
+                {
+                    "title": "Blog Database",
+                    "type": "blog",
+                    "url": "/",
+                    "snippet": "Site analytics",
+                }
+            ],
+            "context_used": "site_specific",
+        }
 
-        prompt = (
-            f"Answer the following question using the provided information from {source_info}. "
-            f"Be specific and mention the source type when relevant (blog post, Stack Overflow, Wikipedia). "
-            f"If the information is insufficient, say so honestly.\n\n"
-            f"Context:\n{context}\n\n"
-            f"Question: {request.question}\n\n"
-            f"Answer:"
+    except Exception as e:
+        logger.error(f"Database query error: {e}")
+        if connection:
+            connection.close()
+        return {
+            "answer": "I encountered an error while searching our blog posts. Please try again.",
+            "sources": [],
+            "context_used": "database_error",
+        }
+
+
+async def handle_content_idea_request(question: str):
+    """Handle content idea generation using LLM"""
+    try:
+        # Analyze existing blog categories for context
+        connection = get_db_connection()
+        categories = []
+
+        if connection:
+            cursor = connection.cursor()
+            cursor.execute(
+                "SELECT DISTINCT category FROM posts WHERE category IS NOT NULL"
+            )
+            categories = [row[0] for row in cursor.fetchall()]
+            cursor.close()
+            connection.close()
+
+        category_context = (
+            f"Our blog covers these topics: {', '.join(categories)}"
+            if categories
+            else ""
         )
 
-        # 6. Call Groq (Llama 3)
+        prompt = f"""You are a content strategist for a blog. The user is asking for content ideas.
+        
+        {category_context}
+        
+        User question: {question}
+        
+        Provide 3-5 specific, engaging blog post ideas that would be valuable for readers. Include:
+        - Catchy titles
+        - Brief description of what the post would cover
+        - Why it would be interesting to readers
+        
+        Format your response as a numbered list."""
+
         url = "https://api.groq.com/openai/v1/chat/completions"
         headers = {
             "Authorization": f"Bearer {config.GROQ_API_KEY}",
@@ -385,12 +439,12 @@ async def qa_endpoint(request: QARequest):
             "messages": [
                 {
                     "role": "system",
-                    "content": "You are a helpful AI assistant with access to multiple knowledge sources including blog posts, Stack Overflow Q&A, and Wikipedia articles. Provide accurate, helpful answers and cite the source types when relevant.",
+                    "content": "You are a creative content strategist who generates engaging blog post ideas.",
                 },
                 {"role": "user", "content": prompt},
             ],
-            "max_tokens": 400,
-            "temperature": 0.7,
+            "max_tokens": 500,
+            "temperature": 0.8,
         }
 
         resp = requests.post(url, headers=headers, json=payload, timeout=30)
@@ -398,25 +452,98 @@ async def qa_endpoint(request: QARequest):
         data = resp.json()
         answer = data["choices"][0]["message"]["content"].strip()
 
-        # Add metadata about sources used
-        response_data = {
+        return {
             "answer": answer,
-            "sources_used": list(used_sources),
-            "context_length": len(context),
-            "results_count": len(results["metadatas"][0]),
+            "sources": [
+                {
+                    "title": "AI Content Generator",
+                    "type": "ai",
+                    "url": "#",
+                    "snippet": "Creative writing assistance",
+                }
+            ],
+            "context_used": "content_ideas",
         }
 
-        return response_data
+    except Exception as e:
+        logger.error(f"Content idea generation error: {e}")
+        return {
+            "answer": "I'm having trouble generating content ideas right now. Try asking about specific topics you'd like to write about!",
+            "sources": [],
+            "context_used": "content_error",
+        }
+
+
+def search_blog_posts_for_qa(question: str, limit: int = 3):
+    """Search blog posts specifically for Q&A context"""
+    connection = get_db_connection()
+    if not connection:
+        return []
+
+    try:
+        cursor = connection.cursor(dictionary=True)
+
+        search_term = f"%{question}%"
+        query = """
+        SELECT post_id, title, content, category, createdTimestamp as date
+        FROM posts 
+        WHERE title LIKE %s OR content LIKE %s 
+        ORDER BY createdTimestamp DESC
+        LIMIT %s
+        """
+
+        cursor.execute(query, (search_term, search_term, limit))
+        results = cursor.fetchall()
+
+        cursor.close()
+        connection.close()
+
+        return results
 
     except Exception as e:
-        logger.error(f"Error in QA endpoint: {str(e)}")
-        # Fallback response
-        fallback_answer = (
-            "I'm experiencing technical difficulties accessing all knowledge sources. "
-            "Please try rephrasing your question or check back later. "
-            "For immediate assistance, you can browse our blog posts directly."
-        )
-        return {"answer": fallback_answer, "sources_used": [], "error": str(e)}
+        logger.error(f"Blog search error: {e}")
+        if connection:
+            connection.close()
+        return []
+
+
+async def generate_answer_from_context(question: str, context: str, source_type: str):
+    """Generate answer using LLM from provided context"""
+    try:
+        system_prompt = "You are a helpful assistant that answers questions based on blog content. Focus on the blog information provided and be specific about the content."
+
+        prompt = f"""Answer the following question using the provided context:
+
+Context:
+{context}
+
+Question: {question}
+
+Provide a helpful, accurate answer based on the context. If the context doesn't fully answer the question, say so."""
+
+        url = "https://api.groq.com/openai/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {config.GROQ_API_KEY}",
+            "Content-Type": "application/json",
+        }
+        payload = {
+            "model": "llama3-70b-8192",
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt},
+            ],
+            "max_tokens": 300,
+            "temperature": 0.7,
+        }
+
+        resp = requests.post(url, headers=headers, json=payload, timeout=30)
+        resp.raise_for_status()
+        data = resp.json()
+        return data["choices"][0]["message"]["content"].strip()
+
+    except Exception as e:
+        logger.error(f"Answer generation error: {e}")
+        return "I'm having trouble generating an answer right now. Please try rephrasing your question."
 
 
 @router.post("/rephrase-openai", response_model=RephraseResponse)
@@ -561,8 +688,8 @@ async def topic_summary(request: TopicSummaryRequest):
                 "total_sources_found": 0,
             }
 
-        # 2. Group and prioritize content by source
-        source_content = {"blog": [], "stackoverflow": [], "wikipedia": []}
+        # 2. Group and prioritize content by source (blog only)
+        source_content = {"blog": []}
         all_content = []
         sources_used = set()
 
@@ -571,7 +698,10 @@ async def topic_summary(request: TopicSummaryRequest):
             document = results["documents"][0][i]
             distance = results["distances"][0][i]
 
-            if distance < 0.7:  # Only include relevant content
+            # Only include blog content
+            if (
+                source_type == "blog" and distance < 0.7
+            ):  # Only include relevant content
                 content_item = {
                     "source": source_type,
                     "title": metadata.get("title", "Untitled"),
@@ -582,9 +712,7 @@ async def topic_summary(request: TopicSummaryRequest):
 
                 all_content.append(content_item)
                 sources_used.add(source_type)
-
-                if source_type in source_content:
-                    source_content[source_type].append(content_item)
+                source_content[source_type].append(content_item)
 
         if not all_content:
             return {
@@ -605,8 +733,6 @@ async def topic_summary(request: TopicSummaryRequest):
         for item in all_content[: request.max_sources]:
             source_label = {
                 "blog": "Blog Post",
-                "stackoverflow": "Stack Overflow",
-                "wikipedia": "Wikipedia",
             }.get(item["source"], item["source"].title())
 
             content_piece = f"[{source_label}: {item['title']}]\n{item['content']}\n\n"
@@ -715,3 +841,145 @@ async def root():
         "message": "Nova-Mind AI Service",
         "endpoints": ["/rephrase-openai", "/rephrase-groq", "/health"],
     }
+
+
+# Advanced Features Endpoints
+
+
+@router.post("/multi-hop-qa", response_model=MultiHopQAResponse)
+async def multi_hop_qa(request: MultiHopQARequest):
+    """Multi-hop reasoning Q&A endpoint"""
+    try:
+        from .advanced_services import advanced_ai_service
+
+        result = await advanced_ai_service.multi_hop_qa(
+            question=request.question,
+            user_id=request.user_id,
+            max_hops=request.max_hops,
+        )
+
+        return {
+            "answer": result["answer"],
+            "reasoning_steps": result["reasoning_steps"]
+            if request.include_reasoning
+            else [],
+            "sources": result["sources"],
+            "total_hops": result["total_hops"],
+        }
+
+    except Exception as e:
+        logger.error(f"Multi-hop QA error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Multi-hop QA error: {str(e)}")
+
+
+@router.post("/agent-task", response_model=AgentTaskResponse)
+async def agent_task(request: AgentTaskRequest):
+    """Agentic workflow task execution endpoint"""
+    try:
+        from .advanced_services import advanced_ai_service
+
+        result = await advanced_ai_service.agent_task(
+            task=request.task, user_id=request.user_id, context=request.context
+        )
+
+        return {
+            "result": result["result"],
+            "steps_taken": result["steps_taken"],
+            "sources": result["sources"],
+            "execution_time": result["execution_time"],
+        }
+
+    except Exception as e:
+        logger.error(f"Agent task error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Agent task error: {str(e)}")
+
+
+@router.post("/tool-execute", response_model=ToolResponse)
+async def execute_tool(request: ToolRequest):
+    """Execute a specific tool"""
+    try:
+        from .advanced_services import advanced_ai_service
+
+        # Get the tool by name
+        tool = None
+        for available_tool in advanced_ai_service.tools:
+            if available_tool.name == request.tool_name:
+                tool = available_tool
+                break
+
+        if not tool:
+            return {
+                "result": None,
+                "tool_used": request.tool_name,
+                "success": False,
+                "error_message": f"Tool '{request.tool_name}' not found",
+            }
+
+        # Execute the tool
+        query = request.parameters.get("query", "")
+        result = tool._run(query)
+
+        return {
+            "result": result,
+            "tool_used": request.tool_name,
+            "success": True,
+            "error_message": None,
+        }
+
+    except Exception as e:
+        logger.error(f"Tool execution error: {str(e)}")
+        return {
+            "result": None,
+            "tool_used": request.tool_name,
+            "success": False,
+            "error_message": str(e),
+        }
+
+
+@router.post("/advanced-summarize", response_model=AdvancedSummarizeResponse)
+async def advanced_summarize(request: AdvancedSummarizeRequest):
+    """Advanced summarization with Hugging Face models"""
+    try:
+        from .advanced_services import advanced_ai_service
+
+        result = await advanced_ai_service.advanced_summarize(
+            text=request.text,
+            style=request.style,
+            target_audience=request.target_audience,
+            length=request.length,
+            include_keywords=request.include_keywords,
+            tone=request.tone,
+        )
+
+        return {
+            "summary": result["summary"],
+            "original_length": result["original_length"],
+            "summary_length": result["summary_length"],
+            "style_used": result["style_used"],
+            "target_audience": result["target_audience"],
+            "keywords_included": result["keywords_included"],
+            "confidence_score": result["confidence_score"],
+        }
+
+    except Exception as e:
+        logger.error(f"Advanced summarization error: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Advanced summarization error: {str(e)}"
+        )
+
+
+@router.get("/available-tools")
+async def get_available_tools():
+    """Get list of available tools"""
+    try:
+        from .advanced_services import advanced_ai_service
+
+        tools_info = []
+        for tool in advanced_ai_service.tools:
+            tools_info.append({"name": tool.name, "description": tool.description})
+
+        return {"tools": tools_info, "total_tools": len(tools_info)}
+
+    except Exception as e:
+        logger.error(f"Tools listing error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Tools listing error: {str(e)}")

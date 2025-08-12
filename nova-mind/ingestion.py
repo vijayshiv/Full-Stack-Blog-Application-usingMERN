@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 """
-Simplified Nova-Mind Data Ingestion System
-All-in-one script for ingesting data from multiple sources into ChromaDB
+Blog-Only Nova-Mind Data Ingestion System
+Simplified script for ingesting only blog posts into ChromaDB
 """
 
 import logging
 import mysql.connector
-import requests
-import wikipediaapi as wikipedia
 from bs4 import BeautifulSoup
 from sentence_transformers import SentenceTransformer
 import chromadb
@@ -20,7 +18,7 @@ logger = logging.getLogger(__name__)
 # Configuration
 CHROMA_DB_PATH = "./chroma_db"
 MODEL_NAME = "all-MiniLM-L6-v2"
-COLLECTION_NAME = "nova_knowledge_base"
+COLLECTION_NAME = "knowledge_base"  # Updated to match your existing collection name
 
 # Database configuration (you can modify these)
 DB_CONFIG = {
@@ -31,12 +29,12 @@ DB_CONFIG = {
 }
 
 
-class NovaIngestion:
-    """Simplified ingestion system for Nova-Mind RAG"""
+class BlogIngestion:
+    """Blog-only ingestion system for Nova-Mind RAG"""
 
     def __init__(self):
         """Initialize the ingestion system"""
-        print("🚀 Initializing Nova-Mind Ingestion System...")
+        print("🚀 Initializing Blog-Only Ingestion System...")
 
         # Initialize embedding model
         self.model = SentenceTransformer(MODEL_NAME)
@@ -44,11 +42,6 @@ class NovaIngestion:
         # Initialize ChromaDB
         self.client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
         self.collection = self.client.get_or_create_collection(name=COLLECTION_NAME)
-
-        # Initialize Wikipedia API
-        self.wiki = wikipedia.Wikipedia(
-            language="en", user_agent="NovaRAG/1.0 (https://example.com/contact)"
-        )
 
         print("✅ Initialization complete!")
 
@@ -101,135 +94,37 @@ class NovaIngestion:
                                 "source": "blog",
                                 "title": post["title"],
                                 "category": post["category"],
+                                "post_id": post["post_id"],
                                 "type": "blog_post",
+                                "chunk_index": i,
+                                "total_chunks": len(chunks),
                             }
                         ],
                     )
                     total_chunks += 1
 
             conn.close()
-            print(f"✅ Ingested {total_chunks} blog post chunks")
+            print(
+                f"✅ Ingested {total_chunks} blog post chunks from {len(posts)} posts"
+            )
             return total_chunks
 
         except Exception as e:
             print(f"❌ Blog ingestion failed: {str(e)}")
             return 0
 
-    def ingest_wikipedia(self, topics: List[str], max_articles: int = 2) -> int:
-        """Ingest Wikipedia articles"""
-        print(f"\n🌐 Ingesting Wikipedia articles for {len(topics)} topics...")
-
-        total_chunks = 0
-
-        for topic in topics:
-            try:
-                # Get Wikipedia page
-                page = self.wiki.page(topic)
-                if not page.exists():
-                    print(f"⚠️ Wikipedia page not found: {topic}")
-                    continue
-
-                # Create chunks
-                chunks = self.chunk_text(page.text)
-
-                for i, chunk in enumerate(chunks):
-                    if len(chunk.strip()) < 50:
-                        continue
-
-                    # Create embedding
-                    embedding = self.model.encode([chunk])[0].tolist()
-
-                    # Add to ChromaDB
-                    self.collection.add(
-                        embeddings=[embedding],
-                        documents=[chunk],
-                        ids=[f"wiki_{topic.replace(' ', '_')}_{i}"],
-                        metadatas=[
-                            {
-                                "source": "wikipedia",
-                                "title": page.title,
-                                "topic": topic,
-                                "type": "encyclopedia",
-                            }
-                        ],
-                    )
-                    total_chunks += 1
-
-                print(f"   ✅ {page.title}: {len(chunks)} chunks")
-
-            except Exception as e:
-                print(f"   ❌ Failed to ingest {topic}: {str(e)}")
-                continue
-
-        print(f"✅ Ingested {total_chunks} Wikipedia chunks")
-        return total_chunks
-
-    def ingest_stackoverflow(self, tags: List[str], max_questions: int = 20) -> int:
-        """Ingest Stack Overflow questions"""
-        print(f"\n💬 Ingesting Stack Overflow Q&A for {len(tags)} tags...")
-
-        total_chunks = 0
-
-        for tag in tags:
-            try:
-                # Fetch questions from Stack Exchange API
-                url = "https://api.stackexchange.com/2.3/questions"
-                params = {
-                    "order": "desc",
-                    "sort": "votes",
-                    "tagged": tag,
-                    "site": "stackoverflow",
-                    "pagesize": max_questions,
-                    "filter": "withbody",
-                }
-
-                response = requests.get(url, params=params)
-                response.raise_for_status()
-                data = response.json()
-
-                for question in data.get("items", []):
-                    # Clean HTML content
-                    soup = BeautifulSoup(question.get("body", ""), "html.parser")
-                    clean_body = soup.get_text(separator=" ", strip=True)
-
-                    # Combine title and body
-                    full_text = f"Q: {question['title']}\n\n{clean_body}"
-
-                    # Create chunks
-                    chunks = self.chunk_text(full_text)
-
-                    for i, chunk in enumerate(chunks):
-                        if len(chunk.strip()) < 50:
-                            continue
-
-                        # Create embedding
-                        embedding = self.model.encode([chunk])[0].tolist()
-
-                        # Add to ChromaDB
-                        self.collection.add(
-                            embeddings=[embedding],
-                            documents=[chunk],
-                            ids=[f"so_{question['question_id']}_{i}"],
-                            metadatas=[
-                                {
-                                    "source": "stackoverflow",
-                                    "title": question["title"],
-                                    "tags": tag,
-                                    "score": question.get("score", 0),
-                                    "type": "qa",
-                                }
-                            ],
-                        )
-                        total_chunks += 1
-
-                print(f"   ✅ {tag}: {len(data.get('items', []))} questions")
-
-            except Exception as e:
-                print(f"   ❌ Failed to ingest {tag}: {str(e)}")
-                continue
-
-        print(f"✅ Ingested {total_chunks} Stack Overflow chunks")
-        return total_chunks
+    def clear_existing_data(self):
+        """Clear all existing data in the collection"""
+        try:
+            # Get all IDs
+            all_data = self.collection.get()
+            if all_data["ids"]:
+                self.collection.delete(ids=all_data["ids"])
+                print(f"🗑️ Cleared {len(all_data['ids'])} existing documents")
+            else:
+                print("📝 Collection is already empty")
+        except Exception as e:
+            print(f"⚠️ Could not clear existing data: {str(e)}")
 
     def get_stats(self) -> Dict[str, Any]:
         """Get collection statistics"""
@@ -239,98 +134,85 @@ class NovaIngestion:
             # Get sample to check sources
             sample = self.collection.get(limit=min(100, count))
             sources = {}
+            categories = {}
 
             for metadata in sample["metadatas"]:
                 source = metadata.get("source", "unknown")
-                sources[source] = sources.get(source, 0) + 1
+                category = metadata.get("category", "unknown")
 
-            return {"total_documents": count, "sources": sources}
+                sources[source] = sources.get(source, 0) + 1
+                categories[category] = categories.get(category, 0) + 1
+
+            return {
+                "total_documents": count,
+                "sources": sources,
+                "categories": categories,
+            }
         except Exception as e:
             print(f"⚠️ Could not retrieve stats: {str(e)}")
-            return {"total_documents": 0, "sources": {}}
+            return {"total_documents": 0, "sources": {}, "categories": {}}
 
-    def run_full_ingestion(self) -> bool:
-        """Run complete ingestion from all sources"""
-        print("🚀 Starting Complete Data Ingestion")
-        print("=" * 60)
+    def run_blog_ingestion(self, clear_first: bool = True) -> bool:
+        """Run blog-only ingestion"""
+        print("🚀 Starting Blog Data Ingestion")
+        print("=" * 50)
 
-        total_ingested = 0
-        failed_sources = []
+        if clear_first:
+            self.clear_existing_data()
 
-        # 1. Blog Posts
+        # Ingest blog posts
         try:
             blog_count = self.ingest_blog_posts()
-            total_ingested += blog_count
-        except Exception as e:
-            failed_sources.append(f"Blog Posts: {str(e)}")
 
-        # 2. Wikipedia
-        try:
-            wiki_topics = [
-                "Python programming language",
-                "JavaScript",
-                "Web development",
-                "Machine learning",
-                "Artificial intelligence",
-                "React (JavaScript library)",
-                "Node.js",
-                "Database",
-                "API",
-                "Software engineering",
-            ]
-            wiki_count = self.ingest_wikipedia(wiki_topics)
-            total_ingested += wiki_count
-        except Exception as e:
-            failed_sources.append(f"Wikipedia: {str(e)}")
+            if blog_count == 0:
+                print("⚠️ No blog posts were ingested!")
+                return False
 
-        # 3. Stack Overflow
-        try:
-            so_tags = [
-                "python",
-                "javascript",
-                "react",
-                "nodejs",
-                "web-development",
-                "api",
-                "database",
-            ]
-            so_count = self.ingest_stackoverflow(so_tags)
-            total_ingested += so_count
         except Exception as e:
-            failed_sources.append(f"Stack Overflow: {str(e)}")
+            print(f"❌ Blog ingestion failed: {str(e)}")
+            return False
 
         # Summary
-        print("\n" + "=" * 60)
+        print("\n" + "=" * 50)
         print("📊 INGESTION SUMMARY")
-        print("=" * 60)
-        print(f"✅ Total chunks ingested: {total_ingested}")
-
-        if failed_sources:
-            print(f"❌ Failed sources ({len(failed_sources)}):")
-            for source in failed_sources:
-                print(f"   • {source}")
-        else:
-            print("🎉 All sources completed successfully!")
+        print("=" * 50)
+        print(f"✅ Total chunks ingested: {blog_count}")
 
         # Final stats
         stats = self.get_stats()
         print("\n📈 Knowledge Base Statistics:")
         print(f"   Total documents: {stats['total_documents']}")
-        for source, count in stats["sources"].items():
-            print(f"   {source}: {count} documents")
 
-        return len(failed_sources) == 0
+        if stats["categories"]:
+            print("   Categories found:")
+            for category, count in stats["categories"].items():
+                print(f"     - {category}: {count} chunks")
+
+        print("🎉 Blog ingestion completed successfully!")
+        return True
 
 
 def main():
     """Main function"""
     try:
-        ingester = NovaIngestion()
-        success = ingester.run_full_ingestion()
+        print("🤖 Nova Mind - Blog Knowledge Base Ingestion")
+        print("=" * 50)
+
+        ingester = BlogIngestion()
+        success = ingester.run_blog_ingestion(clear_first=True)
+
+        if success:
+            print("\n✨ Knowledge base is ready for use!")
+        else:
+            print("\n❌ Ingestion failed!")
+
         exit(0 if success else 1)
 
     except Exception as e:
         print(f"❌ Critical error: {str(e)}")
+        import traceback
+
+        traceback.print_exc()
         exit(1)
 
 
