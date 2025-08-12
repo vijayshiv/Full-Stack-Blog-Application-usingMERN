@@ -3,7 +3,9 @@ import axios from "axios";
 import { Link, useLocation } from "react-router-dom";
 import { useMediaQuery } from "react-responsive";
 import { FaChevronLeft, FaChevronRight, FaSearch, FaTimes, FaSpinner } from "react-icons/fa";
+import { Brain } from "lucide-react";
 import baseURL from "../config/apiURL";
+import { aiAPI } from "../config/aiApi";
 
 export default function Home() {
   const [posts, setPosts] = useState([]);
@@ -12,30 +14,77 @@ export default function Home() {
   const [searchResults, setSearchResults] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [postsPerPage] = useState(6);
+  const [isSemanticSearch, setIsSemanticSearch] = useState(false);
   const location = useLocation();
   const category = new URLSearchParams(location.search).get("cat");
 
   const isMobile = useMediaQuery({ maxWidth: 768 });
   const isMediumOrAbove = useMediaQuery({ minWidth: 769 });
 
-    // Search function definition
+  // Search function definition
   const performSearch = useCallback(async (term) => {
     try {
       setIsSearching(true);
-      console.log(`🔍 Searching for: "${term}"`);
+      console.log(`🔍 ${isSemanticSearch ? 'Semantic' : 'Regular'} searching for: "${term}"`);
       
-      // Use regular search
-      const url = `${baseURL}/posts/search?q=${encodeURIComponent(term)}`;
-      const res = await axios.get(url);
-      
-      console.log("🔍 Search response:", res.data);
-      
-      if (res.data.status === "success") {
-        const searchData = res.data.data;
-        setSearchResults(searchData);
-        setPosts([]); // Clear regular posts when showing search results
+      if (isSemanticSearch) {
+        // Use AI semantic search
+        const response = await aiAPI.semanticSearch(term, 10);
+        if (response.status === 'success') {
+          // Transform semantic search results to match post structure
+          const transformedResults = response.data.results?.map(result => {
+            // Handle blog posts differently from external sources
+            if (result.source === 'blog') {
+              return {
+                post_id: result.id,
+                title: result.title,
+                content: result.content,
+                category: result.category,
+                user_name: result.author,
+                img: result.image,
+                date: result.date,
+                score: result.relevance_score,
+                source: 'blog',
+                isExternal: false
+              };
+            } else {
+              // Handle external sources (Wikipedia, Stack Overflow) - these should not be clickable as blog posts
+              return {
+                post_id: `external-${result.id || Math.random()}`,
+                title: result.title || 'External Result',
+                content: `Source: ${result.source}\n${result.content || 'Click the link below to view the full content.'}`,
+                category: result.tags?.join(', ') || result.topic || result.source,
+                user_name: result.source === 'stackoverflow' ? 'Stack Overflow' : 'Wikipedia',
+                img: null,
+                date: new Date().toISOString(),
+                score: result.relevance_score,
+                source: result.source,
+                external_url: result.url,
+                isExternal: true
+              };
+            }
+          }) || [];
+          
+          console.log("🔍 Transformed semantic search results:", transformedResults);
+          setSearchResults(transformedResults);
+          setPosts([]); // Clear regular posts when showing search results
+        } else {
+          setSearchResults([]);
+        }
       } else {
-        setSearchResults([]);
+        // Use regular search
+        const url = `${baseURL}/posts/search?q=${encodeURIComponent(term)}`;
+        const res = await axios.get(url);
+        
+        console.log("🔍 Search response:", res.data);
+        
+        if (res.data.status === "success") {
+          const searchData = res.data.data;
+          setSearchResults(searchData);
+          setPosts([]); // Clear regular posts when showing search results
+        } else {
+          setSearchResults([]);
+        }
       }
     } catch (error) {
       console.error("Error searching posts:", error);
@@ -43,7 +92,7 @@ export default function Home() {
     } finally {
       setIsSearching(false);
     }
-  }, []);
+  }, [isSemanticSearch]);
 
   const fetchAllPosts = useCallback(async () => {
     try {
@@ -189,16 +238,17 @@ export default function Home() {
           style={{ flexDirection: flexDirection }}
         >
           <div className={imageWrapperClass}>
-            {!post.img ? (
+            {post.isExternal || !post.img ? (
               <div className={`${
                 isMediumOrAbove
                   ? "mt-12 mr-20 relative z-10 h-[350px] w-[820px] rounded-sm shadow-lg flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100"
                   : "mx-auto mb-4 h-48 w-full max-w-sm rounded-sm shadow-md flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100"
               }`}>
                 <div className="text-center p-6">
-                  <div className="text-3xl mb-2">📝</div>
+                  <div className="text-3xl mb-2">🌐</div>
                   <div className="text-lg font-semibold text-gray-700">
-                    Blog Post
+                    {post.source === 'stackoverflow' ? 'Stack Overflow' : 
+                     post.source === 'wikipedia' ? 'Wikipedia' : 'External Source'}
                   </div>
                 </div>
               </div>
@@ -225,7 +275,20 @@ export default function Home() {
                 : "px-10 text-xs md:text-lg lg:text-xl text-justify flex-grow"
             }`}
           >
-            <Link to={`/post/${post.post_id}`}>
+            {post.isExternal ? (
+              <a href={post.external_url} target="_blank" rel="noopener noreferrer">
+                <h1
+                  className={`${
+                    isMobile
+                      ? "text-xl font-bold mt-4 mb-4 text-center hover:text-blue-600"
+                      : "text-xl md:text-2xl font-bold lg:text-4xl mt-4 py-10 px-14 hover:text-blue-600"
+                  } transition-colors`}
+                >
+                  {post.title} 🔗
+                </h1>
+              </a>
+            ) : (
+              <Link to={`/post/${post.post_id}`}>
                 <h1
                   className={`${
                     isMobile
@@ -236,6 +299,7 @@ export default function Home() {
                   {post.title}
                 </h1>
               </Link>
+            )}
             <div
               className={`${
                 isMobile 
@@ -253,6 +317,19 @@ export default function Home() {
                   : `flex ${buttonAlignment} mr-10 mb-10 px-14`
               }`}
             >
+              {post.isExternal ? (
+                <a href={post.external_url} target="_blank" rel="noopener noreferrer">
+                  <button
+                    className={`${
+                      isMobile
+                        ? "px-2 py-2 text-sm"
+                        : "px-4 py-2 mt-4 text-sm md:text-lg"
+                    } border-2 border-solid border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white transition-colors`}
+                  >
+                    View Source 🔗
+                  </button>
+                </a>
+              ) : (
                 <Link to={`/post/${post.post_id}`}>
                   <button
                     className={`${
@@ -264,6 +341,7 @@ export default function Home() {
                     Read More
                   </button>
                 </Link>
+              )}
             </div>
           </div>
         </div>
@@ -293,22 +371,37 @@ export default function Home() {
   return (
     <div>
       <div className="p-4 flex flex-col items-center">
-        {/* Search Box */}
+        {/* Unified Search Box with Toggle */}
         <div className="relative w-[95%] md:w-1/2 max-w-lg">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <FaSearch className="text-gray-400" />
           </div>
           <input
             type="text"
-            placeholder="Search by title, category, or content..."
+            placeholder={isSemanticSearch ? "AI Semantic Search..." : "Search by title, category, or content..."}
             value={searchTerm}
             onChange={handleSearchChange}
-            className="w-full pl-10 pr-20 py-2 border rounded-md shadow-md focus:outline-none focus:border-blue-500"
+            className={`w-full pl-10 pr-20 py-2 border rounded-md shadow-md focus:outline-none ${
+              isSemanticSearch 
+                ? 'focus:border-green-500 border-green-300' 
+                : 'focus:border-blue-500'
+            }`}
           />
           <div className="absolute inset-y-0 right-0 flex items-center pr-3">
             {isSearching && (
               <FaSpinner className="animate-spin text-gray-400 mr-2" />
             )}
+            <button
+              onClick={() => setIsSemanticSearch(!isSemanticSearch)}
+              className={`p-1 rounded mr-2 transition-colors ${
+                isSemanticSearch 
+                  ? 'text-green-600 hover:text-green-700 bg-green-50' 
+                  : 'text-gray-400 hover:text-gray-600'
+              }`}
+              title={isSemanticSearch ? "Switch to Regular Search" : "Switch to AI Semantic Search"}
+            >
+              <Brain className="w-4 h-4" />
+            </button>
             {searchTerm && (
               <button
                 onClick={clearSearch}
@@ -322,8 +415,8 @@ export default function Home() {
         {searchTerm && (
           <div className="mt-2 text-sm text-gray-600 text-center">
             {isSearching 
-              ? "Searching..." 
-              : `Found ${postsToDisplay.length} results`
+              ? (isSemanticSearch ? "AI Searching..." : "Searching...") 
+              : `Found ${postsToDisplay.length} results ${isSemanticSearch ? '(AI Search)' : ''}`
             }
           </div>
         )}

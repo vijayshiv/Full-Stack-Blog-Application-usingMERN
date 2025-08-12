@@ -64,7 +64,7 @@ const Navbar = () => {
 
   return (
     <>
-      <header className="sticky z-30 top-0">
+      <header className="sticky z-50 top-0">
         <nav className="bg-white border-gray-800 px-4 lg:px-6 py-2.5">
           <div className="flex flex-wrap justify-between items-center mx-auto max-w-screen-xl">
             {/* Logo */}
@@ -161,7 +161,7 @@ const Navbar = () => {
                     </button>
 
                     {isUserDropdownOpen && (
-                      <ul className="absolute right-0 bg-white border border-gray-200 rounded-lg mt-2 py-1 w-32 md:w-40 z-40 shadow-lg">
+                      <ul className="absolute right-0 bg-white border border-gray-200 rounded-lg mt-2 py-1 w-32 md:w-40 z-50 shadow-lg">
                         <li>
                           <NavLink
                             to="/profile"

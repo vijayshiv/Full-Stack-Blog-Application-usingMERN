@@ -18,8 +18,8 @@ import openai
 import requests
 import logging
 import mysql.connector
-from sklearn.metrics.pairwise import cosine_similarity
-import numpy as np
+# from sklearn.metrics.pairwise import cosine_similarity
+# import numpy as np
 
 router = APIRouter()
 
@@ -213,25 +213,69 @@ def format_search_result(metadata, source_type):
 @router.post("/semantic-search")
 async def semantic_search(req: SemanticSearchRequest):
     try:
-        # Search ONLY blog posts from your MySQL database
+        # 1. Search blog posts from database FIRST (highest priority)
         blog_results = search_blog_posts(req.query, req.top_k)
         logger.info(f"Found {len(blog_results)} blog results for query: '{req.query}'")
 
+        # 2. If we have enough blog results, return only those
+        if len(blog_results) >= req.top_k:
+            source_stats = {"blog": len(blog_results)}
+            logger.info(f"Returning only blog results: {source_stats}")
+            return {
+                "results": blog_results[: req.top_k],
+                "source_distribution": source_stats,
+                "total_found": len(blog_results),
+            }
+
+        # 3. If we have some blog results but not enough, fill with external sources
+        # 4. If we have no blog results, search external sources
+        remaining_slots = req.top_k - len(blog_results)
+        processed_results = blog_results.copy()  # Start with blog results
+
+        if remaining_slots > 0:
+            # Search external content from ChromaDB only if needed
+            query_embedding = embedding_model.encode([req.query])[0]
+
+            chroma_results = chroma_collection.query(
+                query_embeddings=[query_embedding.tolist()],
+                n_results=remaining_slots * 2,  # Get more results to allow for sorting
+                include=["metadatas", "documents", "distances"],
+            )
+
+            # Process ChromaDB results
+            if chroma_results["metadatas"][0]:
+                for i, metadata in enumerate(chroma_results["metadatas"][0]):
+                    source_type = metadata.get("source", "unknown")
+                    distance = chroma_results["distances"][0][i]
+                    priority = get_data_source_priority(metadata)
+
+                    result = format_search_result(metadata, source_type)
+                    result["relevance_score"] = (
+                        1 - distance
+                    )  # Convert distance to similarity
+                    result["priority"] = priority
+
+                    processed_results.append(result)
+
+        # Sort by priority first, then by relevance score
+        processed_results.sort(key=lambda x: (x["priority"], -x["relevance_score"]))
+
+        # Return top k results
+        final_results = processed_results[: req.top_k]
+
         # Group results by source for statistics
         source_stats = {}
-        for result in blog_results:
+        for result in final_results:
             source = result["source"]
             source_stats[source] = source_stats.get(source, 0) + 1
 
-        logger.info(
-            f"Blog-only semantic search completed: {len(blog_results)} total results"
-        )
+        logger.info(f"Semantic search completed: {len(final_results)} total results")
         logger.info(f"Source distribution: {source_stats}")
 
         return {
-            "results": blog_results,
+            "results": final_results,
             "source_distribution": source_stats,
-            "total_found": len(blog_results),
+            "total_found": len(processed_results),
         }
 
     except Exception as e:
