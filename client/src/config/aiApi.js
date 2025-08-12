@@ -46,13 +46,13 @@ export const aiAPI = {
   },
 
   // Advanced Features - Multi-Hop Reasoning Q&A
-  multiHopQA: async (question, userId = null, maxHops = 3, includeReasoning = true) => {
+  multiHopQA: async (question, context = null, maxHops = 3, useContext = true) => {
     try {
       const response = await api.post('/ai/multi-hop-qa', {
         question,
-        user_id: userId,
+        context,
         max_hops: maxHops,
-        include_reasoning: includeReasoning
+        use_context: useContext
       });
       return response.data;
     } catch (error) {
@@ -60,14 +60,22 @@ export const aiAPI = {
     }
   },
 
-  // Advanced Features - Agentic Workflows
-  executeAgentTask: async (task, userId = null, context = null) => {
+  // Advanced Features - Agentic Workflows  
+  agent: async (query) => {
     try {
-      const response = await api.post('/ai/agent-task', {
-        task,
-        user_id: userId,
-        context
+      const response = await api.post('/ai/agent', {
+        query
       });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Simple QA endpoint
+  qa: async (question) => {
+    try {
+      const response = await api.post('/ai/qa', { question });
       return response.data;
     } catch (error) {
       throw error;

@@ -33,6 +33,17 @@ interface TopicSummaryRequest {
   topic: string;
 }
 
+interface MultiHopQARequest {
+  question: string;
+  context?: string;
+  max_hops?: number;
+  use_context?: boolean;
+}
+
+interface AgentRequest {
+  query: string;
+}
+
 /**
  * @route POST /api/ai/rephrase
  * @desc Rephrase text using AI service
@@ -286,6 +297,100 @@ router.post("/topic-summary", async (req: Request, res: Response) => {
         .status(error.response.status)
         .json(Utils.errorMessage(message));
     } else if (error.code === "ECONNREFUSED") {
+      return res
+        .status(503)
+        .json(Utils.errorMessage("AI service is currently unavailable"));
+    } else {
+      return res.status(500).json(Utils.errorMessage("Internal server error"));
+    }
+  }
+});
+
+/**
+ * @route POST /api/ai/multi-hop-qa
+ * @desc Multi-hop question answering using AI service
+ * @access Private
+ */
+router.post("/multi-hop-qa", async (req: Request, res: Response) => {
+  try {
+    const {
+      question,
+      context,
+      max_hops = 3,
+      use_context = true,
+    }: MultiHopQARequest = req.body;
+
+    // Validate input
+    if (!question) {
+      return res.status(400).json(Utils.errorMessage("Question is required"));
+    }
+
+    console.log(`Incoming request to /ai/multi-hop-qa`);
+
+    const response = await axios.post(
+      `${AI_SERVICE_URL}/multi-hop-qa`,
+      {
+        question,
+        context,
+        max_hops,
+        use_context,
+      },
+      {
+        timeout: 30000,
+      }
+    );
+
+    return res.status(200).json({
+      status: "success",
+      data: response.data,
+    });
+  } catch (error: any) {
+    console.error("Multi-hop QA error:", error);
+
+    if (error.code === "ECONNREFUSED") {
+      return res
+        .status(503)
+        .json(Utils.errorMessage("AI service is currently unavailable"));
+    } else {
+      return res.status(500).json(Utils.errorMessage("Internal server error"));
+    }
+  }
+});
+
+/**
+ * @route POST /api/ai/agent
+ * @desc AI agent for complex task execution
+ * @access Private
+ */
+router.post("/agent", async (req: Request, res: Response) => {
+  try {
+    const { query }: AgentRequest = req.body;
+
+    // Validate input
+    if (!query) {
+      return res.status(400).json(Utils.errorMessage("Query is required"));
+    }
+
+    console.log(`Incoming request to /ai/agent`);
+
+    const response = await axios.post(
+      `${AI_SERVICE_URL}/agent`,
+      {
+        query,
+      },
+      {
+        timeout: 30000,
+      }
+    );
+
+    return res.status(200).json({
+      status: "success",
+      data: response.data,
+    });
+  } catch (error: any) {
+    console.error("Agent error:", error);
+
+    if (error.code === "ECONNREFUSED") {
       return res
         .status(503)
         .json(Utils.errorMessage("AI service is currently unavailable"));

@@ -6,6 +6,8 @@ import { FaChevronLeft, FaChevronRight, FaSearch, FaTimes, FaSpinner } from "rea
 import { Brain } from "lucide-react";
 import baseURL from "../config/apiURL";
 import { aiAPI } from "../config/aiApi";
+import { PageLoader, SpinnerLoader, PostSkeleton } from "../components/Loader";
+import { FadeIn, SlideInUp, StaggeredList, HoverScale } from "../components/Animations";
 
 export default function Home() {
   const [posts, setPosts] = useState([]);
@@ -15,6 +17,8 @@ export default function Home() {
   const [currentPage, setCurrentPage] = useState(1);
   const [postsPerPage] = useState(6);
   const [isSemanticSearch, setIsSemanticSearch] = useState(false);
+  const [isPageLoading, setIsPageLoading] = useState(true);
+  const [isPostsLoading, setIsPostsLoading] = useState(false);
   const location = useLocation();
   const category = new URLSearchParams(location.search).get("cat");
 
@@ -96,7 +100,7 @@ export default function Home() {
 
   const fetchAllPosts = useCallback(async () => {
     try {
-      setIsSearching(true);
+      setIsPostsLoading(true);
       const url = `${baseURL}/posts/all`;
       const res = await axios.get(url);
       if (res.data.status === "success") {
@@ -107,13 +111,14 @@ export default function Home() {
     } catch (error) {
       console.log("Error fetching posts:", error);
     } finally {
-      setIsSearching(false);
+      setIsPostsLoading(false);
+      setIsPageLoading(false);
     }
   }, []);
 
   const fetchPostsByCategory = useCallback(async (cat) => {
     try {
-      setIsSearching(true);
+      setIsPostsLoading(true);
       const url = `${baseURL}/posts/by-category/${cat}`;
       const res = await axios.get(url);
       if (res.data.status === "success") {
@@ -124,7 +129,8 @@ export default function Home() {
     } catch (error) {
       console.log("Error fetching posts:", error);
     } finally {
-      setIsSearching(false);
+      setIsPostsLoading(false);
+      setIsPageLoading(false);
     }
   }, []);
 
@@ -142,12 +148,15 @@ export default function Home() {
     return array;
   };
 
-    // Debounced search function
+  // Debounced search function
   useEffect(() => {
+    if (!searchTerm.trim()) {
+      return;
+    }
+
     const searchTimeout = setTimeout(() => {
-      if (searchTerm.trim()) {
-        performSearch(searchTerm.trim());
-      }
+      console.log("🔍 Triggering search for:", searchTerm);
+      performSearch(searchTerm);
     }, 500);
 
     return () => clearTimeout(searchTimeout);
@@ -187,167 +196,212 @@ export default function Home() {
   };
 
   const renderPosts = () => {
+    if (isPostsLoading) {
+      return (
+        <FadeIn className="px-4">
+          <div className="grid gap-6 max-w-3xl mx-auto">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <PostSkeleton key={index} />
+            ))}
+          </div>
+        </FadeIn>
+      );
+    }
+
     if (isSearching) {
       return (
-        <div className="flex justify-center py-8">
-          <div className="text-gray-600">Searching...</div>
-        </div>
+        <FadeIn className="flex justify-center py-8">
+          <div className="flex items-center space-x-3">
+            <SpinnerLoader size="medium" color="blue" />
+            <div className="text-gray-600">{isSemanticSearch ? "AI Searching..." : "Searching..."}</div>
+          </div>
+        </FadeIn>
       );
     }
 
     if (searchTerm && postsToDisplay.length === 0) {
       return (
-        <div className="flex justify-center py-8">
+        <SlideInUp className="flex justify-center py-8">
           <div className="text-gray-600">No posts found for &quot;{searchTerm}&quot;</div>
-        </div>
+        </SlideInUp>
       );
     }
 
-    return currentDisplayPosts.map((post) => {
-      const truncateContent = (content, maxLength) => {
-        const div = document.createElement("div");
-        div.innerHTML = content;
-        let text = div.textContent || div.innerText || "";
-        text = text.trim();
-        return text.length > maxLength
-          ? `${text.substring(0, maxLength)}...`
-          : text;
-      };
+    return (
+      <StaggeredList className="max-w-6xl mx-auto px-4">
+        {currentDisplayPosts.map((post, index) => {
+          const truncateContent = (content, maxLength) => {
+            const div = document.createElement("div");
+            div.innerHTML = content;
+            let text = div.textContent || div.innerText || "";
+            text = text.trim();
+            return text.length > maxLength
+              ? `${text.substring(0, maxLength)}...`
+              : text;
+          };
 
-      const imageWrapperClass = isMediumOrAbove ? "relative image-wrapper" : "";
-      const flexDirection = isMediumOrAbove
-        ? currentDisplayPosts.indexOf(post) % 2 === 0
-          ? "row"
-          : "row-reverse"
-        : "column";
-      
-      // Determine button alignment based on layout
-      const isEvenPost = currentDisplayPosts.indexOf(post) % 2 === 0;
-      const buttonAlignment = isMediumOrAbove 
-        ? isEvenPost 
-          ? "justify-end" // Image left, button right
-          : "justify-start" // Image right, button left
-        : "justify-center"; // Mobile center
+          // Helper function to capitalize category
+          const capitalizeCategory = (category) => {
+            return category ? category.charAt(0).toUpperCase() + category.slice(1).toLowerCase() : '';
+          };
 
-      return (
-        <div
-          key={post.post_id}
-          className={`flex flex-col md:flex-row text-xl font-sans list-disc ${
-            isMobile ? "flex-col my-8" : "my-4"
-          }`}
-          style={{ flexDirection: flexDirection }}
-        >
-          <div className={imageWrapperClass}>
-            {post.isExternal || !post.img ? (
-              <div className={`${
-                isMediumOrAbove
-                  ? "mt-12 mr-20 relative z-10 h-[350px] w-[820px] rounded-sm shadow-lg flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100"
-                  : "mx-auto mb-4 h-48 w-full max-w-sm rounded-sm shadow-md flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100"
-              }`}>
-                <div className="text-center p-6">
-                  <div className="text-3xl mb-2">🌐</div>
-                  <div className="text-lg font-semibold text-gray-700">
-                    {post.source === 'stackoverflow' ? 'Stack Overflow' : 
-                     post.source === 'wikipedia' ? 'Wikipedia' : 'External Source'}
+          // Helper function to format date properly
+          const formatDate = (dateString) => {
+            try {
+              const date = new Date(dateString);
+              if (isNaN(date.getTime())) {
+                return 'Recent';
+              }
+              return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+              });
+            } catch (error) {
+              return 'Recent';
+            }
+          };
+
+          const flexDirection = isMediumOrAbove
+            ? index % 2 === 0
+              ? "row"
+              : "row-reverse"
+            : "column";
+          
+          // Determine content alignment based on layout
+          const isEvenPost = index % 2 === 0;
+          const contentAlignment = isMediumOrAbove 
+            ? isEvenPost 
+              ? "text-left" // Image left, content right
+              : "text-left" // Image right, content left
+            : "text-left"; // Mobile left align
+
+          const buttonAlignment = isMediumOrAbove 
+            ? isEvenPost 
+              ? "justify-start" // Image left, button left
+              : "justify-start" // Image right, button left
+            : "justify-start"; // Mobile left align
+
+          return (
+            <HoverScale
+              key={post.post_id}
+              className={`flex flex-col md:flex-row bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 ${
+                isMobile ? "flex-col my-4" : "my-6"
+              } overflow-hidden border border-gray-100 max-w-4xl mx-auto`}
+              style={{ flexDirection: flexDirection }}
+            >
+              {/* Image Section */}
+              <div className={`${isMediumOrAbove ? "flex-shrink-0" : "w-full"} relative`}>
+                {post.isExternal || !post.img ? (
+                  <div className={`${
+                    isMediumOrAbove
+                      ? "h-[200px] w-[280px] flex items-center justify-center bg-gradient-to-br from-slate-100 via-slate-200 to-slate-300"
+                      : "h-40 w-full flex items-center justify-center bg-gradient-to-br from-slate-100 via-slate-200 to-slate-300"
+                  } relative overflow-hidden group`}>
+                    {/* 3D Background Effect */}
+                    <div className="absolute inset-0 bg-gradient-to-tr from-blue-400/10 via-transparent to-purple-400/10"></div>
+                    <div className="absolute -inset-1 bg-gradient-to-r from-blue-400/5 to-purple-400/5 transform rotate-1 group-hover:rotate-2 transition-transform duration-300"></div>
+                    
+                    <div className="text-center p-4 relative z-10">
+                      <div className="text-2xl mb-2 transform group-hover:scale-110 transition-transform duration-300">🌐</div>
+                      <div className="text-sm font-semibold text-gray-700">
+                        {post.source === 'stackoverflow' ? 'Stack Overflow' : 
+                         post.source === 'wikipedia' ? 'Wikipedia' : 'External Source'}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="relative group overflow-hidden">
+                    {/* 3D Shadow layers */}
+                    <div className="absolute -inset-2 bg-gradient-to-r from-blue-400/15 via-purple-400/15 to-pink-400/15 rounded-lg transform rotate-1 group-hover:rotate-2 transition-all duration-300 opacity-40"></div>
+                    
+                    {/* Main Image */}
+                    <img
+                      className={`${
+                        isMediumOrAbove
+                          ? "h-[200px] w-[280px] object-cover"
+                          : "h-40 w-full object-cover"
+                      } rounded-md transition-all duration-300 group-hover:scale-105 relative z-10 shadow-md`}
+                      src={`${baseURL}/images/${post.img}`}
+                      alt={post.title}
+                    />
+                    
+                    {/* 3D Highlight Effect */}
+                    <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-md z-20"></div>
+                  </div>
+                )}
+              </div>
+
+              {/* Content Section */}
+              <div
+                className={`${
+                  isMobile
+                    ? "px-4 py-4"
+                    : "flex flex-col justify-between flex-grow px-6 py-4"
+                } ${contentAlignment}`}
+              >
+                <div>
+                  <h2 className={`${
+                    isMobile ? "text-lg" : "text-xl"
+                  } font-bold mb-2 text-gray-800 leading-tight hover:text-gray-600 transition-colors duration-300 text-left`}>
+                    {post.title}
+                  </h2>
+                  <p className={`${
+                    isMobile ? "text-sm" : "text-sm"
+                  } text-gray-600 mb-3 leading-relaxed text-left`}>
+                    {truncateContent(post.content, isMobile ? 80 : 120)}
+                  </p>
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 mb-3">
+                    <span className="font-medium text-gray-700">{post.user_name}</span>
+                    <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
+                    <span>{formatDate(post.date)}</span>
+                    <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
+                    <span className="px-2 py-1 bg-gradient-to-r from-blue-100 to-purple-100 text-blue-800 rounded-full text-xs font-medium">
+                      {capitalizeCategory(post.category)}
+                    </span>
                   </div>
                 </div>
+                
+                <div className={`flex ${buttonAlignment} mt-2`}>
+                  {post.isExternal && post.external_url ? (
+                    <a href={post.external_url} target="_blank" rel="noopener noreferrer">
+                      <button
+                        className={`${
+                          isMobile
+                            ? "px-4 py-2 text-sm"
+                            : "px-5 py-2 text-sm"
+                        } bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg font-medium flex items-center space-x-1`}
+                      >
+                        <span>View Source</span>
+                        <span>🔗</span>
+                      </button>
+                    </a>
+                  ) : (
+                    <Link to={`/post/${post.post_id}`}>
+                      <button
+                        className={`${
+                          isMobile
+                            ? "px-4 py-2 text-sm"
+                            : "px-5 py-2 text-sm"
+                        } bg-gradient-to-r from-gray-800 to-gray-900 text-white rounded-lg hover:from-gray-900 hover:to-black transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg font-medium`}
+                      >
+                        Read More
+                      </button>
+                    </Link>
+                  )}
+                </div>
               </div>
-            ) : (
-              <img
-                className={`${
-                  isMediumOrAbove
-                    ? "mt-12 mr-20 relative z-10 h-[350px] w-[820px] object-cover rounded-sm shadow-lg"
-                    : "mx-auto mb-4 h-48 w-full max-w-sm object-cover rounded-sm shadow-md"
-                }`}
-                src={`${baseURL}/images/${post.img}`}
-                alt={post.title}
-              />
-            )}
-          </div>
-          <div
-            className={`${
-              isMobile
-                ? "text-center px-4 py-4"
-                : "flex flex-col justify-between flex-grow"
-            } ${
-              isMobile
-                ? "text-sm"
-                : "px-10 text-xs md:text-lg lg:text-xl text-justify flex-grow"
-            }`}
-          >
-            {post.isExternal ? (
-              <a href={post.external_url} target="_blank" rel="noopener noreferrer">
-                <h1
-                  className={`${
-                    isMobile
-                      ? "text-xl font-bold mt-4 mb-4 text-center hover:text-blue-600"
-                      : "text-xl md:text-2xl font-bold lg:text-4xl mt-4 py-10 px-14 hover:text-blue-600"
-                  } transition-colors`}
-                >
-                  {post.title} 🔗
-                </h1>
-              </a>
-            ) : (
-              <Link to={`/post/${post.post_id}`}>
-                <h1
-                  className={`${
-                    isMobile
-                      ? "text-xl font-bold mt-4 mb-4 text-center"
-                      : "text-xl md:text-2xl font-bold lg:text-4xl mt-4 py-10 px-14"
-                  }`}
-                >
-                  {post.title}
-                </h1>
-              </Link>
-            )}
-            <div
-              className={`${
-                isMobile 
-                  ? "sm:m-0 text-justify" 
-                  : "sm:m-0 text-justify px-14"
-              }`}
-              dangerouslySetInnerHTML={{
-                __html: truncateContent(post.content, isMobile ? 150 : 250),
-              }}
-            />
-            <div
-              className={`${
-                isMobile
-                  ? "flex justify-center mt-4 mb-6"
-                  : `flex ${buttonAlignment} mr-10 mb-10 px-14`
-              }`}
-            >
-              {post.isExternal ? (
-                <a href={post.external_url} target="_blank" rel="noopener noreferrer">
-                  <button
-                    className={`${
-                      isMobile
-                        ? "px-2 py-2 text-sm"
-                        : "px-4 py-2 mt-4 text-sm md:text-lg"
-                    } border-2 border-solid border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white transition-colors`}
-                  >
-                    View Source 🔗
-                  </button>
-                </a>
-              ) : (
-                <Link to={`/post/${post.post_id}`}>
-                  <button
-                    className={`${
-                      isMobile
-                        ? "px-2 py-2 text-sm"
-                        : "px-4 py-2 mt-4 text-sm md:text-lg"
-                    } border-2 border-solid border-black hover:bg-gray-200 transition-colors`}
-                  >
-                    Read More
-                  </button>
-                </Link>
-              )}
-            </div>
-          </div>
-        </div>
-      );
-    });
+            </HoverScale>
+          );
+        })}
+      </StaggeredList>
+    );
   };
+
+  // Show page loader on initial load
+  if (isPageLoading) {
+    return <PageLoader message="Loading your feed..." />;
+  }
 
   const pageNumbers = [];
   for (let i = 1; i <= Math.ceil(postsToDisplay.length / postsPerPage); i++) {
@@ -357,46 +411,46 @@ export default function Home() {
   const handlePrevClick = () => {
     if (currentPage > 1) {
       setCurrentPage(currentPage - 1);
-      window.scrollTo(0, 0);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
   const handleNextClick = () => {
-    if (currentPage < Math.ceil(posts.length / postsPerPage)) {
+    if (currentPage < Math.ceil(postsToDisplay.length / postsPerPage)) {
       setCurrentPage(currentPage + 1);
-      window.scrollTo(0, 0);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
   return (
-    <div>
-      <div className="p-4 flex flex-col items-center">
-        {/* Unified Search Box with Toggle */}
-        <div className="relative w-[95%] md:w-1/2 max-w-lg">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
+      {/* Search Section */}
+      <SlideInUp className="p-4 flex flex-col items-center">
+        <div className="relative w-[90%] md:w-[60%] max-w-md">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <FaSearch className="text-gray-400" />
+            <FaSearch className="text-gray-400 text-sm" />
           </div>
           <input
             type="text"
-            placeholder={isSemanticSearch ? "AI Semantic Search..." : "Search by title, category, or content..."}
+            placeholder={isSemanticSearch ? "AI Semantic Search..." : "Search posts..."}
             value={searchTerm}
             onChange={handleSearchChange}
-            className={`w-full pl-10 pr-20 py-2 border rounded-md shadow-md focus:outline-none ${
+            className={`w-full pl-10 pr-20 py-3 border rounded-lg shadow-md focus:outline-none transition-all duration-300 bg-white ${
               isSemanticSearch 
                 ? 'focus:border-green-500 border-green-300' 
-                : 'focus:border-blue-500'
-            }`}
+                : 'focus:border-blue-500 border-gray-200'
+            } text-sm`}
           />
-          <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+          <div className="absolute inset-y-0 right-0 flex items-center pr-3 space-x-1">
             {isSearching && (
-              <FaSpinner className="animate-spin text-gray-400 mr-2" />
+              <FaSpinner className="animate-spin text-gray-400 text-sm" />
             )}
             <button
               onClick={() => setIsSemanticSearch(!isSemanticSearch)}
-              className={`p-1 rounded mr-2 transition-colors ${
+              className={`p-1.5 rounded-md transition-all duration-300 ${
                 isSemanticSearch 
                   ? 'text-green-600 hover:text-green-700 bg-green-50' 
-                  : 'text-gray-400 hover:text-gray-600'
+                  : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
               }`}
               title={isSemanticSearch ? "Switch to Regular Search" : "Switch to AI Semantic Search"}
             >
@@ -405,65 +459,68 @@ export default function Home() {
             {searchTerm && (
               <button
                 onClick={clearSearch}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded transition-colors duration-200"
               >
-                <FaTimes />
+                <FaTimes className="w-3 h-3" />
               </button>
             )}
           </div>
         </div>
         {searchTerm && (
-          <div className="mt-2 text-sm text-gray-600 text-center">
+          <FadeIn className="mt-3 text-sm text-gray-600 text-center">
             {isSearching 
               ? (isSemanticSearch ? "AI Searching..." : "Searching...") 
               : `Found ${postsToDisplay.length} results ${isSemanticSearch ? '(AI Search)' : ''}`
             }
-          </div>
+          </FadeIn>
         )}
+      </SlideInUp>
+      
+      {/* Posts Section */}
+      <div className="pb-6">
+        {renderPosts()}
       </div>
-      
-      {/* Only show posts when not in semantic search mode */}
-      
-      {/* Posts and Pagination */}
-      {renderPosts()}
-      <ul className="flex justify-center items-center">
-            <li>
-              <button
-                onClick={handlePrevClick}
-                className={`mx-1 px-1 py-1 md:px-2 rounded-2xl md:py-2 focus:outline-none bg-white text-black hover:bg-slate-200 ${
-                  currentPage === 1 ? "cursor-not-allowed opacity-50" : ""
-                }`}
-                disabled={currentPage === 1}
-              >
-                <FaChevronLeft />
-              </button>
-            </li>
-            {pageNumbers.map((number) => (
-              <li key={number}>
-                <button
-                  className={`mx-1 px-2 py-1  hover:underline md:px-2 border md:py-1 rounded-sm shadow-md focus:outline-none bg-white text-black hover:bg-slate-200 ${
-                    number === currentPage ? "shadow-blue-400  " : ""
-                  }`}
-                  onClick={() => paginate(number)}
-                >
-                  {number}
-                </button>
-              </li>
-            ))}
-            <li>
-              <button
-                onClick={handleNextClick}
-                className={`mx-1 px-1 py-1 md:px-2 rounded-2xl md:py-2 focus:outline-none bg-white text-black hover:bg-slate-200  ${
-                  currentPage === Math.ceil(posts.length / postsPerPage)
-                    ? "cursor-not-allowed opacity-50"
-                    : ""
-                }`}
-                disabled={currentPage === Math.ceil(posts.length / postsPerPage)}
-              >
-                <FaChevronRight />
-              </button>
-            </li>
-          </ul>
+
+      {/* Pagination */}
+      {postsToDisplay.length > postsPerPage && (
+        <FadeIn className="flex justify-center items-center pb-6 space-x-1">
+          <button
+            onClick={handlePrevClick}
+            className={`p-2 rounded-lg focus:outline-none bg-white text-gray-700 hover:bg-gray-50 shadow-md hover:shadow-lg transition-all duration-300 ${
+              currentPage === 1 ? "cursor-not-allowed opacity-50" : "hover:scale-105"
+            }`}
+            disabled={currentPage === 1}
+          >
+            <FaChevronLeft className="w-3 h-3" />
+          </button>
+          
+          {pageNumbers.map((number) => (
+            <button
+              key={number}
+              className={`px-3 py-2 rounded-lg focus:outline-none transition-all duration-300 font-medium text-sm ${
+                number === currentPage 
+                  ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md transform scale-105" 
+                  : "bg-white text-gray-700 hover:bg-gray-50 shadow-md hover:shadow-lg hover:scale-105"
+              }`}
+              onClick={() => paginate(number)}
+            >
+              {number}
+            </button>
+          ))}
+          
+          <button
+            onClick={handleNextClick}
+            className={`p-2 rounded-lg focus:outline-none bg-white text-gray-700 hover:bg-gray-50 shadow-md hover:shadow-lg transition-all duration-300 ${
+              currentPage === Math.ceil(postsToDisplay.length / postsPerPage)
+                ? "cursor-not-allowed opacity-50"
+                : "hover:scale-105"
+            }`}
+            disabled={currentPage === Math.ceil(postsToDisplay.length / postsPerPage)}
+          >
+            <FaChevronRight className="w-3 h-3" />
+          </button>
+        </FadeIn>
+      )}
     </div>
   );
 }

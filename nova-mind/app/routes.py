@@ -894,6 +894,32 @@ async def agent_task(request: AgentTaskRequest):
         raise HTTPException(status_code=500, detail=f"Agent task error: {str(e)}")
 
 
+@router.post("/agent")
+async def agent(request: dict):
+    """Simple agent endpoint for AI Assistant"""
+    try:
+        query = request.get("query")
+        if not query:
+            raise HTTPException(status_code=400, detail="Query is required")
+
+        from .advanced_services import advanced_ai_service
+
+        result = await advanced_ai_service.agent_task(
+            task=query, user_id=None, context=None
+        )
+
+        return {
+            "final_answer": result["result"],
+            "steps_taken": result["steps_taken"],
+            "context_used": "blog" if result["sources"] else "general",
+            "execution_time": result["execution_time"],
+        }
+
+    except Exception as e:
+        logger.error(f"Agent error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Agent error: {str(e)}")
+
+
 @router.post("/tool-execute", response_model=ToolResponse)
 async def execute_tool(request: ToolRequest):
     """Execute a specific tool"""
