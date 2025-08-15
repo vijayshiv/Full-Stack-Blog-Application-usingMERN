@@ -164,9 +164,17 @@ export default function Home() {
 
   useEffect(() => {
     if (!searchTerm && category) {
+      console.log("🏷️ Loading posts for category:", category);
       fetchPostsByCategory(category);
     } else if (!searchTerm && !category) {
+      console.log("🏠 Loading all posts");
       fetchAllPosts();
+    }
+    
+    // Clear search when category changes
+    if (category && searchTerm) {
+      setSearchTerm("");
+      setSearchResults([]);
     }
   }, [category, searchTerm, fetchAllPosts, fetchPostsByCategory]);
 

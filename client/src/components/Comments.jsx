@@ -351,321 +351,313 @@ const Comments = ({ postId }) => {
   }, [comments]);
 
   return (
-    <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-md border border-white/20 p-2 
-                    hover:shadow-lg transition-all duration-500 animate-fade-in">
-      {/* Header */}
-      <div className="flex items-center space-x-1 mb-2">
-        <div className="w-4 h-4 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full 
-                        flex items-center justify-center text-white font-bold shadow-lg text-xs">
+    <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-sm border border-gray-200 p-3 
+                    hover:shadow-md transition-all duration-300">
+      {/* Compact Header */}
+      <div className="flex items-center space-x-2 mb-3">
+        <div className="w-5 h-5 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full 
+                        flex items-center justify-center text-white font-bold text-xs">
           💬
         </div>
-        <h2 className="text-sm font-bold bg-gradient-to-r from-slate-800 to-blue-800 bg-clip-text text-transparent">
-          Comments ({mainComments.length})
-        </h2>
+        <h3 className="text-sm font-semibold text-gray-800">
+          {mainComments.length} {mainComments.length === 1 ? 'Comment' : 'Comments'}
+        </h3>
       </div>
 
-      {/* Comment Input Form */}
-      <form onSubmit={handleCommentSubmit} className="mb-2 animate-slide-up delay-300">
-        <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-2 border border-blue-100">
-          <div className="flex flex-col sm:flex-row gap-1">
-            <div className="flex-1">
-              <textarea
-                className="w-full px-2 py-1 border border-gray-200 rounded-md resize-none
-                           focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100
-                           transition-all duration-300 bg-white placeholder-gray-400 text-xs"
-                rows="1"
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                placeholder="Share your thoughts..."
-              />
-            </div>
-            <button
-              type="submit"
-              className="px-2 py-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white 
-                         rounded-md hover:from-blue-600 hover:to-blue-700 transform hover:scale-105 
-                         transition-all duration-300 shadow-md hover:shadow-lg font-medium text-xs
-                         self-start sm:self-end"
-            >
-              Post
-            </button>
+      {/* Compact Comment Input Form */}
+      <form onSubmit={handleCommentSubmit} className="mb-3">
+        <div className="flex items-start space-x-2">
+          {/* User Avatar */}
+          <div className="w-8 h-8 bg-gradient-to-br from-gray-400 to-gray-600 rounded-full 
+                          flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
+            {sessionStorage.getItem("name")?.charAt(0).toUpperCase() || "?"}
+          </div>
+          
+          {/* Input Area */}
+          <div className="flex-1">
+            <textarea
+              className="w-full px-3 py-2 border border-gray-300 rounded-full resize-none
+                         focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-200
+                         transition-all duration-200 bg-gray-50 placeholder-gray-500 text-sm
+                         hover:bg-white"
+              rows="1"
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              placeholder="Write a comment..."
+              style={{ minHeight: '40px', maxHeight: '120px' }}
+              onInput={(e) => {
+                e.target.style.height = 'auto';
+                e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
+              }}
+            />
+            
+            {/* Action Buttons - Only show when typing */}
+            {newComment.trim() && (
+              <div className="flex justify-end mt-2 space-x-2">
+                <button
+                  type="button"
+                  onClick={() => setNewComment("")}
+                  className="px-3 py-1 text-gray-600 hover:text-gray-800 text-sm
+                             transition-colors duration-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={!newComment.trim()}
+                  className="px-4 py-1 bg-blue-600 text-white rounded-full text-sm font-medium
+                             hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed
+                             transition-all duration-200"
+                >
+                  Comment
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </form>
 
       {/* Comments List */}
-      <div className="space-y-2">
+      <div className="space-y-3">
         {mainComments.map((comment, index) => {
           const replies = repliesMap[comment.comment_id.toString()] || [];
           const isThreadExpanded = expandedThreads[comment.comment_id];
           
           return (
-            <div key={comment.comment_id} 
-                 className="animate-slide-up" 
-                 style={{ animationDelay: `${(index + 1) * 100}ms` }}>
+            <div key={comment.comment_id} className="group">
               {/* Main Comment */}
-              <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-2 
-                              hover:shadow-md transition-all duration-300">
-                {editCommentId === comment.comment_id ? (
-                  <div className="space-y-1">
-                    <textarea
-                      className="w-full p-1 border border-gray-200 rounded-md resize-none
-                                 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100
-                                 transition-all duration-300 text-xs"
-                      rows="1"
-                      value={editCommentContent}
-                      onChange={(e) => setEditCommentContent(e.target.value)}
-                    />
-                    <div className="flex justify-end space-x-1">
-                      <button
-                        onClick={() => handleSaveEdit(comment.comment_id)}
-                        className="px-1 py-0.5 bg-gradient-to-r from-green-500 to-green-600 text-white 
-                                   rounded-md hover:from-green-600 hover:to-green-700 
-                                   transform hover:scale-105 transition-all duration-300 
-                                   shadow-sm flex items-center space-x-0.5 text-xs"
-                      >
-                        <FaSave size={8} />
-                        <span>Save</span>
-                      </button>
-                      <button
-                        onClick={handleCancelEdit}
-                        className="px-1 py-0.5 bg-gradient-to-r from-gray-500 to-gray-600 text-white 
-                                   rounded-md hover:from-gray-600 hover:to-gray-700 
-                                   transform hover:scale-105 transition-all duration-300 
-                                   shadow-sm flex items-center space-x-0.5 text-xs"
-                      >
-                        <FaTimes size={8} />
-                        <span>Cancel</span>
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-1">
-                    {/* Comment Header */}
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start space-x-1">
-                        <div className="w-4 h-4 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full 
-                                        flex items-center justify-center text-white font-bold shadow-sm text-xs">
-                          {comment.fullname.charAt(0).toUpperCase()}
-                        </div>
-                        <div className="text-left">
-                          <p className="text-gray-800 font-semibold text-xs text-left">{comment.fullname}</p>
-                          <p className="text-gray-600 text-xs text-left">
-                            {new Date(comment.createdTimestamp).toLocaleString()}
-                          </p>
-                        </div>
+              <div className="flex items-start space-x-2">
+                {/* User Avatar */}
+                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full 
+                                flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
+                  {comment.fullname.charAt(0).toUpperCase()}
+                </div>
+                
+                {/* Comment Content */}
+                <div className="flex-1 min-w-0">
+                  {editCommentId === comment.comment_id ? (
+                    <div className="bg-white border border-gray-200 rounded-lg p-3">
+                      <textarea
+                        className="w-full p-2 border border-gray-300 rounded-md resize-none
+                                   focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-200
+                                   text-sm"
+                        rows="2"
+                        value={editCommentContent}
+                        onChange={(e) => setEditCommentContent(e.target.value)}
+                      />
+                      <div className="flex justify-end mt-2 space-x-2">
+                        <button
+                          onClick={handleCancelEdit}
+                          className="px-3 py-1 text-gray-600 hover:text-gray-800 text-sm"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={() => handleSaveEdit(comment.comment_id)}
+                          className="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
+                        >
+                          Save
+                        </button>
                       </div>
-                      
-                      {/* Action Buttons */}
-                      {parseInt(userId) === parseInt(comment.id) && (
-                        <div className="flex items-center space-x-2">
-                          <button
-                            onClick={() => handleEditComment(comment.comment_id, comment.content)}
-                            className="p-1 text-blue-500 hover:text-blue-700 hover:bg-blue-50 
-                                       rounded-md transition-all duration-300 transform hover:scale-110"
-                            title="Edit comment"
-                          >
-                            <FaEdit size={12} />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteComment(comment.comment_id)}
-                            className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 
-                                       rounded-md transition-all duration-300 transform hover:scale-110"
-                            title="Delete comment"
-                          >
-                            <FaTrash size={12} />
-                          </button>
-                        </div>
-                      )}
                     </div>
+                  ) : (
+                    <div className="bg-gray-50 rounded-lg p-3 hover:bg-gray-100 transition-colors duration-200">
+                      {/* Comment Header */}
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center space-x-2">
+                          <span className="font-semibold text-sm text-gray-900">
+                            {comment.fullname.charAt(0).toUpperCase() + comment.fullname.slice(1).toLowerCase()}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            {new Date(comment.createdTimestamp).toLocaleString()}
+                          </span>
+                        </div>
+                        
+                        {/* Action Buttons */}
+                        {parseInt(userId) === parseInt(comment.id) && (
+                          <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={() => handleEditComment(comment.comment_id, comment.content)}
+                              className="p-1 text-gray-400 hover:text-blue-600 rounded transition-colors"
+                              title="Edit"
+                            >
+                              <FaEdit size={12} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteComment(comment.comment_id)}
+                              className="p-1 text-gray-400 hover:text-red-600 rounded transition-colors"
+                              title="Delete"
+                            >
+                              <FaTrash size={12} />
+                            </button>
+                          </div>
+                        )}
+                      </div>
 
-                    {/* Comment Content - moved to right */}
-                    <p className="text-gray-700 leading-relaxed text-xs text-right pr-2">{comment.content}</p>
+                      {/* Comment Content */}
+                      <p className="text-left text-sm text-gray-800 leading-relaxed mb-2">{comment.content}</p>
 
-                    {/* Comment Footer */}
-                    <div className="flex items-center justify-between pt-1 border-t border-gray-100">
-                      <div className="flex items-center space-x-2">
+                      {/* Comment Actions */}
+                      <div className="flex items-center space-x-4 text-xs">
                         <button
                           onClick={() => startReply(comment.comment_id)}
-                          className="flex items-center space-x-1 text-blue-600 hover:text-blue-800 
-                                     px-1 py-0.5 rounded-sm hover:bg-blue-50 transition-all duration-300 
-                                     transform hover:scale-105"
+                          className="text-gray-500 hover:text-blue-600 font-medium transition-colors"
                         >
-                          <FaReply size={8} />
-                          <span className="font-medium text-xs">Reply</span>
+                          Reply
                         </button>
                         
                         {replies.length > 0 && (
                           <button
                             onClick={() => toggleThread(comment.comment_id)}
-                            className="flex items-center space-x-1 text-gray-600 hover:text-gray-800 
-                                       px-1 py-0.5 rounded-sm hover:bg-gray-50 transition-all duration-300 
-                                       transform hover:scale-105"
+                            className="text-gray-500 hover:text-blue-600 font-medium transition-colors flex items-center space-x-1"
                           >
-                            {isThreadExpanded ? (
-                              <>
-                                <FaChevronUp size={8} />
-                                <span className="text-xs">Hide {replies.length} {replies.length === 1 ? 'reply' : 'replies'}</span>
-                              </>
-                            ) : (
-                              <>
-                                <FaChevronDown size={8} />
-                                <span className="text-xs">Show {replies.length} {replies.length === 1 ? 'reply' : 'replies'}</span>
-                              </>
-                            )}
+                            <span>
+                              {isThreadExpanded ? 'Hide' : 'View'} {replies.length} {replies.length === 1 ? 'reply' : 'replies'}
+                            </span>
+                            {isThreadExpanded ? <FaChevronUp size={10} /> : <FaChevronDown size={10} />}
                           </button>
                         )}
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* Reply Form */}
-                {replyToCommentId === comment.comment_id && (
-                  <div className="mt-2 p-2 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg 
-                                  border-l-2 border-blue-400 animate-slide-up">
-                    <form onSubmit={(e) => handleReplySubmit(e, comment.comment_id)}>
-                      <textarea
-                        className="w-full px-2 py-1 border border-gray-200 rounded-md resize-none
-                                   focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100
-                                   transition-all duration-300 bg-white placeholder-gray-400 text-xs"
-                        rows="1"
-                        value={replyContent}
-                        onChange={(e) => setReplyContent(e.target.value)}
-                        placeholder="Write your reply..."
-                      />
-                      <div className="flex justify-end mt-1 space-x-1">
-                        <button
-                          type="button"
-                          onClick={cancelReply}
-                          className="px-2 py-0.5 bg-gray-500 text-white rounded-md 
-                                     hover:bg-gray-600 transform hover:scale-105 
-                                     transition-all duration-300 shadow-sm text-xs"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          type="submit"
-                          className="px-2 py-0.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white 
-                                     rounded-md hover:from-blue-600 hover:to-blue-700 
-                                     transform hover:scale-105 transition-all duration-300 shadow-sm text-xs"
-                        >
-                          Reply
-                        </button>
-                      </div>
-                    </form>
-                  </div>
-                )}
+                  {/* Reply Form */}
+                  {replyToCommentId === comment.comment_id && (
+                    <div className="mt-2 ml-2">
+                      <form onSubmit={(e) => handleReplySubmit(e, comment.comment_id)} className="flex items-start space-x-2">
+                        <div className="w-6 h-6 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full 
+                                        flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
+                          {sessionStorage.getItem("name")?.charAt(0).toUpperCase() || "?"}
+                        </div>
+                        <div className="flex-1">
+                          <textarea
+                            className="w-full px-3 py-2 border border-gray-300 rounded-full resize-none
+                                       focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-200
+                                       text-sm bg-gray-50 hover:bg-white"
+                            rows="1"
+                            value={replyContent}
+                            onChange={(e) => setReplyContent(e.target.value)}
+                            placeholder="Write a reply..."
+                            style={{ minHeight: '32px' }}
+                          />
+                          <div className="flex justify-end mt-1 space-x-2">
+                            <button
+                              type="button"
+                              onClick={cancelReply}
+                              className="px-3 py-1 text-gray-600 hover:text-gray-800 text-xs"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              type="submit"
+                              className="px-3 py-1 bg-blue-600 text-white rounded-full text-xs
+                                         hover:bg-blue-700 transition-colors"
+                            >
+                              Reply
+                            </button>
+                          </div>
+                        </div>
+                      </form>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Replies Thread */}
               {replies.length > 0 && isThreadExpanded && (
-                <div className="ml-4 mt-2 space-y-2 animate-slide-up delay-300">
-                  <div className="bg-gradient-to-r from-blue-50/50 to-purple-50/50 rounded-lg p-2 
-                                  border-l-2 border-blue-300">
-                    {replies.map((reply, replyIndex) => (
-                      <div key={reply.comment_id} 
-                           className="bg-white rounded-md shadow-sm p-2 mb-2 last:mb-0
-                                      hover:shadow-md transition-all duration-300
-                                      animate-slide-up"
-                           style={{ animationDelay: `${replyIndex * 100}ms` }}>
+                <div className="ml-10 mt-2 space-y-2">
+                  {replies.map((reply, replyIndex) => (
+                    <div key={reply.comment_id} className="flex items-start space-x-2 group">
+                      {/* Reply Avatar */}
+                      <div className="w-6 h-6 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full 
+                                      flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
+                        {reply.fullname.charAt(0).toUpperCase()}
+                      </div>
+                      
+                      {/* Reply Content */}
+                      <div className="flex-1 min-w-0">
                         {editReplyId === reply.comment_id ? (
-                          <div className="space-y-1">
+                          <div className="bg-white border border-gray-200 rounded-lg p-2">
                             <textarea
-                              className="w-full p-1 border border-gray-200 rounded-md resize-none
-                                         focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100
-                                         transition-all duration-300 text-xs"
-                              rows="1"
+                              className="w-full p-2 border border-gray-300 rounded-md resize-none
+                                         focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-200
+                                         text-sm"
+                              rows="2"
                               value={editReplyContent}
                               onChange={(e) => setEditReplyContent(e.target.value)}
                             />
-                            <div className="flex justify-end space-x-1">
-                              <button
-                                onClick={() => handleReplyEdit(reply.comment_id)}
-                                className="px-1 py-0.5 bg-gradient-to-r from-green-500 to-green-600 text-white 
-                                           rounded-md hover:from-green-600 hover:to-green-700 
-                                           transform hover:scale-105 transition-all duration-300 
-                                           shadow-sm flex items-center space-x-0.5 text-xs"
-                              >
-                                <FaSave size={8} />
-                                <span>Save</span>
-                              </button>
+                            <div className="flex justify-end mt-2 space-x-2">
                               <button
                                 onClick={() => {
                                   setEditReplyId(null);
                                   setEditReplyContent("");
                                 }}
-                                className="px-1 py-0.5 bg-gradient-to-r from-gray-500 to-gray-600 text-white 
-                                           rounded-md hover:from-gray-600 hover:to-gray-700 
-                                           transform hover:scale-105 transition-all duration-300 
-                                           shadow-sm flex items-center space-x-0.5 text-xs"
+                                className="px-3 py-1 text-gray-600 hover:text-gray-800 text-sm"
                               >
-                                <FaTimes size={8} />
-                                <span>Cancel</span>
+                                Cancel
+                              </button>
+                              <button
+                                onClick={() => handleReplyEdit(reply.comment_id)}
+                                className="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
+                              >
+                                Save
                               </button>
                             </div>
                           </div>
                         ) : (
-                          <div className="space-y-1">
+                          <div className="bg-gray-50 rounded-lg p-2 hover:bg-gray-100 transition-colors duration-200">
                             {/* Reply Header */}
-                            <div className="flex items-start justify-between">
-                              <div className="flex items-center space-x-1">
-                                <div className="w-4 h-4 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full 
-                                                flex items-center justify-center text-white font-bold text-xs shadow-sm">
-                                  {reply.fullname.charAt(0).toUpperCase()}
-                                </div>
-                                <div className="text-left">
-                                  <p className="font-medium text-gray-800 text-xs text-left">{reply.fullname}</p>
-                                  <p className="text-xs text-gray-500 text-left">
-                                    {new Date(reply.createdTimestamp).toLocaleString()}
-                                  </p>
-                                </div>
+                            <div className="flex items-center justify-between mb-1">
+                              <div className="flex items-center space-x-2">
+                                <span className="font-semibold text-sm text-gray-900">
+                                  {reply.fullname.charAt(0).toUpperCase() + reply.fullname.slice(1).toLowerCase()}
+                                </span>
+                                <span className="text-xs text-gray-500">
+                                  {new Date(reply.createdTimestamp).toLocaleString()}
+                                </span>
                               </div>
                               
+                              {/* Reply Action Buttons */}
                               {parseInt(userId) === parseInt(reply.id) && (
-                                <div className="flex items-center space-x-2">
+                                <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                   <button
                                     onClick={() => {
                                       setEditReplyId(reply.comment_id);
                                       setEditReplyContent(reply.content);
                                     }}
-                                    className="p-1 text-blue-500 hover:text-blue-700 hover:bg-blue-50 
-                                               rounded-md transition-all duration-300 transform hover:scale-110"
-                                    title="Edit reply"
+                                    className="p-1 text-gray-400 hover:text-blue-600 rounded transition-colors"
+                                    title="Edit"
                                   >
-                                    <FaEdit size={12} />
+                                    <FaEdit size={10} />
                                   </button>
                                   <button
                                     onClick={() => handleReplyDelete(reply.comment_id)}
-                                    className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 
-                                               rounded-md transition-all duration-300 transform hover:scale-110"
-                                    title="Delete reply"
+                                    className="p-1 text-gray-400 hover:text-red-600 rounded transition-colors"
+                                    title="Delete"
                                   >
-                                    <FaTrash size={12} />
+                                    <FaTrash size={10} />
                                   </button>
                                 </div>
                               )}
                             </div>
 
-                            {/* Reply Content - right aligned */}
-                            <p className="text-gray-700 text-xs leading-relaxed text-right pr-2">{reply.content}</p>
+                            {/* Reply Content */}
+                            <p className="text-left text-sm text-gray-800 leading-relaxed mb-1">{reply.content}</p>
 
-                            {/* Reply Footer */}
-                            <div className="flex justify-start">
+                            {/* Reply Actions */}
+                            <div className="flex items-center space-x-4 text-xs">
                               <button
                                 onClick={() => startReply(comment.comment_id)}
-                                className="flex items-center space-x-0.5 text-blue-600 hover:text-blue-800 
-                                           px-1 py-0.5 rounded-sm hover:bg-blue-50 transition-all duration-300 
-                                           transform hover:scale-105"
+                                className="text-gray-500 hover:text-blue-600 font-medium transition-colors"
                               >
-                                <FaReply size={8} />
-                                <span className="text-xs font-medium">Reply</span>
+                                Reply
                               </button>
                             </div>
                           </div>
                         )}
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

@@ -13,10 +13,10 @@ class Config:
     GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
 
     # Database configuration
-    DB_HOST = os.environ.get("DB_HOST", "localhost")
-    DB_USER = os.environ.get("DB_USER", "root")
-    DB_PASSWORD = os.environ.get("DB_PASSWORD", "root")
-    DB_NAME = os.environ.get("DB_NAME", "blogapp")
+    DB_HOST = os.environ.get("DB_HOST", "")
+    DB_USER = os.environ.get("DB_USER", "")
+    DB_PASSWORD = os.environ.get("DB_PASSWORD", "")
+    DB_NAME = os.environ.get("DB_NAME", "")
 
 
 config = Config()
