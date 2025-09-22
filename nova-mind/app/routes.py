@@ -146,7 +146,7 @@ def summarize_context(context, groq_api_key):
         "Content-Type": "application/json",
     }
     payload = {
-        "model": "llama3-70b-8192",
+        "model": "llama-3.1-8b-instant",
         "messages": [
             {
                 "role": "system",
@@ -433,7 +433,7 @@ async def handle_content_idea_request(question: str):
             "Content-Type": "application/json",
         }
         payload = {
-            "model": "llama3-70b-8192",
+            "model": "llama-3.1-8b-instant",
             "messages": [
                 {
                     "role": "system",
@@ -525,7 +525,7 @@ Provide a helpful, accurate answer based on the context. If the context doesn't 
             "Content-Type": "application/json",
         }
         payload = {
-            "model": "llama3-70b-8192",
+            "model": "llama-3.1-8b-instant",
             "messages": [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": prompt},
@@ -589,7 +589,7 @@ async def rephrase_groq(request: RephraseRequest):
             "Content-Type": "application/json",
         }
         payload = {
-            "model": "llama3-70b-8192",  # or "llama2-70b-4096", "gemma-7b-it", etc.
+            "model": "llama-3.1-8b-instant",  # Updated to current model
             "messages": [
                 {"role": "system", "content": instruction},
                 {"role": "user", "content": request.text},
@@ -636,7 +636,7 @@ async def summarize_text(request: SummarizeRequest):
             "Content-Type": "application/json",
         }
         payload = {
-            "model": "llama3-70b-8192",
+            "model": "llama-3.1-8b-instant",
             "messages": [
                 {
                     "role": "system",
@@ -770,7 +770,7 @@ async def topic_summary(request: TopicSummaryRequest):
             "Content-Type": "application/json",
         }
         payload = {
-            "model": "llama3-70b-8192",
+            "model": "llama-3.1-8b-instant",
             "messages": [
                 {
                     "role": "system",
@@ -848,7 +848,7 @@ async def root():
 async def multi_hop_qa(request: MultiHopQARequest):
     """Multi-hop reasoning Q&A endpoint"""
     try:
-        from app.advanced_services import advanced_ai_service # type: ignore
+        from app.advanced_services import advanced_ai_service  # type: ignore
 
         result = await advanced_ai_service.multi_hop_qa(
             question=request.question,
@@ -874,7 +874,7 @@ async def multi_hop_qa(request: MultiHopQARequest):
 async def agent_task(request: AgentTaskRequest):
     """Agentic workflow task execution endpoint"""
     try:
-        from .advanced_services import advanced_ai_service # type: ignore
+        from .advanced_services import advanced_ai_service  # type: ignore
 
         result = await advanced_ai_service.agent_task(
             task=request.task, user_id=request.user_id, context=request.context
@@ -900,7 +900,7 @@ async def agent(request: dict):
         if not query:
             raise HTTPException(status_code=400, detail="Query is required")
 
-        from .advanced_services import advanced_ai_service # type: ignore
+        from .advanced_services import advanced_ai_service  # type: ignore
 
         result = await advanced_ai_service.agent_task(
             task=query, user_id=None, context=None
@@ -922,7 +922,7 @@ async def agent(request: dict):
 async def execute_tool(request: ToolRequest):
     """Execute a specific tool"""
     try:
-        from .advanced_services import advanced_ai_service # type: ignore
+        from .advanced_services import advanced_ai_service  # type: ignore
 
         # Get the tool by name
         tool = None
@@ -964,7 +964,7 @@ async def execute_tool(request: ToolRequest):
 async def advanced_summarize(request: AdvancedSummarizeRequest):
     """Advanced summarization with Hugging Face models"""
     try:
-        from .advanced_services import advanced_ai_service # type: ignore
+        from .advanced_services import advanced_ai_service  # type: ignore
 
         result = await advanced_ai_service.advanced_summarize(
             text=request.text,
@@ -996,7 +996,7 @@ async def advanced_summarize(request: AdvancedSummarizeRequest):
 async def get_available_tools():
     """Get list of available tools"""
     try:
-        from .advanced_services import advanced_ai_service # type: ignore
+        from .advanced_services import advanced_ai_service  # type: ignore
 
         tools_info = []
         for tool in advanced_ai_service.tools:

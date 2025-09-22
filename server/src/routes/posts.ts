@@ -672,6 +672,7 @@ router.post(
  */
 router.get(
   "/likes/:postId",
+  AuthMiddleware.optionalAuth,
   ValidationMiddleware.validatePostId,
   ErrorHandler.asyncHandler(PostController.getLikeInfo)
 );
