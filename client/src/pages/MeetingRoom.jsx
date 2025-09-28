@@ -41,8 +41,8 @@ const MeetingRoom = () => {
   // WebRTC Configuration
   const rtcConfig = useMemo(() => ({
     iceServers: [
-      { urls: 'stun:stun.l.google.com:19302' },
-      { urls: 'stun:stun1.l.google.com:19302' }
+      { urls: import.meta.env.VITE_WEBRTC_STUN_SERVER_1 || 'stun:stun.l.google.com:19302' },
+      { urls: import.meta.env.VITE_WEBRTC_STUN_SERVER_2 || 'stun:stun1.l.google.com:19302' }
     ]
   }), []);
 

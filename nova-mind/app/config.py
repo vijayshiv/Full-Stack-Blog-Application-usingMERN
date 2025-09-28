@@ -12,6 +12,13 @@ class Config:
     OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
     GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
 
+    # Centralized configuration from environment
+    HOST_IP = os.environ.get("HOST_IP", "localhost")
+    BACKEND_URL = os.environ.get(
+        "BACKEND_URL", f"http://{os.environ.get('HOST_IP', 'localhost')}:4000"
+    )
+    FRONTEND_URL = f"http://{os.environ.get('HOST_IP', 'localhost')}:5173"
+
     # Database configuration
     DB_HOST = os.environ.get("DB_HOST", "")
     DB_USER = os.environ.get("DB_USER", "")

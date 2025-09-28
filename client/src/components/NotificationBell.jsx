@@ -254,8 +254,16 @@ const NotificationBell = ({ socket }) => {
     <div className="relative" ref={dropdownRef}>
       {/* Notification Bell Button */}
       <button
-        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-        className="relative p-2 text-gray-600 hover:text-gray-800 focus:outline-none transition-colors duration-200"
+        onClick={() => {
+          console.log('Notification button clicked, current state:', isDropdownOpen);
+          setIsDropdownOpen(!isDropdownOpen);
+        }}
+        onTouchEnd={(e) => {
+          e.preventDefault();
+          console.log('Touch end on notification button');
+          setIsDropdownOpen(!isDropdownOpen);
+        }}
+        className="relative p-3 text-gray-600 hover:text-gray-800 focus:outline-none transition-colors duration-200 touch-manipulation"
         title="Notifications"
       >
         <FaBell size={20} className={`${unreadCount > 0 ? 'text-blue-600' : 'text-gray-600'}`} />
@@ -270,12 +278,13 @@ const NotificationBell = ({ socket }) => {
 
       {/* Notification Dropdown */}
       {isDropdownOpen && (
-        <div className="absolute right-0 mt-2 w-80 sm:w-80 xs:w-72 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-96 overflow-hidden
-                        sm:right-0 xs:right-[-100px] xs:w-[calc(100vw-2rem)] xs:max-w-sm xs:left-auto">
+        <div className="fixed top-24 left-[10%] right-[10%] w-[80%] mx-auto bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-64 overflow-hidden
+                        sm:absolute sm:top-auto sm:left-auto sm:right-0 sm:w-80 sm:mt-2 sm:max-h-96 sm:mx-0
+                        md:w-96">
           {/* Header */}
-          <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
+          <div className="px-2 py-2 sm:px-4 sm:py-3 border-b border-gray-200 bg-gray-50">
             <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold text-gray-800">Notifications</h3>
+              <h3 className="text-sm sm:text-lg font-semibold text-gray-800">Notifications</h3>
               {unreadCount > 0 && (
                 <span className="text-sm text-blue-600 font-medium">
                   {unreadCount} new
@@ -285,18 +294,18 @@ const NotificationBell = ({ socket }) => {
             
             {/* Action buttons */}
             {notifications.length > 0 && (
-              <div className="flex gap-2 mt-2">
+              <div className="flex gap-1 sm:gap-2 mt-1 sm:mt-2">
                 {unreadCount > 0 && (
                   <button
                     onClick={markAllAsRead}
-                    className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                    className="text-xs text-blue-600 hover:text-blue-800 font-medium px-1"
                   >
                     Mark all read
                   </button>
                 )}
                 <button
                   onClick={clearAllNotifications}
-                  className="text-xs text-red-600 hover:text-red-800 font-medium"
+                  className="text-xs text-red-600 hover:text-red-800 font-medium px-1"
                 >
                   Clear all
                 </button>
@@ -305,17 +314,17 @@ const NotificationBell = ({ socket }) => {
           </div>
 
           {/* Notifications List */}
-          <div className="max-h-64 overflow-y-auto">
+          <div className="max-h-40 sm:max-h-64 overflow-y-auto">
             {isLoading ? (
-              <div className="p-4 text-center text-gray-500">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="mt-2 text-sm">Loading notifications...</p>
+              <div className="p-2 sm:p-4 text-center text-gray-500">
+                <div className="animate-spin rounded-full h-4 w-4 sm:h-6 sm:w-6 border-b-2 border-blue-600 mx-auto"></div>
+                <p className="mt-1 sm:mt-2 text-xs sm:text-sm">Loading notifications...</p>
               </div>
             ) : notifications.length === 0 ? (
-              <div className="p-6 text-center text-gray-500">
-                <FaBell size={32} className="mx-auto mb-2 text-gray-300" />
-                <p className="text-sm">No notifications yet</p>
-                <p className="text-xs text-gray-400 mt-1">
+              <div className="p-3 sm:p-6 text-center text-gray-500">
+                <FaBell size={20} className="mx-auto mb-1 sm:mb-2 text-gray-300 sm:w-8 sm:h-8" />
+                <p className="text-xs sm:text-sm">No notifications yet</p>
+                <p className="text-xs text-gray-400 mt-1 hidden sm:block">
                   You&apos;ll see notifications for comments on your posts here
                 </p>
               </div>
@@ -323,12 +332,12 @@ const NotificationBell = ({ socket }) => {
               notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`p-3 border-b border-gray-100 transition-colors duration-200 ${
-                    !notification.read ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
+                  className={`p-2 sm:p-3 border-b border-gray-100 transition-colors duration-200 ${
+                    !notification.read ? 'bg-blue-50 border-l-2 sm:border-l-4 border-l-blue-500' : ''
                   }`}
                 >
                   <div 
-                    className="flex justify-between items-start cursor-pointer hover:bg-gray-50 -m-3 p-3 rounded"
+                    className="flex justify-between items-start cursor-pointer hover:bg-gray-50 -m-2 sm:-m-3 p-2 sm:p-3 rounded"
                     onClick={() => handleNotificationClick(notification)}
                   >
                     <div className="flex-1">
@@ -381,7 +390,7 @@ const NotificationBell = ({ socket }) => {
 
           {/* Footer */}
           {notifications.length > 0 && (
-            <div className="px-4 py-2 bg-gray-50 border-t border-gray-200">
+            <div className="px-2 py-1 sm:px-4 sm:py-2 bg-gray-50 border-t border-gray-200">
               <button className="text-xs text-blue-600 hover:text-blue-800 font-medium w-full text-center">
                 View all notifications
               </button>

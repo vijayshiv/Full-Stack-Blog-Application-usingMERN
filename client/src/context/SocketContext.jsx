@@ -21,8 +21,8 @@ export const SocketProvider = ({ children }) => {
     const userId = sessionStorage.getItem("id");
 
     if (token && userId) {
-      // Create socket connection
-      const newSocket = io("http://localhost:4000", {
+      // Create socket connection using environment variable
+      const newSocket = io(import.meta.env.VITE_API_URL || "http://localhost:4000", {
         auth: {
           token: token,
           userId: userId
