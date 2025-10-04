@@ -201,7 +201,7 @@ const Post = () => {
                 <h1 className="font-bold text-lg sm:text-xl lg:text-3xl 
                                bg-gradient-to-r from-slate-800 via-blue-800 to-purple-900 bg-clip-text text-transparent 
                                mb-3 leading-tight font-serif animate-slide-up">
-                  {post.title};
+                  {post.title}
                 </h1>
                 
                 {/* Author and Category Info */}

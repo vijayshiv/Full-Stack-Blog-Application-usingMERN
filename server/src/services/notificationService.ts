@@ -97,7 +97,6 @@ export class NotificationService {
       );
 
       const [rows] = await db.execute(query, [userId]);
-      console.log(`🔍 Query result:`, rows);
       return rows as NotificationData[];
     } catch (error) {
       console.error("Error getting user notifications:", error);
