@@ -6,7 +6,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import api from "../config/api";
 import AIRephraseModal from "../components/AIRephraseModal";
-import TopicSummaryModal from "../components/TopicSummaryModal";
+import BlogWritingAssistant from "../components/TopicSummaryModal";
 
 const Write = () => {
   const [title, setTitle] = useState("");
@@ -18,7 +18,7 @@ const Write = () => {
   const [isRephraseModalOpen, setIsRephraseModalOpen] = useState(false);
   const [selectedText, setSelectedText] = useState("");
   const [selectionInfo, setSelectionInfo] = useState(null);
-  const [isTopicSummaryModalOpen, setIsTopicSummaryModalOpen] = useState(false);
+  const [isBlogAssistantOpen, setIsBlogAssistantOpen] = useState(false);
   const quillRef = useRef(null);
   const navigate = useNavigate();
 
@@ -53,18 +53,39 @@ const Write = () => {
     }
   };
 
-  const handleTextReplaced = (newText) => {
-    const quill = quillRef.current?.getEditor();
-    if (quill && selectionInfo) {
-      // Use the stored selection information instead of current selection
+    const handleTextReplaced = (newText) => {
+    if (selectionInfo && quillRef.current) {
+      const quill = quillRef.current.getEditor();
       quill.deleteText(selectionInfo.index, selectionInfo.length);
       quill.insertText(selectionInfo.index, newText);
-      // Update content state
+      setSelectionInfo(null);
+    }
+  };
+
+  const handleContentGenerated = (newContent) => {
+    if (quillRef.current) {
+      const quill = quillRef.current.getEditor();
+      
+      // Get current selection or cursor position
+      const selection = quill.getSelection() || { index: quill.getLength(), length: 0 };
+      
+      // Check if editor is empty or nearly empty
+      const currentText = quill.getText().trim();
+      const insertIndex = currentText.length === 0 ? 0 : selection.index;
+      
+      // Add spacing if inserting into existing content
+      const contentToInsert = currentText.length > 0 && insertIndex > 0 ? '\n\n' + newContent : newContent;
+      
+      // Insert the text content (ReactQuill will handle formatting through toolbar)
+      quill.insertText(insertIndex, contentToInsert);
+      
+      // Update the content state and character count
       setContent(quill.root.innerHTML);
       setCharCount(quill.getText().length);
-      // Clear the selection info
-      setSelectionInfo(null);
-      setSelectedText("");
+      
+      // Focus the editor and set cursor after inserted content
+      quill.focus();
+      quill.setSelection(insertIndex + contentToInsert.length);
     }
   };
 
@@ -152,13 +173,13 @@ const Write = () => {
                 {/* AI Tools */}
                 <div className="flex flex-col sm:flex-row gap-2 mb-4">
                   <button
-                    onClick={() => setIsTopicSummaryModalOpen(true)}
-                    className="flex items-center justify-center space-x-2 px-3 py-2 bg-gradient-to-r from-green-500 to-green-600 
-                               text-white rounded-lg hover:from-green-600 hover:to-green-700 
+                    onClick={() => setIsBlogAssistantOpen(true)}
+                    className="flex items-center justify-center space-x-2 px-3 py-2 bg-gradient-to-r from-purple-500 to-blue-500 
+                               text-white rounded-lg hover:from-purple-600 hover:to-blue-600 
                                transform hover:scale-105 transition-all duration-300 shadow-md text-sm"
                   >
-                    <span>📖</span>
-                    <span>Topic Summary</span>
+                    <span>✨</span>
+                    <span>AI Blog Assistant</span>
                   </button>
                   
                   <button
@@ -250,10 +271,11 @@ const Write = () => {
         onTextReplaced={handleTextReplaced}
       />
 
-      {/* Topic Summary Modal */}
-      <TopicSummaryModal
-        isOpen={isTopicSummaryModalOpen}
-        onClose={() => setIsTopicSummaryModalOpen(false)}
+      {/* AI Blog Writing Assistant */}
+      <BlogWritingAssistant
+        isOpen={isBlogAssistantOpen}
+        onClose={() => setIsBlogAssistantOpen(false)}
+        onContentGenerated={handleContentGenerated}
       />
     </>
   );

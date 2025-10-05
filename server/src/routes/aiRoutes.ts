@@ -16,7 +16,8 @@ interface RephraseRequest {
 }
 
 interface QARequest {
-  question: string;
+  question?: string;
+  messages?: Array<{ role: string; content: string }>;
 }
 
 interface SemanticSearchRequest {
@@ -31,6 +32,13 @@ interface SummarizeRequest {
 
 interface TopicSummaryRequest {
   topic: string;
+  summary_style?:
+    | "comprehensive"
+    | "technical"
+    | "beginner"
+    | "listicle"
+    | "tutorial";
+  max_sources?: number;
 }
 
 interface MultiHopQARequest {
@@ -138,22 +146,24 @@ router.get("/health", async (req: Request, res: Response) => {
  */
 router.post("/qa", async (req: Request, res: Response) => {
   try {
-    const { question }: QARequest = req.body;
+    const { question, messages }: QARequest = req.body;
 
-    if (!question) {
-      return res.status(400).json(Utils.errorMessage("Question is required"));
+    // Support both old question format and new chatbot messages format
+    if (!question && (!messages || messages.length === 0)) {
+      return res
+        .status(400)
+        .json(Utils.errorMessage("Question or messages are required"));
     }
 
-    const response = await axios.post(
-      `${AI_SERVICE_URL}/qa`,
-      { question },
-      {
-        timeout: 30000,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    // Prepare request payload based on format
+    const requestPayload = messages ? { messages } : { question };
+
+    const response = await axios.post(`${AI_SERVICE_URL}/qa`, requestPayload, {
+      timeout: 30000,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
 
     return res.status(200).json(Utils.successMessage(response.data));
   } catch (error: any) {
@@ -265,22 +275,48 @@ router.post("/summarize", async (req: Request, res: Response) => {
 
 /**
  * @route POST /api/ai/topic-summary
- * @desc Get topic-based summary from knowledge base
+ * @desc AI-powered blog writing assistant - Generate comprehensive blog content
  * @access Public
  */
 router.post("/topic-summary", async (req: Request, res: Response) => {
   try {
-    const { topic }: TopicSummaryRequest = req.body;
+    const {
+      topic,
+      summary_style = "comprehensive",
+      max_sources = 10,
+    }: TopicSummaryRequest = req.body;
 
     if (!topic) {
       return res.status(400).json(Utils.errorMessage("Topic is required"));
     }
 
+    // Validate summary_style
+    const validStyles = [
+      "comprehensive",
+      "technical",
+      "beginner",
+      "listicle",
+      "tutorial",
+    ];
+    if (!validStyles.includes(summary_style)) {
+      return res
+        .status(400)
+        .json(
+          Utils.errorMessage(
+            `Invalid summary_style. Must be one of: ${validStyles.join(", ")}`
+          )
+        );
+    }
+
     const response = await axios.post(
       `${AI_SERVICE_URL}/topic-summary`,
-      { topic },
       {
-        timeout: 30000,
+        topic,
+        summary_style,
+        max_sources,
+      },
+      {
+        timeout: 60000, // Increased timeout for blog generation
         headers: {
           "Content-Type": "application/json",
         },

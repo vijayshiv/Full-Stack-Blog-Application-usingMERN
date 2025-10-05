@@ -39,65 +39,54 @@ const AIAssistant = ({ isOpen, onClose }) => {
     setIsLoading(true);
 
     try {
-      let response;
+      // Convert messages to chatbot format
+      const chatMessages = messages
+        .filter(msg => msg.type === 'user' || msg.type === 'bot')
+        .map(msg => ({
+          role: msg.type === 'user' ? 'user' : 'assistant',
+          content: msg.content
+        }));
       
-      // Intelligent routing based on question complexity and type
-      if (isComplexQuestion(currentInput)) {
-        // Use multi-hop QA for complex questions
-        response = await aiAPI.multiHopQA(currentInput, null, 3, true);
-        
-        const botMessage = {
-          type: 'bot',
-          content: response.answer,
-          timestamp: new Date(),
-          contextUsed: response.context_used,
-          sources: response.sources,
-          reasoningSteps: response.reasoning_steps,
-          isAdvanced: true,
-          totalHops: response.reasoning_steps?.length || 0
-        };
-        
-        setMessages(prev => [...prev, botMessage]);
-      } else if (isAgentTask(currentInput)) {
-        // Use agent for task-oriented queries
-        response = await aiAPI.agent(currentInput);
-        
-        const botMessage = {
-          type: 'bot',
-          content: response.final_answer,
-          timestamp: new Date(),
-          contextUsed: response.context_used,
-          stepsTaken: response.steps_taken,
-          isAgent: true,
-          executionTime: response.execution_time
-        };
-        
-        setMessages(prev => [...prev, botMessage]);
-      } else {
-        // Use standard QA for simple questions
-        response = await aiAPI.qa(currentInput);
-        
-        const botMessage = {
-          type: 'bot',
-          content: response.data.answer,
-          timestamp: new Date(),
-          contextUsed: response.context_used,
-          sources: response.sources
-        };
-        
-        setMessages(prev => [...prev, botMessage]);
-      }
+      // Add the current user message
+      chatMessages.push({
+        role: 'user',
+        content: currentInput
+      });
+      
+      // Use the enhanced chatbot QA endpoint
+      const response = await aiAPI.chatbotQA(chatMessages);
+      
+      // Handle the response structure properly
+      // aiAPI returns: { status: "success", data: { answer: "...", ... } }
+      const actualData = response.data;
+      
+      const botMessage = {
+        type: 'bot',
+        content: actualData.answer || 'No response received',
+        timestamp: new Date(),
+        contextUsed: actualData.context_used || 'unknown',
+        sources: actualData.sources || [],
+        suggestedNext: actualData.suggested_next || []
+      };
+      
+      setMessages(prev => [...prev, botMessage]);
     } catch (error) {
       console.error('AI Assistant error:', error);
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response,
+        status: error.response?.status,
+        data: error.response?.data
+      });
       
       const errorMessage = {
         type: 'bot',
-        content: 'Sorry, I encountered an error. Please try again.',
+        content: `Sorry, I encountered an error: ${error.response?.data?.error || error.message || 'Unknown error'}. Please try again.`,
         timestamp: new Date()
       };
       
       setMessages(prev => [...prev, errorMessage]);
-      toast.error('Failed to get AI response');
+      toast.error(`Failed to get AI response: ${error.response?.data?.error || error.message}`);
     } finally {
       setIsLoading(false);
     }
@@ -255,6 +244,24 @@ const AIAssistant = ({ isOpen, onClose }) => {
                           }`}>
                             {message.contextUsed === 'blog' || message.contextUsed === 'site_specific' ? '🏠 Blog Data' : '🤖 AI Knowledge'}
                           </span>
+                        </div>
+                      )}
+
+                      {/* Suggested next questions for bot messages */}
+                      {message.type === 'bot' && message.suggestedNext && message.suggestedNext.length > 0 && (
+                        <div className="mt-3">
+                          <p className="text-xs font-medium text-gray-600 mb-2">💡 You might also ask:</p>
+                          <div className="space-y-1">
+                            {message.suggestedNext.map((question, qIndex) => (
+                              <button
+                                key={qIndex}
+                                onClick={() => handleQuickQuestion(question)}
+                                className="block w-full text-left text-xs bg-gray-50 hover:bg-gray-100 text-gray-700 rounded px-2 py-1 transition-colors duration-200"
+                              >
+                                {question}
+                              </button>
+                            ))}
+                          </div>
                         </div>
                       )}
                       

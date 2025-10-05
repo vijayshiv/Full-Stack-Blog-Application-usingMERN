@@ -35,7 +35,21 @@ export const aiAPI = {
     }
   },
 
-  // Topic summary endpoint
+  // AI Blog Writing Assistant endpoint
+  generateBlogContent: async (topic, summaryStyle = 'comprehensive', maxSources = 10) => {
+    try {
+      const response = await api.post('/ai/topic-summary', { 
+        topic, 
+        summary_style: summaryStyle,
+        max_sources: maxSources
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Legacy topic summary endpoint (for backward compatibility)
   getTopicSummary: async (topic) => {
     try {
       const response = await api.post('/ai/topic-summary', { topic });
@@ -72,10 +86,20 @@ export const aiAPI = {
     }
   },
 
-  // Simple QA endpoint
+  // Chatbot QA endpoint - supports both simple questions and chat history
   qa: async (question) => {
     try {
       const response = await api.post('/ai/qa', { question });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Enhanced chatbot QA with conversation history
+  chatbotQA: async (messages) => {
+    try {
+      const response = await api.post('/ai/qa', { messages });
       return response.data;
     } catch (error) {
       throw error;

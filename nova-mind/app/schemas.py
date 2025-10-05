@@ -16,13 +16,22 @@ class SemanticSearchRequest(BaseModel):
     top_k: int = 5
 
 
+class ChatMessage(BaseModel):
+    role: str  # "user" or "assistant"
+    content: str
+
+
 class QARequest(BaseModel):
-    question: str
+    question: Optional[str] = None  # For backward compatibility
+    messages: Optional[List[ChatMessage]] = None  # For chatbot functionality
     top_k: int = 3
 
 
 class QAResponse(BaseModel):
     answer: str
+    sources: Optional[List[Dict[str, Any]]] = []
+    context_used: Optional[str] = None
+    suggested_next: Optional[List[str]] = []
 
 
 class SummarizeRequest(BaseModel):
@@ -40,7 +49,7 @@ class SummarizeResponse(BaseModel):
 class TopicSummaryRequest(BaseModel):
     topic: str
     max_sources: int = 10
-    summary_style: str = "comprehensive"  # "comprehensive", "technical", "beginner"
+    summary_style: str = "comprehensive"  # "comprehensive", "technical", "beginner", "listicle", "tutorial"
 
 
 class TopicSummaryResponse(BaseModel):

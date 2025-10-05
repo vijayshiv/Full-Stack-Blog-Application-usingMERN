@@ -130,10 +130,10 @@ def search_blog_posts(query, limit=5):
 
 # Helper for prompt instructions
 TONE_INSTRUCTIONS = {
-    "Professional": "Rephrase this text in a professional, formal business tone",
-    "Technical": "Rephrase this text in a technical, precise, and detailed manner",
-    "Casual": "Rephrase this text in a casual, friendly, and conversational tone",
-    "SEO": "Rephrase this text to be more SEO-friendly with better keywords and structure",
+    "Professional": "Rephrase this text in a professional, formal business tone. Return only the rephrased text with no additional formatting or explanations.",
+    "Technical": "Rephrase this text in a technical, precise, and detailed manner. Return only the rephrased text with no additional formatting or explanations.",
+    "Casual": "Rephrase this text in a casual, friendly, and conversational tone. Return only the rephrased text with no additional formatting or explanations.",
+    "SEO": "Rephrase this text to be more SEO-friendly with better keywords and structure. Return only the rephrased text with no additional formatting or explanations.",
 }
 
 MAX_CONTEXT_LENGTH = 2000  # characters
@@ -194,48 +194,67 @@ def format_search_result(metadata, source_type):
         }
 
 
-async def make_groq_request(prompt: str, temperature: float = 0.7, max_tokens: int = 150) -> str:
+async def make_groq_request(
+    prompt: str, temperature: float = 0.7, max_tokens: int = 150
+) -> str:
     """
     Make a request to Groq API for text generation
     """
     import httpx
-    
+
+    # Check if GROQ API key is available
+    if not config.GROQ_API_KEY:
+        logger.warning("GROQ API key not configured, using fallback response")
+        # Return contextually appropriate responses based on the prompt content
+        if "ai tool" in prompt.lower() or "artificial intelligence" in prompt.lower():
+            return "Our platform offers several AI-powered tools to enhance your blogging experience! 🤖\n\n✨ **Content Generation**: Get help writing blog posts with AI assistance\n📝 **Smart Rephrasing**: Improve your writing with AI-powered rewrites\n📊 **Automatic Summarization**: Create concise summaries of long content\n🔍 **Semantic Search**: Find relevant content using intelligent search\n💡 **Topic Suggestions**: Get AI-generated ideas for your next post\n\nThese tools are designed to make your blogging journey more efficient and creative!"
+        elif (
+            "site" in prompt.lower()
+            or "platform" in prompt.lower()
+            or "about" in prompt.lower()
+        ):
+            return "This is a comprehensive blogging platform designed for writers of all levels! 🌟 You can create and publish blog posts, engage with other writers through comments and likes, and use our advanced AI-powered tools to enhance your content creation process."
+        elif "conversational" in prompt.lower() or "chat" in prompt.lower():
+            # For conversational contexts, provide more natural responses
+            return "I'd be happy to help you learn more about that! Based on the blog content available, I can provide insights and answer questions about various topics. Feel free to ask me anything about our platform, content creation, or the subjects covered in our blog posts."
+        else:
+            return "I'm here to help you with your blogging experience! You can ask me about platform features, get content suggestions, learn about our AI tools, or discuss topics from our blog posts."
+
     try:
         headers = {
             "Authorization": f"Bearer {config.GROQ_API_KEY}",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
         }
-        
+
         data = {
-            "messages": [
-                {
-                    "role": "user", 
-                    "content": prompt
-                }
-            ],
+            "messages": [{"role": "user", "content": prompt}],
             "model": "mixtral-8x7b-32768",
             "temperature": temperature,
-            "max_tokens": max_tokens
+            "max_tokens": max_tokens,
         }
-        
+
         async with httpx.AsyncClient() as client:
             response = await client.post(
                 "https://api.groq.com/openai/v1/chat/completions",
                 headers=headers,
                 json=data,
-                timeout=10.0
+                timeout=10.0,
             )
-            
+
             if response.status_code == 200:
                 result = response.json()
                 return result["choices"][0]["message"]["content"]
             else:
-                logger.error(f"Groq API error: {response.status_code} - {response.text}")
-                return ""
-                
+                logger.error(
+                    f"Groq API error: {response.status_code} - {response.text}"
+                )
+                # Return fallback response on API error
+                return "I'm having trouble with my AI service right now. Let me help you in other ways! You can browse our blog posts, learn about platform features, or ask for content suggestions."
+
     except Exception as e:
         logger.error(f"Error calling Groq API: {str(e)}")
-        return ""
+        # Return fallback response on exception
+        return "I'm experiencing some technical difficulties right now. However, I'm still here to help! You can ask me about our platform, browse blog posts, or get content ideas."
 
 
 async def rewrite_query_with_llm(original_query: str) -> list:
@@ -255,35 +274,35 @@ Provide 3 rewrites as a simple list, one per line:
 2. 
 3. 
 """
-        
+
         # Use Groq for fast query rewriting
         response = await make_groq_request(
             prompt=prompt,
             temperature=0.3,  # Low temperature for consistent rewrites
-            max_tokens=150
+            max_tokens=150,
         )
-        
+
         if response and response.strip():
             # Extract the rewrites from the response
-            lines = response.strip().split('\n')
+            lines = response.strip().split("\n")
             rewrites = []
             for line in lines:
                 # Clean up the line and extract the actual rewrite
                 cleaned = line.strip()
-                if cleaned and not cleaned.startswith('Original') and len(cleaned) > 5:
+                if cleaned and not cleaned.startswith("Original") and len(cleaned) > 5:
                     # Remove numbering and formatting
-                    if '. ' in cleaned:
-                        cleaned = cleaned.split('. ', 1)[1]
-                    if cleaned.startswith('- '):
+                    if ". " in cleaned:
+                        cleaned = cleaned.split(". ", 1)[1]
+                    if cleaned.startswith("- "):
                         cleaned = cleaned[2:]
                     rewrites.append(cleaned)
-            
+
             logger.info(f"LLM generated {len(rewrites)} query rewrites")
             return rewrites[:3]  # Limit to 3 rewrites
-            
+
     except Exception as e:
         logger.error(f"Error rewriting query with LLM: {str(e)}")
-    
+
     return []  # Return empty list if LLM fails
 
 
@@ -292,47 +311,55 @@ def enhance_query(original_query: str) -> dict:
     Enhance the query using multiple techniques for better retrieval
     """
     enhanced_queries = []
-    
+
     # 1. Original query (always first)
     enhanced_queries.append(original_query)
-    
+
     # 2. Rule-based query expansion with synonyms and related terms
     query_lower = original_query.lower()
-    
+
     # Food/Cuisine expansion
     if any(word in query_lower for word in ["food", "recipe", "cooking", "meal"]):
-        food_expanded = f"{original_query} cuisine dish recipe cooking ingredients nutrition"
+        food_expanded = (
+            f"{original_query} cuisine dish recipe cooking ingredients nutrition"
+        )
         enhanced_queries.append(food_expanded)
-    
-    # Technology expansion  
+
+    # Technology expansion
     elif any(word in query_lower for word in ["tech", "ai", "programming", "software"]):
         tech_expanded = f"{original_query} technology development coding software engineering computer"
         enhanced_queries.append(tech_expanded)
-    
+
     # Movie/Cinema expansion
     elif any(word in query_lower for word in ["movie", "film", "cinema", "actor"]):
-        movie_expanded = f"{original_query} cinema film director entertainment hollywood actor"
+        movie_expanded = (
+            f"{original_query} cinema film director entertainment hollywood actor"
+        )
         enhanced_queries.append(movie_expanded)
-    
+
     # Science expansion
     elif any(word in query_lower for word in ["science", "research", "study"]):
-        science_expanded = f"{original_query} research scientific study analysis experiment discovery"
+        science_expanded = (
+            f"{original_query} research scientific study analysis experiment discovery"
+        )
         enhanced_queries.append(science_expanded)
-    
+
     # Art expansion
     elif any(word in query_lower for word in ["art", "artist", "painting", "creative"]):
-        art_expanded = f"{original_query} artistic creative visual design aesthetic culture"
+        art_expanded = (
+            f"{original_query} artistic creative visual design aesthetic culture"
+        )
         enhanced_queries.append(art_expanded)
-    
+
     # 3. Question-style reformulation for better semantic matching
     if not original_query.startswith(("what", "how", "why", "when", "where")):
         question_forms = [
             f"What is {original_query}",
             f"Tell me about {original_query}",
-            f"Information about {original_query}"
+            f"Information about {original_query}",
         ]
         enhanced_queries.extend(question_forms[:2])  # Add 2 question variants
-    
+
     # 4. Specific domain enhancements
     if "fruit" in query_lower:
         enhanced_queries.append("watermelon summer fresh healthy natural sweet")
@@ -342,11 +369,11 @@ def enhance_query(original_query: str) -> dict:
         enhanced_queries.append("japanese cuisine rice fish seafood asian food")
     if "movie" in query_lower:
         enhanced_queries.append("film cinema entertainment story acting director")
-    
+
     return {
         "original": original_query,
         "enhanced_queries": enhanced_queries[:6],  # Limit to 6 variants max
-        "primary_query": enhanced_queries[0]
+        "primary_query": enhanced_queries[0],
     }
 
 
@@ -355,28 +382,30 @@ async def semantic_search(req: SemanticSearchRequest):
     try:
         # 1. Enhance the query with rule-based expansion
         query_enhancement = enhance_query(req.query)
-        logger.info(f"Enhanced query from '{req.query}' to {len(query_enhancement['enhanced_queries'])} variants")
-        
+        logger.info(
+            f"Enhanced query from '{req.query}' to {len(query_enhancement['enhanced_queries'])} variants"
+        )
+
         # 2. Add LLM-generated query rewrites for even better coverage
         llm_rewrites = await rewrite_query_with_llm(req.query)
         if llm_rewrites:
             query_enhancement["enhanced_queries"].extend(llm_rewrites)
             logger.info(f"Added {len(llm_rewrites)} LLM-generated query rewrites")
-        
+
         # Limit total queries to avoid too many API calls
         all_queries = query_enhancement["enhanced_queries"][:8]  # Max 8 query variants
-        
+
         # 3. Generate embeddings for all query variants
         all_embeddings = []
         for query_variant in all_queries:
             embedding = embedding_model.encode([query_variant])[0]
             all_embeddings.append(embedding.tolist())
-            
+
         logger.info(f"Generated {len(all_embeddings)} embeddings for enhanced search")
-        
+
         # 3. Perform multiple searches and combine results
         all_results = {}  # Use dict to avoid duplicates by document ID
-        
+
         for i, embedding in enumerate(all_embeddings):
             try:
                 results = chroma_collection.query(
@@ -384,32 +413,39 @@ async def semantic_search(req: SemanticSearchRequest):
                     n_results=req.top_k * 2,  # Get more results for diversity
                     include=["metadatas", "documents", "distances"],
                 )
-                
+
                 # Weight results based on query variant importance
                 weight = 1.0 if i == 0 else 0.7  # Original query gets full weight
-                
+
                 for j, metadata in enumerate(results["metadatas"][0]):
                     if metadata.get("source") != "blog":
                         continue
-                        
-                    doc_id = f"{metadata.get('post_id')}_{metadata.get('chunk_index', 0)}"
+
+                    doc_id = (
+                        f"{metadata.get('post_id')}_{metadata.get('chunk_index', 0)}"
+                    )
                     distance = results["distances"][0][j]
-                    
+
                     # Apply weight to distance (lower distance is better)
                     weighted_distance = distance / weight
-                    
-                    if doc_id not in all_results or weighted_distance < all_results[doc_id]["distance"]:
+
+                    if (
+                        doc_id not in all_results
+                        or weighted_distance < all_results[doc_id]["distance"]
+                    ):
                         all_results[doc_id] = {
                             "metadata": metadata,
                             "document": results["documents"][0][j],
                             "distance": weighted_distance,
-                            "query_variant": query_enhancement["enhanced_queries"][i]
+                            "query_variant": query_enhancement["enhanced_queries"][i],
                         }
-                        
+
             except Exception as search_error:
-                logger.warning(f"Search failed for query variant {i}: {str(search_error)}")
+                logger.warning(
+                    f"Search failed for query variant {i}: {str(search_error)}"
+                )
                 continue
-        
+
         if not all_results:
             # Fallback to keyword search if all enhanced searches fail
             blog_results = search_blog_posts(req.query, req.top_k)
@@ -420,69 +456,90 @@ async def semantic_search(req: SemanticSearchRequest):
                 "message": "Used fallback keyword search due to vector search errors.",
             }
 
-        # 4. Process and rank all collected results  
+        # 4. Process and rank all collected results
         seen_posts = {}  # Track best result for each post_id to avoid duplicates
-        
+
         logger.info(f"Enhanced search collected {len(all_results)} unique chunks")
-        
+
         for doc_id, result_data in all_results.items():
             metadata = result_data["metadata"]
             document = result_data["document"]
             distance = result_data["distance"]
-            
+
             # Convert distance to similarity score (0-100)
             similarity = round(max(0, (2 - distance) / 2 * 100), 2)
-            
+
             post_id = metadata.get("post_id", "")
             title = metadata.get("title", "Untitled")
-            
+
             # Skip very low similarity results
             if similarity < 15:  # Lowered threshold for enhanced search
                 continue
-            
+
             # Apply intelligent relevance boosting
             category = metadata.get("category", "General").lower()
             query_lower = req.query.lower()
             title_lower = title.lower()
             content_lower = document.lower()
-            
+
             relevance_boost = 1.0
             query_words = query_lower.split()
-            
+
             # Title matching boost (highest priority)
             title_matches = sum(1 for word in query_words if word in title_lower)
             if title_matches > 0:
-                relevance_boost *= (1.0 + title_matches * 0.5)
-                
+                relevance_boost *= 1.0 + title_matches * 0.5
+
             # Content matching boost
             content_matches = sum(1 for word in query_words if word in content_lower)
             if content_matches > 0:
-                relevance_boost *= (1.0 + content_matches * 0.2)
-            
+                relevance_boost *= 1.0 + content_matches * 0.2
+
             # Category-specific boosts (only for decent similarity)
             if similarity > 20:
                 # Fruit/Summer specific matching
                 if any(word in query_lower for word in ["fruit", "summer"]):
-                    if any(word in title_lower + " " + content_lower for word in ["watermelon", "fruit", "summer", "mango", "berry", "apple", "citrus", "melon"]) and category == "food":
+                    if (
+                        any(
+                            word in title_lower + " " + content_lower
+                            for word in [
+                                "watermelon",
+                                "fruit",
+                                "summer",
+                                "mango",
+                                "berry",
+                                "apple",
+                                "citrus",
+                                "melon",
+                            ]
+                        )
+                        and category == "food"
+                    ):
                         relevance_boost *= 1.6
-                
+
                 # Specific dish matching
                 elif "sushi" in query_lower and "sushi" in title_lower:
                     relevance_boost *= 1.8
                 elif "salmon" in query_lower and "salmon" in title_lower:
                     relevance_boost *= 1.8
-                
+
                 # Tech matching
-                elif any(word in query_lower for word in ["tech", "ai", "programming", "code"]) and category == "technology":
+                elif (
+                    any(
+                        word in query_lower
+                        for word in ["tech", "ai", "programming", "code"]
+                    )
+                    and category == "technology"
+                ):
                     relevance_boost *= 1.3
-                
+
                 # Movie matching
                 elif "movie" in query_lower and category == "cinema":
                     relevance_boost *= 1.5
-            
+
             # Calculate final boosted similarity
             boosted_similarity = min(100, similarity * relevance_boost)
-            
+
             # Create result object
             result = {
                 "id": post_id,
@@ -495,20 +552,25 @@ async def semantic_search(req: SemanticSearchRequest):
                 "source": "blog",
                 "url": f"/posts/{post_id}",
                 "similarity": round(boosted_similarity, 2),
-                "query_variant_used": result_data["query_variant"]
+                "query_variant_used": result_data["query_variant"],
             }
-            
+
             # Deduplicate: keep highest similarity result for each post
-            if post_id not in seen_posts or seen_posts[post_id]["similarity"] < boosted_similarity:
+            if (
+                post_id not in seen_posts
+                or seen_posts[post_id]["similarity"] < boosted_similarity
+            ):
                 seen_posts[post_id] = result
-        
+
         # 5. Sort and limit results
         formatted_results = list(seen_posts.values())
         formatted_results.sort(key=lambda x: x["similarity"], reverse=True)
-        formatted_results = formatted_results[:req.top_k]
-        
-        logger.info(f"Enhanced semantic search completed: found {len(formatted_results)} relevant blog posts")
-        
+        formatted_results = formatted_results[: req.top_k]
+
+        logger.info(
+            f"Enhanced semantic search completed: found {len(formatted_results)} relevant blog posts"
+        )
+
         if not formatted_results:
             return {
                 "results": [],
@@ -524,80 +586,129 @@ async def semantic_search(req: SemanticSearchRequest):
             "enhancement_info": {
                 "original_query": req.query,
                 "variants_used": len(query_enhancement["enhanced_queries"]),
-                "chunks_found": len(all_results)
-            }
+                "chunks_found": len(all_results),
+            },
         }
 
     except Exception as e:
         logger.error(f"Error in enhanced semantic search: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Enhanced semantic search error: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Enhanced semantic search error: {str(e)}"
+        )
 
 
 @router.post("/qa", response_model=QAResponse)
 async def qa_endpoint(request: QARequest):
+    """Enhanced chatbot-style Q&A endpoint with conversational context and website awareness"""
     try:
-        question = request.question.lower()
-
-        # Check if this is a site-specific question (best, trending, etc.)
-        if any(
-            keyword in question
-            for keyword in ["best", "trending", "popular", "most liked", "top"]
+        # Extract chat history and latest user message
+        if (
+            request.messages
+            and isinstance(request.messages, list)
+            and len(request.messages) > 0
         ):
-            return await handle_site_specific_question(request.question)
+            chat_history = request.messages[:-1] if len(request.messages) > 1 else []
+            user_message = request.messages[-1].content
+        else:
+            chat_history = []
+            user_message = request.question or ""
 
-        # Check if this is a content idea request
-        if any(
-            keyword in question
-            for keyword in ["idea", "write about", "suggest", "topic", "content"]
-        ):
-            return await handle_content_idea_request(request.question)
-
-        # Regular Q&A: Only use blog posts (no external sources)
-        # Search blog posts first
-        blog_results = search_blog_posts_for_qa(request.question, 3)
-
-        if blog_results:
-            # Generate answer from blog content
-            blog_context = "\n".join(
-                [
-                    f"[Blog: {post['title']}] {post['content'][:500]}"
-                    for post in blog_results
-                ]
-            )
-
-            if len(blog_context) > MAX_CONTEXT_LENGTH:
-                blog_context = summarize_context(blog_context, config.GROQ_API_KEY)
-
-            answer = await generate_answer_from_context(
-                request.question, blog_context, "blog"
-            )
-
-            sources = [
-                {
-                    "title": post["title"],
-                    "type": "blog",
-                    "url": f"/posts/{post['post_id']}",
-                    "snippet": post["content"][:200] + "...",
-                }
-                for post in blog_results
-            ]
-
+        if not user_message.strip():
             return {
-                "answer": answer,
-                "sources": sources,
-                "context_used": "blog_only",
+                "answer": "Hello! I'm your blog assistant. Ask me about our blog posts, get writing ideas, or learn about our platform!",
+                "sources": [],
+                "context_used": "greeting",
+                "suggested_next": [
+                    "What is this website about?",
+                    "Show me trending blog topics",
+                    "How do I write a blog post?",
+                ],
             }
 
-        # If no relevant blog posts found
-        return {
-            "answer": "I don't have enough information to answer your question based on our blog content. Please try asking about topics covered in our blog posts, or consider asking for content ideas.",
-            "sources": [],
-            "context_used": "none",
-        }
+        question = user_message.lower()
+
+        # 1. Website awareness and platform information
+        if any(
+            kw in question
+            for kw in [
+                "what is this site",
+                "about this website",
+                "what can i do here",
+                "features of this site",
+                "what is this platform",
+                "tell me about this blog",
+                "how does this work",
+                "what's this for",
+            ]
+        ):
+            answer = (
+                "Welcome to our comprehensive blog platform! 🌟 Here's what you can do:\n\n"
+                "📖 **Read & Discover**: Explore blogs on technology, AI, food, movies, science, design, and more\n"
+                "✍️ **Write & Create**: Publish your own blog posts with our rich text editor\n"
+                "🤖 **AI-Powered Tools**: Use AI for content generation, rephrasing, and summarization\n"
+                "💬 **Engage**: Like, comment, and connect with other bloggers\n"
+                "🔍 **Smart Search**: Find content using our semantic search capabilities\n\n"
+                "Whether you're a seasoned writer or just starting out, our platform has everything you need!"
+            )
+            return {
+                "answer": answer,
+                "sources": [],
+                "context_used": "site_info",
+                "suggested_next": [
+                    "Show me trending blog topics",
+                    "How do I write my first blog post?",
+                    "What are the most popular posts?",
+                    "Give me some blog topic ideas",
+                ],
+            }
+
+        # 2. Blog topic suggestions and writing help
+        if any(
+            kw in question
+            for kw in [
+                "blog idea",
+                "topic to write",
+                "suggest a topic",
+                "content idea",
+                "what should i write",
+                "writing suggestions",
+                "blog topics",
+                "help me write",
+                "give me ideas",
+                "inspiration",
+            ]
+        ):
+            return await handle_enhanced_content_ideas(user_message, chat_history)
+
+        # 3. Site-specific questions (trending, best posts, etc.)
+        if any(
+            kw in question
+            for kw in ["best", "trending", "popular", "most liked", "top", "recent"]
+        ):
+            result = await handle_site_specific_question(user_message)
+            # Enhance with suggested next actions
+            result["suggested_next"] = [
+                "Tell me more about one of these posts",
+                "Suggest topics similar to these",
+                "How do I write posts like these?",
+            ]
+            return result
+
+        # 4. Enhanced semantic search with conversational context
+        return await handle_conversational_qa(user_message, chat_history, request.top_k)
 
     except Exception as e:
-        logger.error(f"Error in QA: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"QA error: {str(e)}")
+        logger.error(f"Error in chatbot QA: {str(e)}")
+        return {
+            "answer": "I encountered an error while processing your question. Please try rephrasing or ask something else!",
+            "sources": [],
+            "context_used": "error",
+            "suggested_next": [
+                "What is this website about?",
+                "Show me popular blog posts",
+                "Give me blog writing ideas",
+            ],
+        }
 
 
 # Helper functions for the new QA logic
@@ -848,6 +959,275 @@ Provide a helpful, accurate answer based on the context. If the context doesn't 
         return "I'm having trouble generating an answer right now. Please try rephrasing your question."
 
 
+async def handle_enhanced_content_ideas(user_message: str, chat_history: list):
+    """Enhanced content idea generation with database insights and personalized suggestions"""
+    try:
+        # Get trending categories and popular topics from database
+        connection = get_db_connection()
+        trending_topics = []
+        category_stats = []
+
+        if connection:
+            cursor = connection.cursor(dictionary=True)
+
+            # Get trending categories with post counts
+            cursor.execute("""
+                SELECT category, COUNT(*) as post_count, AVG(COALESCE(likes_count, 0)) as avg_likes
+                FROM (
+                    SELECT p.category, COUNT(pl.post_id) as likes_count
+                    FROM posts p 
+                    LEFT JOIN post_likes pl ON p.post_id = pl.post_id
+                    WHERE p.category IS NOT NULL 
+                    AND p.createdTimestamp >= DATE_SUB(NOW(), INTERVAL 90 DAY)
+                    GROUP BY p.post_id, p.category
+                ) as post_likes_summary
+                GROUP BY category
+                ORDER BY post_count DESC, avg_likes DESC
+                LIMIT 8
+            """)
+            category_stats = cursor.fetchall()
+
+            # Get some recent popular posts for inspiration
+            cursor.execute("""
+                SELECT p.title, p.category, COUNT(pl.post_id) as likes_count
+                FROM posts p 
+                LEFT JOIN post_likes pl ON p.post_id = pl.post_id
+                WHERE p.createdTimestamp >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+                GROUP BY p.post_id
+                ORDER BY likes_count DESC
+                LIMIT 5
+            """)
+            trending_posts = cursor.fetchall()
+
+            cursor.close()
+            connection.close()
+
+            trending_topics = [
+                cat["category"] for cat in category_stats if cat["category"]
+            ]
+
+        # Generate personalized topic suggestions using LLM
+        context_info = ""
+        if category_stats:
+            cat_list = [
+                f"{cat['category']} ({cat['post_count']} posts)"
+                for cat in category_stats[:5]
+            ]
+            context_info += (
+                f"Popular categories on our platform: {', '.join(cat_list)}\n"
+            )
+
+        if trending_posts:
+            post_titles = [post["title"] for post in trending_posts]
+            context_info += f"Recent trending titles: {', '.join(post_titles)}"
+
+        prompt = f"""You are a creative blog content strategist. Based on the user's request and current platform trends, suggest 8-10 engaging blog topic ideas.
+
+User request: "{user_message}"
+
+Platform context:
+{context_info}
+
+Provide diverse, engaging blog topic ideas with brief descriptions. Make them specific, actionable, and appealing to readers. Format as a numbered list with topic title and short description."""
+
+        suggestions = await make_groq_request(prompt, temperature=0.8, max_tokens=500)
+
+        answer = f"Here are some fantastic blog topic ideas tailored for you:\n\n{suggestions}\n\n"
+
+        if trending_topics:
+            hot_cats = ", ".join(trending_topics[:4])
+            answer += f"💡 **Hot Categories**: {hot_cats}\n\n"
+
+        answer += "Would you like a detailed outline for any of these topics, or shall I suggest more ideas in a specific category?"
+
+        return {
+            "answer": answer,
+            "sources": [
+                {
+                    "title": "Platform Analytics",
+                    "type": "site_data",
+                    "url": "/",
+                    "snippet": f"Based on {len(category_stats)} categories and recent trends",
+                }
+            ],
+            "context_used": "content_generation",
+            "suggested_next": [
+                "Give me an outline for one of these topics",
+                "Suggest more AI-related topics",
+                "What are the most popular blog categories?",
+                "Help me write an introduction",
+            ],
+        }
+
+    except Exception as e:
+        logger.error(f"Enhanced content ideas error: {e}")
+        return {
+            "answer": "Here are some popular blog topic ideas: AI in daily life, sustainable living tips, productivity hacks, cooking experiments, movie reviews, tech tutorials, and personal growth stories. Would you like me to elaborate on any of these?",
+            "sources": [],
+            "context_used": "fallback_topics",
+            "suggested_next": [
+                "Give me an outline for AI topics",
+                "Suggest cooking blog ideas",
+                "Help me with tech tutorials",
+            ],
+        }
+
+
+async def handle_conversational_qa(
+    user_message: str, chat_history: list, top_k: int = 3
+):
+    """Handle conversational Q&A with semantic search and chat context"""
+    try:
+        # Use semantic search to find relevant blog content
+        question_embedding = embedding_model.encode([user_message])[0]
+
+        # Search in ChromaDB with improved similarity threshold
+        results = chroma_collection.query(
+            query_embeddings=[question_embedding.tolist()],
+            n_results=top_k * 2,  # Get more results to filter better ones
+            include=["metadatas", "documents", "distances"],
+        )
+
+        relevant_content = []
+        sources = []
+
+        # Filter and collect relevant content with improved distance threshold
+        for i, (document, metadata, distance) in enumerate(
+            zip(
+                results["documents"][0],
+                results["metadatas"][0],
+                results["distances"][0],
+            )
+        ):
+            if distance < 1.3:  # More lenient threshold for conversational QA
+                title = metadata.get("title", "Untitled")
+                post_id = metadata.get("post_id", "")
+
+                relevant_content.append(
+                    {"title": title, "content": document, "distance": distance}
+                )
+
+                sources.append(
+                    {
+                        "title": title,
+                        "type": "blog",
+                        "url": f"/posts/{post_id}" if post_id else "/",
+                        "snippet": document[:200] + "..."
+                        if len(document) > 200
+                        else document,
+                    }
+                )
+
+        if not relevant_content:
+            # No relevant content found
+            return {
+                "answer": "I couldn't find specific information about that in our blog posts. However, I'd be happy to help you in other ways! You could ask about our popular posts, get blog writing ideas, or learn about our platform features.",
+                "sources": [],
+                "context_used": "no_content_found",
+                "suggested_next": [
+                    "Show me popular blog posts",
+                    "Give me blog topic suggestions",
+                    "What can I do on this platform?",
+                    "Help me write a blog post",
+                ],
+            }
+
+        # Build conversational context
+        chat_context = ""
+        if chat_history:
+            for msg in chat_history[-3:]:  # Use last 3 messages for context
+                role = "User" if msg.role == "user" else "Assistant"
+                chat_context += f"{role}: {msg.content}\n"
+
+        # Combine blog content for context
+        blog_context = "\n".join(
+            [
+                f"[Blog: {item['title']}]\n{item['content'][:400]}"
+                for item in relevant_content[:3]  # Use top 3 most relevant
+            ]
+        )
+
+        # Generate conversational answer
+        prompt = f"""You are a helpful blog assistant having a conversation with a user. Answer their question using the blog content provided, while maintaining the conversational flow.
+
+Previous conversation:
+{chat_context}
+
+Current user question: {user_message}
+
+Relevant blog content:
+{blog_context}
+
+Instructions:
+1. Answer the user's question directly and conversationally
+2. Use information from the blog content when relevant
+3. If the blog content doesn't fully answer the question, acknowledge this and offer related help
+4. Keep the response engaging and helpful
+5. Don't mention "blog content" or "according to the posts" - just naturally incorporate the information
+
+Provide a helpful, conversational response:"""
+
+        answer = await make_groq_request(prompt, temperature=0.7, max_tokens=400)
+
+        # Generate contextual suggestions based on the topic
+        suggestion_topics = []
+        for item in relevant_content[:2]:
+            if any(
+                topic in item["title"].lower()
+                for topic in ["ai", "artificial intelligence"]
+            ):
+                suggestion_topics.extend(
+                    ["Tell me more about AI tools", "How do I start with AI?"]
+                )
+            elif any(
+                topic in item["title"].lower()
+                for topic in ["food", "cooking", "recipe"]
+            ):
+                suggestion_topics.extend(
+                    ["Show me cooking tips", "Suggest recipe ideas"]
+                )
+            elif any(
+                topic in item["title"].lower()
+                for topic in ["tech", "technology", "programming"]
+            ):
+                suggestion_topics.extend(
+                    ["Help with programming", "Latest tech trends"]
+                )
+
+        default_suggestions = [
+            "Tell me more about this topic",
+            "Show me related blog posts",
+            "Give me writing ideas about this",
+            "What else should I know?",
+        ]
+
+        suggested_next = (
+            suggestion_topics[:2] + default_suggestions[:2]
+            if suggestion_topics
+            else default_suggestions
+        )
+
+        return {
+            "answer": answer,
+            "sources": sources[:3],  # Return top 3 sources
+            "context_used": "conversational_with_blog_content",
+            "suggested_next": suggested_next,
+        }
+
+    except Exception as e:
+        logger.error(f"Conversational QA error: {e}")
+        return {
+            "answer": "I'm having trouble processing your question right now. Could you try rephrasing it or ask about something else?",
+            "sources": [],
+            "context_used": "error_fallback",
+            "suggested_next": [
+                "What is this website about?",
+                "Show me popular posts",
+                "Give me blog ideas",
+            ],
+        }
+
+
 @router.post("/rephrase-openai", response_model=RephraseResponse)
 async def rephrase_openai(request: RephraseRequest):
     if not config.OPENAI_API_KEY:
@@ -968,9 +1348,242 @@ async def summarize_text(request: SummarizeRequest):
         raise HTTPException(status_code=500, detail=f"Summarization error: {str(e)}")
 
 
+async def generate_blog_content_from_ai_knowledge(topic: str, style: str) -> str:
+    """
+    Generate blog content using AI's general knowledge when no relevant sources are found
+    """
+    try:
+        style_prompts = {
+            "comprehensive": f"""Write a comprehensive, well-structured blog post about "{topic}". 
+Write in plain text format suitable for a rich text editor. Structure the content clearly with:
+- Clear headings and subheadings
+- Well-organized paragraphs
+- Bullet points for lists
+- Easy to read formatting
+
+Do NOT use HTML tags, markdown (##, **, *, etc.), or SEO sections.
+Write 800-1000 words of engaging, informative content that users can format using editor tools.""",
+            "technical": f"""Write a technical deep-dive blog post about "{topic}". 
+Write in plain text format suitable for a rich text editor. Include:
+- Technical details and explanations
+- Code examples (without HTML tags)
+- Best practices and implementation tips
+- Clear structure with headings and sections
+
+Do NOT use HTML tags, markdown (##, **, `, etc.), or SEO sections.
+Write 1000-1200 words of technical content.""",
+            "beginner": f"""Write a beginner-friendly blog post about "{topic}". 
+Write in plain text format suitable for a rich text editor. Make it:
+- Easy to understand for beginners
+- Well-structured with clear sections
+- Include simple explanations and examples
+- Use friendly, approachable language
+
+Do NOT use HTML tags, markdown (##, **, etc.), or SEO sections.
+Write 600-800 words of beginner-friendly content.""",
+            "listicle": f"""Write an engaging listicle blog post about "{topic}". 
+Write in plain text format suitable for a rich text editor. Structure as:
+- Clear introduction
+- Numbered or bulleted list items
+- Brief explanations for each point
+- Actionable insights
+
+Do NOT use HTML tags, markdown (##, **, etc.), or SEO sections.
+Create 5-10 clear points in 600-800 words.""",
+            "tutorial": f"""Write a step-by-step tutorial blog post about "{topic}". 
+Write in plain text format suitable for a rich text editor. Include:
+- Clear step-by-step instructions
+- Prerequisites and setup information
+- Code examples (as plain text)
+- Practical, actionable guidance
+
+Do NOT use HTML tags, markdown (##, **, `, etc.), or SEO sections.
+Write 800-1000 words of tutorial content.""",
+        }
+
+        prompt = style_prompts.get(style, style_prompts["comprehensive"])
+        prompt += "\n\nCRITICAL: Return ONLY plain text content - no HTML tags, no markdown, no SEO recommendations. Write clean, readable text that users can format using rich text editor tools."
+
+        content = await make_groq_request(prompt, temperature=0.7, max_tokens=2000)
+
+        if content:
+            # Clean up any HTML tags or markdown formatting that might have slipped through
+            content = (
+                content.replace("<h2>", "")
+                .replace("</h2>", "")
+                .replace("<p>", "")
+                .replace("</p>", "")
+            )
+            content = content.replace("**", "").replace("##", "").replace("# ", "")
+            # Remove SEO sections if present
+            if (
+                "📝 SEO" in content
+                or "SEO Keywords" in content
+                or "Meta Description" in content
+            ):
+                lines = content.split("\n")
+                cleaned_lines = []
+                skip_seo = False
+                for line in lines:
+                    if any(
+                        seo_marker in line
+                        for seo_marker in [
+                            "📝 SEO",
+                            "SEO Keywords",
+                            "Meta Description",
+                            "Suggested Blog Title",
+                        ]
+                    ):
+                        skip_seo = True
+                        continue
+                    if not skip_seo:
+                        cleaned_lines.append(line)
+                content = "\n".join(cleaned_lines).strip()
+            return content
+        else:
+            return f"{topic}\n\nI'd be happy to help you write about {topic}. This is an interesting topic that deserves detailed coverage."
+
+    except Exception as e:
+        logger.error(f"Error generating AI content: {str(e)}")
+        return f"{topic}\n\nLet's explore {topic} together. This topic offers many interesting aspects to discuss."
+
+
+async def generate_blog_content(topic: str, style: str, context: str) -> str:
+    """
+    Generate comprehensive blog content with structure, SEO optimization, and writing guidance
+    """
+    # Blog writing templates based on style
+    style_templates = {
+        "comprehensive": {
+            "title": "Complete Guide to",
+            "structure": "## Introduction\n\n## Key Points\n\n## Detailed Analysis\n\n## Best Practices\n\n## Conclusion",
+            "tone": "comprehensive and authoritative",
+            "seo_focus": "long-form, detailed content with subheadings",
+        },
+        "technical": {
+            "title": "Technical Deep Dive:",
+            "structure": "## Overview\n\n## Technical Details\n\n## Implementation\n\n## Code Examples\n\n## Troubleshooting\n\n## Summary",
+            "tone": "technical and precise",
+            "seo_focus": "technical keywords and implementation details",
+        },
+        "beginner": {
+            "title": "Beginner's Guide to",
+            "structure": "## What is it?\n\n## Why it matters\n\n## Step-by-step guide\n\n## Common mistakes\n\n## Next steps",
+            "tone": "friendly and accessible",
+            "seo_focus": "beginner-friendly terms and step-by-step guidance",
+        },
+        "listicle": {
+            "title": "Top 10 Things About",
+            "structure": "## Introduction\n\n## 1. First Point\n\n## 2. Second Point\n\n...\n\n## Conclusion",
+            "tone": "engaging and scannable",
+            "seo_focus": "numbered lists and actionable points",
+        },
+        "tutorial": {
+            "title": "How to",
+            "structure": "## What you'll learn\n\n## Prerequisites\n\n## Step 1\n\n## Step 2\n\n## Step 3\n\n## Troubleshooting\n\n## Conclusion",
+            "tone": "instructional and clear",
+            "seo_focus": "how-to keywords and step-by-step process",
+        },
+    }
+
+    template = style_templates.get(style, style_templates["comprehensive"])
+
+    # Advanced prompt for blog content generation
+    prompt = f"""You are an expert blog writer creating content for a rich text editor. Create a comprehensive blog post about "{topic}".
+
+CRITICAL FORMATTING REQUIREMENTS:
+- Write in plain text format suitable for rich text editor
+- Do NOT use HTML tags or markdown (##, **, *, etc.)
+- Do NOT include SEO recommendations or meta descriptions
+- Structure content with clear headings and sections
+
+WRITING REQUIREMENTS:
+- Style: {template["tone"]}
+- Target Length: 1000-1500 words
+- Include actionable insights and practical examples
+
+CONTENT GUIDELINES:
+1. Start with engaging introduction
+2. Use clear headings and subheadings
+3. Include bullet points and numbered lists (as plain text)
+4. Add practical examples and real-world applications
+5. End with strong conclusion
+
+AVAILABLE RESEARCH MATERIAL:
+{context}
+
+Return ONLY clean, readable text content - no HTML tags, no markdown, no SEO sections.
+
+"""
+
+    try:
+        # Generate blog content using Groq
+        url = "https://api.groq.com/openai/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {config.GROQ_API_KEY}",
+            "Content-Type": "application/json",
+        }
+
+        payload = {
+            "model": "llama-3.1-8b-instant",
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are an expert blog writer and content strategist. Create engaging, well-structured blog content in plain text format suitable for rich text editors. Focus on providing valuable, readable content without HTML tags or markdown.",
+                },
+                {"role": "user", "content": prompt},
+            ],
+            "max_tokens": 1200,
+            "temperature": 0.7,
+        }
+
+        resp = requests.post(url, headers=headers, json=payload, timeout=30)
+        resp.raise_for_status()
+        data = resp.json()
+        blog_content = data["choices"][0]["message"]["content"].strip()
+
+        # Clean up any HTML tags or markdown formatting
+        blog_content = (
+            blog_content.replace("<h2>", "")
+            .replace("</h2>", "")
+            .replace("<p>", "")
+            .replace("</p>", "")
+        )
+        blog_content = (
+            blog_content.replace("**", "").replace("##", "").replace("# ", "")
+        )
+
+        # Remove any SEO sections that might have been added
+        if "📝 SEO" in blog_content or "SEO Keywords" in blog_content:
+            lines = blog_content.split("\n")
+            cleaned_lines = []
+            skip_seo = False
+            for line in lines:
+                if any(
+                    seo_marker in line
+                    for seo_marker in [
+                        "📝 SEO",
+                        "SEO Keywords",
+                        "Meta Description",
+                        "Suggested Blog Title",
+                    ]
+                ):
+                    skip_seo = True
+                    continue
+                if not skip_seo:
+                    cleaned_lines.append(line)
+            blog_content = "\n".join(cleaned_lines).strip()
+
+        return blog_content
+
+    except Exception as e:
+        logger.error(f"Error generating blog content: {str(e)}")
+        return f"Error generating blog content for '{topic}'. Please try again with a different topic or style."
+
+
 @router.post("/topic-summary", response_model=TopicSummaryResponse)
 async def topic_summary(request: TopicSummaryRequest):
-    """Generate a comprehensive summary on a specific topic using all available sources"""
+    """AI-powered blog writing assistant: Generate comprehensive blog content with structure, SEO, and multiple formats"""
     try:
         # 1. Search for content related to the topic
         topic_embedding = embedding_model.encode([request.topic])[0]
@@ -990,38 +1603,55 @@ async def topic_summary(request: TopicSummaryRequest):
                 "total_sources_found": 0,
             }
 
-        # 2. Group and prioritize content by source (blog only)
-        source_content = {"blog": []}
+        # 2. Group and prioritize content by source with flexible matching
+        source_content = {"blog": [], "other": []}
         all_content = []
         sources_used = set()
 
         for i, metadata in enumerate(results["metadatas"][0]):
-            source_type = metadata.get("source", "unknown")
+            source_type = metadata.get("source", metadata.get("source_type", "blog"))
             document = results["documents"][0][i]
             distance = results["distances"][0][i]
 
-            # Only include blog content
-            if (
-                source_type == "blog" and distance < 0.7
-            ):  # Only include relevant content
+            # Use flexible distance thresholds - much more permissive
+            relevance_threshold = 1.5  # Allow much higher distances
+
+            if distance < relevance_threshold:
                 content_item = {
                     "source": source_type,
                     "title": metadata.get("title", "Untitled"),
                     "content": document,
-                    "relevance": 1 - distance,
+                    "relevance": max(0, 1 - (distance / 2)),  # Normalize relevance
                     "priority": get_data_source_priority(metadata),
+                    "distance": distance,
                 }
 
                 all_content.append(content_item)
                 sources_used.add(source_type)
-                source_content[source_type].append(content_item)
 
+                if source_type == "blog":
+                    source_content["blog"].append(content_item)
+                else:
+                    source_content["other"].append(content_item)
+
+        # If still no content, generate using AI's general knowledge
         if not all_content:
+            logger.info(
+                f"No relevant content found for '{request.topic}', generating from AI knowledge"
+            )
+
+            # Generate comprehensive blog content using AI's general knowledge
+            ai_generated_content = await generate_blog_content_from_ai_knowledge(
+                request.topic, request.summary_style
+            )
+
             return {
                 "topic": request.topic,
-                "summary": f"No sufficiently relevant information found about '{request.topic}'.",
-                "sources_used": [],
-                "total_sources_found": len(results["metadatas"][0]),
+                "summary": ai_generated_content,
+                "blog_content": ai_generated_content,
+                "sources_used": ["AI General Knowledge"],
+                "total_sources_found": 0,
+                "note": "Generated using AI general knowledge - no specific sources found in knowledge base",
             }
 
         # 3. Sort by priority and relevance
@@ -1047,53 +1677,14 @@ async def topic_summary(request: TopicSummaryRequest):
 
         context = "".join(context_parts)
 
-        # 5. Build style-specific prompt
-        style_instructions = {
-            "comprehensive": "Provide a comprehensive overview covering all major aspects",
-            "technical": "Focus on technical details, implementations, and best practices",
-            "beginner": "Explain in simple terms suitable for beginners, avoiding jargon",
-        }
-
-        style_instruction = style_instructions.get(
-            request.summary_style, style_instructions["comprehensive"]
+        # 5. Generate AI-powered blog content
+        blog_content = await generate_blog_content(
+            request.topic, request.summary_style, context
         )
-
-        prompt = (
-            f"Create a detailed summary about '{request.topic}' using the provided information from multiple sources. "
-            f"{style_instruction}. "
-            f"Organize the information logically and mention when information comes from different types of sources.\n\n"
-            f"Available information:\n{context}\n\n"
-            f"Topic: {request.topic}\n"
-            f"Summary:"
-        )
-
-        # 6. Generate summary using Groq
-        url = "https://api.groq.com/openai/v1/chat/completions"
-        headers = {
-            "Authorization": f"Bearer {config.GROQ_API_KEY}",
-            "Content-Type": "application/json",
-        }
-        payload = {
-            "model": "llama-3.1-8b-instant",
-            "messages": [
-                {
-                    "role": "system",
-                    "content": "You are an expert knowledge synthesizer. Create comprehensive, well-structured summaries that integrate information from multiple sources effectively.",
-                },
-                {"role": "user", "content": prompt},
-            ],
-            "max_tokens": 600,
-            "temperature": 0.6,
-        }
-
-        resp = requests.post(url, headers=headers, json=payload, timeout=30)
-        resp.raise_for_status()
-        data = resp.json()
-        summary = data["choices"][0]["message"]["content"].strip()
 
         return {
             "topic": request.topic,
-            "summary": summary,
+            "summary": blog_content,
             "sources_used": list(sources_used),
             "total_sources_found": len(results["metadatas"][0]),
         }
